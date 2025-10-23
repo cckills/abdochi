@@ -102,8 +102,13 @@ export default async function handler(req, res) {
     }
 
     // 🔹 فلترة النتائج لتطابق كلمة البحث بالكامل
-    const searchTerm = phone.toLowerCase();
-    let filteredResults = results.filter(item => item.title.toLowerCase().includes(searchTerm));
+// 🔹 فلترة النتائج لتطابق كلمة البحث في العنوان أو الموديل
+const searchTerm = phone.toLowerCase();
+let filteredResults = results.filter(item => {
+  const title = item.title.toLowerCase();
+  const model = (item.model || "").toLowerCase(); // إذا كان لديك موديل
+  return title.includes(searchTerm) || model.includes(searchTerm);
+});
 
     // 🔹 ترتيب النتائج بحيث تبدأ الأجهزة الأقرب لاسم البحث أولاً
     filteredResults.sort((a,b)=>{
