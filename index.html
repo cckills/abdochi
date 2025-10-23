@@ -377,9 +377,7 @@ form.addEventListener("submit", async(e)=>{
       <span class="chipset-badge" data-tooltip="${item.chipsetTooltip||`المعالج ${item.chipset||'غير معروف'} — اضغط لعرض مزيد من التفاصيل.`}">${item.chipset||"غير محدد"}</span>
     </p>
     ${item.model ? `<p class="mb-2"><strong>الموديل/الطراز:</strong> <span class="model-badge">${item.model}</span></p>` : ""}
-  </div>
-</div>
-              
+      
             </div>
           </div>
         </div>`;
@@ -452,3 +450,4 @@ const card = e.target.closest(".phone-card");
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
