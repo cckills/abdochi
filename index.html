@@ -442,7 +442,7 @@ document.addEventListener("mouseover",(e)=>{
 // 🟢 فتح مودال المواصفات بالصورة من بطاقة البحث
 // الضغط على البطاقة نفسها
 resultDiv.addEventListener("click",(e)=>{
-  const card = e.target.closest(".phone-card-content");
+const card = e.target.closest(".phone-card");
   if(!card) return;
   getDetails(card.dataset.url, card.dataset.img);
 });
@@ -452,4 +452,3 @@ resultDiv.addEventListener("click",(e)=>{
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
