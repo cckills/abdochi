@@ -366,26 +366,30 @@ form.addEventListener("submit", async(e)=>{
 
 
 if(!data.mode || data.mode==="list"){
-  let cards="<div class='row justify-content-start g-3'>";
+  let cards = "<div class='row justify-content-start g-3'>";
   for(const item of data.results){
-    cards+=`
+    cards += `
     <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
-      <div class="card phone-card shadow-sm rounded-4 h-100" data-url="${item.link}" data-img="${item.img||''}" style="cursor:pointer; transition: transform 0.3s, box-shadow 0.3s;">
-        ${item.img?`<img src="${item.img}" class="card-img-top rounded-top" style="height:180px; object-fit:cover;" alt="${item.title}">`:""}
+      <div class="card phone-card shadow-sm rounded-4 h-100" 
+           data-url="${item.link}" 
+           data-img="${item.img||''}" 
+           style="cursor:pointer; transition: transform 0.3s, box-shadow 0.3s;">
+        
+        ${item.img ? `<img src="${item.img}" class="card-img-top rounded-top" style="height:180px; object-fit:cover;" alt="${item.title}">` : ""}
+
         <div class="card-body text-center d-flex flex-column">
           <h6 class="card-title fw-bold mb-2">${item.title}</h6>
-          <p class="text-muted mb-2">
-            <strong>المعالج:</strong>
-            <span class="chipset-badge" data-tooltip="${item.chipsetTooltip||`المعالج ${item.chipset||'غير معروف'}`}">${item.chipset||"غير محدد"}</span>
-          </p>
-          ${item.model ? `<p class="mb-2"><span class="model-badge">الموديل/الطراز: ${item.model}</span></p>` : ""}
+
+          ${item.chipset ? `<p class="mb-2"><strong>المعالج:</strong> <span class="chipset-badge">${item.chipset}</span></p>` : ""}
+          ${item.model ? `<p class="mb-2"><strong>الموديل/الطراز:</strong> <span class="model-badge">${item.model}</span></p>` : ""}
         </div>
       </div>
     </div>`;
   }
-  cards+="</div>";
+  cards += "</div>";
   resultDiv.innerHTML = cards;
 }
+
 
 
     else if(data.mode==="details"){
@@ -452,5 +456,6 @@ const card = e.target.closest(".phone-card");
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
 
