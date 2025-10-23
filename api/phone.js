@@ -77,20 +77,16 @@ export default async function handler(req, res) {
                 shortChipset = match ? match[0].trim() : fullChipset;
               }
 
-              // 🔹 جلب موديل/طراز الجهاز من جدول المواصفات أو من <li> في قسم "أخرى"
+              // 🔹 جلب موديل/طراز الجهاز إن وجد من جدول أو قائمة
               let model =
                 $$("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
                 $$("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
                 "";
 
-              // البحث في العناصر الأخرى عن <li> يحتوي على "الموديل / الطراز"
-              if (!model) {
-                $$("li.list-group-item").each((i, li) => {
-                  const strongText = $$(li).find("strong").text().trim();
-                  if (/الموديل\s*\/\s*الطراز/.test(strongText)) {
-                    model = $$(li).find("span").text().trim();
-                  }
-                });
+              // 🔹 محاولة جلب الموديل من قائمة أخرى إذا كانت موجودة
+              if(!model){
+                const listModel = $$("li:contains('الموديل / الطراز') span").text().trim();
+                if(listModel) model = listModel;
               }
 
               results.push({
@@ -98,7 +94,7 @@ export default async function handler(req, res) {
                 link,
                 img,
                 chipset: shortChipset || "غير محدد",
-                model: model || "", // دمج الموديل/الطراز
+                model: model || "", // إضافة الموديل هنا
                 source: "telfonak.com",
               });
             }
@@ -114,11 +110,18 @@ export default async function handler(req, res) {
 
     const searchTerm = phone.toLowerCase();
 
-    // 🔹 فلترة النتائج لتطابق كلمة البحث في العنوان أو الموديل
-    let filteredResults = results.filter(item =>
-      item.title.toLowerCase().includes(searchTerm) ||
-      (item.model && item.model.toLowerCase().includes(searchTerm))
-    );
+    // 🔹 فلترة النتائج لتطابق كلمة البحث في العنوان أو أي موديل مفصول بفواصل
+    let filteredResults = results.filter(item => {
+      const titleMatch = item.title.toLowerCase().includes(searchTerm);
+
+      let modelMatch = false;
+      if(item.model){
+        const models = item.model.split(",").map(m => m.trim().toLowerCase());
+        modelMatch = models.some(m => m.includes(searchTerm));
+      }
+
+      return titleMatch || modelMatch;
+    });
 
     // 🔹 ترتيب النتائج بحيث تبدأ الأجهزة الأقرب لاسم البحث أولاً
     filteredResults.sort((a,b)=>{
