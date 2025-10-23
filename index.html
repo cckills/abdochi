@@ -378,20 +378,22 @@ if(!data.mode || data.mode==="list"){
   for(const item of data.results){
     cards += `
     <div class="col-6 col-sm-4 col-md-3 col-lg-custom mb-4">
-      <div class="card phone-card shadow-sm rounded-4 h-100 position-relative" 
+      <div class="card phone-card shadow-sm rounded-4 h-100 position-relative overflow-hidden" 
            data-url="${item.link}" 
            data-img="${item.img||''}" 
-           style="cursor:pointer; transition: transform 0.3s, box-shadow 0.3s;">
+           style="cursor:pointer; transition: transform 0.3s, box-shadow 0.3s; overflow: hidden;">
            
         ${item.img ? `<img src="${item.img}" class="card-img-top rounded-top" style="height:180px; object-fit:cover;" alt="${item.title}">` : ""}
 
-        <div class="card-body text-center d-flex flex-column">
+        <div class="card-body text-center d-flex flex-column position-relative" style="overflow: hidden;">
           <h6 class="card-title fw-bold mb-3">${item.title}</h6>
 
           <!-- ✅ المعالج والموديل في نفس السطر -->
-          <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
+          <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap text-muted small">
+            
             <!-- المعالج -->
-            <span class="chipset-badge position-relative" style="text-decoration:underline; cursor:pointer;">
+            <span class="chipset-badge position-relative" 
+                  style="text-decoration:underline; cursor:pointer; position:relative; display:inline-block;">
               المعالج: ${item.chipset || "غير محدد"}
               <span class="tooltip position-absolute" style="
                 bottom: 130%; 
@@ -401,18 +403,22 @@ if(!data.mode || data.mode==="list"){
                 color: #fff; 
                 padding: 6px 10px; 
                 border-radius: 8px; 
-                white-space: nowrap; 
+                max-width: 90%; 
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
                 opacity: 0; 
                 pointer-events: none; 
-                transition: 0.3s;
-                z-index:10;">
+                transition: opacity 0.3s, bottom 0.3s;
+                z-index: 5;">
                 ${item.chipsetTooltip || item.chipset || 'غير معروف'}
               </span>
             </span>
 
             <!-- الموديل -->
             ${item.model ? `
-            <span class="model-badge position-relative" style="text-decoration:underline; cursor:pointer;">
+            <span class="model-badge position-relative" 
+                  style="text-decoration:underline; cursor:pointer; display:inline-block;">
               الموديل: ${item.model}
               <span class="tooltip position-absolute" style="
                 bottom: 130%; 
@@ -422,22 +428,37 @@ if(!data.mode || data.mode==="list"){
                 color: #fff; 
                 padding: 6px 10px; 
                 border-radius: 8px; 
-                white-space: nowrap; 
+                max-width: 90%; 
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
                 opacity: 0; 
                 pointer-events: none; 
-                transition: 0.3s;
-                z-index:10;">
+                transition: opacity 0.3s, bottom 0.3s;
+                z-index: 5;">
                 ${item.modelTooltip || item.model || 'غير معروف'}
               </span>
             </span>` : ""}
           </div>
-
         </div>
       </div>
     </div>`;
   }
   cards += "</div>";
   resultDiv.innerHTML = cards;
+
+  // 🧩 تفعيل التلميحات عند المرور
+  document.querySelectorAll('.chipset-badge, .model-badge').forEach(el=>{
+    el.addEventListener('mouseenter', ()=>{
+      const tip = el.querySelector('.tooltip');
+      if(tip){ tip.style.opacity = '1'; tip.style.bottom = '150%'; }
+    });
+    el.addEventListener('mouseleave', ()=>{
+      const tip = el.querySelector('.tooltip');
+      if(tip){ tip.style.opacity = '0'; tip.style.bottom = '130%'; }
+    });
+  });
+
 
   // سكربت تفعيل التلميحات
   document.querySelectorAll('.chipset-badge, .model-badge').forEach(badge=>{
