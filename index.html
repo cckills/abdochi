@@ -337,7 +337,7 @@ async function getDetails(url, phoneImg) {
     modalBody.innerHTML = `
       <ul class="nav nav-tabs justify-content-center flex-wrap" id="specTabs" role="tablist">${navTabs}</ul>
       <div class="tab-content p-3 border border-top-0 rounded-bottom bg-light mt-1" id="specTabsContent">${tabContents}</div>
-      <a href="${data.source}" target="_blank" class="btn btn-outline-primary mt-3 w-100 fw-bold">🌐 عرض على موقع المصدر</a>
+     // <a href="${data.source}" target="_blank" class="btn btn-outline-primary mt-3 w-100 fw-bold">🌐 عرض على موقع المصدر</a>
     `;
 
     new bootstrap.Modal(document.getElementById('specsModal')).show();
@@ -377,10 +377,10 @@ if(!data.mode || data.mode==="list"){
           <h6 class="card-title fw-bold mb-2">${item.title}</h6>
           <p class="text-muted mb-2">
             <strong>المعالج:</strong>
-            <span class="chipset-badge" data-tooltip="${item.chipsetTooltip||`المعالج ${item.chipset||'غير معروف'} — اضغط لعرض مزيد من التفاصيل.`}">${item.chipset||"غير محدد"}</span>
+           // <span class="chipset-badge" data-tooltip="${item.chipsetTooltip||`المعالج ${item.chipset||'غير معروف'} — اضغط لعرض مزيد من التفاصيل.`}">${item.chipset||"غير محدد"}</span>
           </p>
           ${item.model ? `<p class="mb-2"><span class="model-badge">الموديل/الطراز: ${item.model}</span></p>` : ""}
-          <button class="btn btn-sm btn-primary mt-auto" onclick="getDetails('${item.link}','${item.img||''}')">عرض التفاصيل</button>
+        //  <button class="btn btn-sm btn-primary mt-auto" onclick="getDetails('${item.link}','${item.img||''}')">عرض التفاصيل</button>
         </div>
       </div>
     </div>`;
@@ -399,7 +399,7 @@ if(!data.mode || data.mode==="list"){
         <div class="card-body">
           <h4>${data.title}</h4>
           <ul>${specsHtml}</ul>
-          <a href="${data.source}" target="_blank" class="btn btn-outline-primary mt-2">عرض على موقع المصدر</a>
+//<a href="${data.source}" target="_blank" class="btn btn-outline-primary mt-2">عرض على موقع المصدر</a>
         </div>
       </div>`;
     }
