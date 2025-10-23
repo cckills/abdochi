@@ -374,66 +374,69 @@ form.addEventListener("submit", async(e)=>{
     if(data.error){ resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${data.error}</div>`; return; }
 
 if(!data.mode || data.mode==="list"){
-  let cards="<div class='row justify-content-start g-3'>";
+  let cards = "<div class='row justify-content-start g-3'>";
   for(const item of data.results){
-    cards+=`
+    cards += `
     <div class="col-6 col-sm-4 col-md-3 col-lg-custom mb-4">
+      <div class="card phone-card shadow-sm rounded-4 h-100 position-relative" 
+           data-url="${item.link}" 
+           data-img="${item.img||''}" 
+           style="cursor:pointer; transition: transform 0.3s, box-shadow 0.3s;">
+           
+        ${item.img ? `<img src="${item.img}" class="card-img-top rounded-top" style="height:180px; object-fit:cover;" alt="${item.title}">` : ""}
 
-      <div class="card phone-card shadow-sm rounded-4 h-100 position-relative" data-url="${item.link}" data-img="${item.img||''}" style="cursor:pointer; transition: transform 0.3s, box-shadow 0.3s;">
-        ${item.img?`<img src="${item.img}" class="card-img-top rounded-top" style="height:180px; object-fit:cover;" alt="${item.title}">`:""}
         <div class="card-body text-center d-flex flex-column">
-          <h6 class="card-title fw-bold mb-2">${item.title}</h6>
+          <h6 class="card-title fw-bold mb-3">${item.title}</h6>
 
-          <!-- التلميح للمعالج -->
-          <p class="text-muted mb-2 position-relative">
-            <strong>المعالج:</strong>
-            <span class="chipset-badge" style="text-decoration:underline; cursor:pointer; position:relative;">
-              ${item.chipset||"غير محدد"}
+          <!-- ✅ المعالج والموديل في نفس السطر -->
+          <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
+            <!-- المعالج -->
+            <span class="chipset-badge position-relative" style="text-decoration:underline; cursor:pointer;">
+              المعالج: ${item.chipset || "غير محدد"}
               <span class="tooltip position-absolute" style="
-                bottom: 100%; 
+                bottom: 130%; 
                 left: 50%; 
                 transform: translateX(-50%); 
                 background: #0d6efd; 
                 color: #fff; 
-                padding: 5px 10px; 
+                padding: 6px 10px; 
                 border-radius: 8px; 
                 white-space: nowrap; 
                 opacity: 0; 
                 pointer-events: none; 
-                transition: 0.3s;">
+                transition: 0.3s;
+                z-index:10;">
                 ${item.chipsetTooltip || item.chipset || 'غير معروف'}
               </span>
             </span>
-          </p>
 
-          <!-- التلميح للموديل/الطراز -->
-          ${item.model ? `
-          <p class="mb-2 position-relative">
-            <strong>الموديل/الطراز:</strong>
-            <span class="model-badge" style="text-decoration:underline; cursor:pointer; position:relative;">
-              ${item.model}
+            <!-- الموديل -->
+            ${item.model ? `
+            <span class="model-badge position-relative" style="text-decoration:underline; cursor:pointer;">
+              الموديل: ${item.model}
               <span class="tooltip position-absolute" style="
-                bottom: 100%; 
+                bottom: 130%; 
                 left: 50%; 
                 transform: translateX(-50%); 
                 background: #198754; 
                 color: #fff; 
-                padding: 5px 10px; 
+                padding: 6px 10px; 
                 border-radius: 8px; 
                 white-space: nowrap; 
                 opacity: 0; 
                 pointer-events: none; 
-                transition: 0.3s;">
+                transition: 0.3s;
+                z-index:10;">
                 ${item.modelTooltip || item.model || 'غير معروف'}
               </span>
-            </span>
-          </p>` : ""}
+            </span>` : ""}
+          </div>
 
         </div>
       </div>
     </div>`;
   }
-  cards+="</div>";
+  cards += "</div>";
   resultDiv.innerHTML = cards;
 
   // سكربت تفعيل التلميحات
