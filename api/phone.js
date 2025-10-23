@@ -77,18 +77,28 @@ export default async function handler(req, res) {
                 shortChipset = match ? match[0].trim() : fullChipset;
               }
 
-              // 🔹 جلب موديل/طراز الجهاز إن وجد
-              const model =
+              // 🔹 جلب موديل/طراز الجهاز من جدول المواصفات أو من <li> في قسم "أخرى"
+              let model =
                 $$("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
                 $$("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
                 "";
+
+              // البحث في العناصر الأخرى عن <li> يحتوي على "الموديل / الطراز"
+              if (!model) {
+                $$("li.list-group-item").each((i, li) => {
+                  const strongText = $$(li).find("strong").text().trim();
+                  if (/الموديل\s*\/\s*الطراز/.test(strongText)) {
+                    model = $$(li).find("span").text().trim();
+                  }
+                });
+              }
 
               results.push({
                 title,
                 link,
                 img,
                 chipset: shortChipset || "غير محدد",
-                model: model || "", // إضافة الموديل هنا
+                model: model || "", // دمج الموديل/الطراز
                 source: "telfonak.com",
               });
             }
@@ -134,7 +144,7 @@ export default async function handler(req, res) {
     }
 
     res.status(404).json({
-      error: "❌ لم يتم العثور على أي نتائج لهذا الاسم في الموقع.",
+      error: "❌ ❌ لم يتم العثور على أي نتائج لهذا الاسم أو الموديل في الموقع.",
     });
   } catch (err) {
     console.error("⚠️ خطأ أثناء الجلب:", err);
