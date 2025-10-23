@@ -392,7 +392,7 @@ if (!data.mode || data.mode === "list") {
         <div class="card-body text-center d-flex flex-column position-relative" style="overflow: visible; z-index: 2;">
           <h6 class="card-title fw-bold mb-3">${item.title}</h6>
 
-          <!-- ✅ المعالج والموديل -->
+          <!-- ✅ المعالج والموديل في نفس السطر -->
           <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap text-muted small">
 
             <!-- المعالج -->
@@ -407,12 +407,14 @@ if (!data.mode || data.mode === "list") {
                 color: #fff; 
                 padding: 10px 14px; 
                 border-radius: 10px; 
-                max-width: 95%; 
+                max-width: 260px; 
                 white-space: normal; 
-                word-break: break-word;
+                word-wrap: break-word;
+                line-height: 1.5;
+                text-align: center;
                 opacity: 0; 
                 pointer-events: none; 
-                box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+                box-shadow: 0 6px 16px rgba(0,0,0,0.25);
                 transition: all 0.3s ease;
                 z-index: 9999;">
                 ${item.chipsetTooltip || item.chipset || 'غير معروف'}
@@ -432,12 +434,14 @@ if (!data.mode || data.mode === "list") {
                 color: #fff; 
                 padding: 10px 14px; 
                 border-radius: 10px; 
-                max-width: 95%; 
+                max-width: 260px; 
                 white-space: normal; 
-                word-break: break-word;
+                word-wrap: break-word; 
+                line-height: 1.5;
+                text-align: center;
                 opacity: 0; 
                 pointer-events: none; 
-                box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+                box-shadow: 0 6px 16px rgba(0,0,0,0.25);
                 transition: all 0.3s ease;
                 z-index: 9999;">
                 ${item.modelTooltip || item.model || 'غير معروف'}
@@ -452,7 +456,7 @@ if (!data.mode || data.mode === "list") {
   cards += "</div>";
   resultDiv.innerHTML = cards;
 
-  // 🧩 تفعيل التلميحات العائمة
+  // 🧩 تفعيل التلميحات العائمة عند المرور
   document.querySelectorAll('.chipset-badge, .model-badge').forEach(el => {
     const tooltip = el.querySelector('.tooltip');
     if (!tooltip) return;
@@ -469,6 +473,7 @@ if (!data.mode || data.mode === "list") {
       tooltip.style.bottom = '120%';
     });
   });
+
 
   // سكربت تفعيل التلميحات
   document.querySelectorAll('.chipset-badge, .model-badge').forEach(badge=>{
