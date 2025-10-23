@@ -1,9 +1,14 @@
 import * as cheerio from "cheerio";
 
 export default async function handler(req, res) {
-  const { phone } = req.query;
+  const { phone, searchType } = req.query;
+  
   if (!phone)
     return res.status(400).json({ error: "يرجى إدخال اسم الهاتف." });
+
+  if (!searchType || !["model", "name"].includes(searchType)) {
+    return res.status(400).json({ error: "يرجى تحديد نوع البحث (model أو name)." });
+  }
 
   try {
     const results = [];
@@ -104,14 +109,20 @@ export default async function handler(req, res) {
 
     const searchTerm = phone.toLowerCase();
 
-    // 🔹 فلترة النتائج لتطابق كلمة البحث في العنوان أو الموديل
-    let filteredResults = results.filter(item =>
-      item.title.toLowerCase().includes(searchTerm) ||
-      (item.model && item.model.toLowerCase().includes(searchTerm))
-    );
+    // 🔹 فلترة النتائج بناءً على نوع البحث (الموديل أو الاسم)
+    let filteredResults = [];
+    if (searchType === "name") {
+      filteredResults = results.filter(item =>
+        item.title.toLowerCase().includes(searchTerm)
+      );
+    } else if (searchType === "model") {
+      filteredResults = results.filter(item =>
+        item.model.toLowerCase().includes(searchTerm)
+      );
+    }
 
     // 🔹 ترتيب النتائج بحيث تبدأ الأجهزة الأقرب لاسم البحث أولاً
-    filteredResults.sort((a,b)=>{
+    filteredResults.sort((a, b) => {
       const titleA = a.title.toLowerCase();
       const titleB = b.title.toLowerCase();
       const startA = titleA.startsWith(searchTerm) || (a.model && a.model.toLowerCase().startsWith(searchTerm)) ? 0 : 1;
@@ -122,7 +133,7 @@ export default async function handler(req, res) {
     // 🔹 إزالة النتائج المكررة حسب العنوان والموديل
     const uniqueResultsMap = new Map();
     for (const item of filteredResults) {
-      const key = `${item.title.toLowerCase().trim()}|${(item.model||"").toLowerCase().trim()}`;
+      const key = `${item.title.toLowerCase().trim()}|${(item.model || "").toLowerCase().trim()}`;
       if (!uniqueResultsMap.has(key)) uniqueResultsMap.set(key, item);
     }
     const uniqueResults = Array.from(uniqueResultsMap.values());
