@@ -101,13 +101,26 @@ export default async function handler(req, res) {
       page++;
     }
 
-    // ✅ إذا وجدنا نتائج، نرسلها فوراً
-    if (results.length > 0) {
-      res.status(200).json({ mode: "list", results });
+    // 🔹 فلترة النتائج لتطابق كلمة البحث بالكامل
+    const searchTerm = phone.toLowerCase();
+    let filteredResults = results.filter(item => item.title.toLowerCase().includes(searchTerm));
+
+    // 🔹 ترتيب النتائج بحيث تبدأ الأجهزة الأقرب لاسم البحث أولاً
+    filteredResults.sort((a,b)=>{
+      const titleA = a.title.toLowerCase();
+      const titleB = b.title.toLowerCase();
+      const startA = titleA.startsWith(searchTerm) ? 0 : 1;
+      const startB = titleB.startsWith(searchTerm) ? 0 : 1;
+      return startA - startB;
+    });
+
+    // ✅ إرسال النتائج بعد الفلترة والترتيب
+    if (filteredResults.length > 0) {
+      res.status(200).json({ mode: "list", results: filteredResults });
       return;
     }
 
-    // 🚫 لا نحاول بناء رابط مباشر مثل https://telfonak.com/y9/
+    // 🚫 لا توجد نتائج
     res.status(404).json({
       error: "❌ لم يتم العثور على أي نتائج لهذا الاسم في الموقع.",
     });
