@@ -115,10 +115,19 @@ export default async function handler(req, res) {
     });
 
     // ✅ إرسال النتائج بعد الفلترة والترتيب
-    if (filteredResults.length > 0) {
-      res.status(200).json({ mode: "list", results: filteredResults });
-      return;
-    }
+ // 🔹 إزالة النتائج المكررة حسب العنوان
+const uniqueResultsMap = new Map();
+for (const item of filteredResults) {
+  const key = item.title.toLowerCase().trim();
+  if (!uniqueResultsMap.has(key)) uniqueResultsMap.set(key, item);
+}
+const uniqueResults = Array.from(uniqueResultsMap.values());
+
+// ✅ إرسال النتائج بعد الفلترة والترتيب وإزالة التكرار
+if (uniqueResults.length > 0) {
+  res.status(200).json({ mode: "list", results: uniqueResults });
+  return;
+}
 
     // 🚫 لا توجد نتائج
     res.status(404).json({
@@ -129,3 +138,4 @@ export default async function handler(req, res) {
     res.status(500).json({ error: "حدث خطأ أثناء جلب البيانات." });
   }
 }
+
