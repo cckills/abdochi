@@ -373,43 +373,48 @@ form.addEventListener("submit", async(e)=>{
     const data = await res.json();
     if(data.error){ resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${data.error}</div>`; return; }
 
-if(!data.mode || data.mode==="list"){
+if (!data.mode || data.mode === "list") {
   let cards = "<div class='row justify-content-start g-3'>";
-  for(const item of data.results){
+  for (const item of data.results) {
     cards += `
     <div class="col-6 col-sm-4 col-md-3 col-lg-custom mb-4">
-      <div class="card phone-card shadow-sm rounded-4 h-100 position-relative overflow-hidden" 
+      <div class="card phone-card shadow-sm rounded-4 h-100 position-relative" 
            data-url="${item.link}" 
-           data-img="${item.img||''}" 
-           style="cursor:pointer; transition: transform 0.3s, box-shadow 0.3s; overflow: hidden;">
+           data-img="${item.img || ''}" 
+           style="cursor:pointer; transition: transform 0.3s, box-shadow 0.3s;">
            
-        ${item.img ? `<img src="${item.img}" class="card-img-top rounded-top" style="height:180px; object-fit:cover;" alt="${item.title}">` : ""}
+        ${item.img ? `
+          <div class="card-img-wrapper position-relative" style="z-index: 1;">
+            <img src="${item.img}" class="card-img-top rounded-top" style="height:180px; object-fit:cover;" alt="${item.title}">
+          </div>
+        ` : ""}
 
-        <div class="card-body text-center d-flex flex-column position-relative" style="overflow: hidden;">
+        <div class="card-body text-center d-flex flex-column position-relative" style="overflow: visible; z-index: 2;">
           <h6 class="card-title fw-bold mb-3">${item.title}</h6>
 
-          <!-- ✅ المعالج والموديل في نفس السطر -->
-          <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap text-muted small">
+          <!-- ✅ المعالج والموديل -->
+          <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap text-muted small">
 
             <!-- المعالج -->
             <span class="chipset-badge position-relative" 
-                  style="text-decoration:underline; cursor:pointer; position:relative; display:inline-block;">
+                  style="text-decoration:underline; cursor:pointer; display:inline-block; z-index: 20;">
               المعالج: ${item.chipset || "غير محدد"}
               <span class="tooltip position-absolute" style="
-                bottom: 130%; 
+                bottom: 120%; 
                 left: 50%; 
-                transform: translateX(-50%); 
-                background: #0d6efd; 
+                transform: translateX(-50%) scale(0.9); 
+                background: rgba(13,110,253,0.95); 
                 color: #fff; 
-                padding: 8px 12px; 
-                border-radius: 8px; 
-                max-width: 90%; 
+                padding: 10px 14px; 
+                border-radius: 10px; 
+                max-width: 95%; 
                 white-space: normal; 
                 word-break: break-word;
                 opacity: 0; 
                 pointer-events: none; 
-                transition: opacity 0.3s, bottom 0.3s;
-                z-index: 5;">
+                box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+                transition: all 0.3s ease;
+                z-index: 9999;">
                 ${item.chipsetTooltip || item.chipset || 'غير معروف'}
               </span>
             </span>
@@ -417,23 +422,24 @@ if(!data.mode || data.mode==="list"){
             <!-- الموديل -->
             ${item.model ? `
             <span class="model-badge position-relative" 
-                  style="text-decoration:underline; cursor:pointer; display:inline-block;">
+                  style="text-decoration:underline; cursor:pointer; display:inline-block; z-index: 20;">
               الموديل: ${item.model}
               <span class="tooltip position-absolute" style="
-                bottom: 130%; 
+                bottom: 120%; 
                 left: 50%; 
-                transform: translateX(-50%); 
-                background: #198754; 
+                transform: translateX(-50%) scale(0.9); 
+                background: rgba(25,135,84,0.95); 
                 color: #fff; 
-                padding: 8px 12px; 
-                border-radius: 8px; 
-                max-width: 90%; 
+                padding: 10px 14px; 
+                border-radius: 10px; 
+                max-width: 95%; 
                 white-space: normal; 
                 word-break: break-word;
                 opacity: 0; 
                 pointer-events: none; 
-                transition: opacity 0.3s, bottom 0.3s;
-                z-index: 5;">
+                box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+                transition: all 0.3s ease;
+                z-index: 9999;">
                 ${item.modelTooltip || item.model || 'غير معروف'}
               </span>
             </span>` : ""}
@@ -442,18 +448,25 @@ if(!data.mode || data.mode==="list"){
       </div>
     </div>`;
   }
+
   cards += "</div>";
   resultDiv.innerHTML = cards;
 
-  // 🧩 تفعيل التلميحات عند المرور
-  document.querySelectorAll('.chipset-badge, .model-badge').forEach(el=>{
-    el.addEventListener('mouseenter', ()=>{
-      const tip = el.querySelector('.tooltip');
-      if(tip){ tip.style.opacity = '1'; tip.style.bottom = '150%'; }
+  // 🧩 تفعيل التلميحات العائمة
+  document.querySelectorAll('.chipset-badge, .model-badge').forEach(el => {
+    const tooltip = el.querySelector('.tooltip');
+    if (!tooltip) return;
+
+    el.addEventListener('mouseenter', () => {
+      tooltip.style.opacity = '1';
+      tooltip.style.transform = 'translateX(-50%) scale(1)';
+      tooltip.style.bottom = '130%';
     });
-    el.addEventListener('mouseleave', ()=>{
-      const tip = el.querySelector('.tooltip');
-      if(tip){ tip.style.opacity = '0'; tip.style.bottom = '130%'; }
+
+    el.addEventListener('mouseleave', () => {
+      tooltip.style.opacity = '0';
+      tooltip.style.transform = 'translateX(-50%) scale(0.9)';
+      tooltip.style.bottom = '120%';
     });
   });
 
