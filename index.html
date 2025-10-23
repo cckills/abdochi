@@ -61,11 +61,13 @@ body { background: #f9f9f9; font-family: 'Cairo', sans-serif; }
 
 <!-- 🔍 مربع البحث -->
 <div class="search-modal-box" role="dialog" aria-modal="true">
-  <form id="searchForm" class="search-form text-center">
-      <p class="message mt-2">اكتب كلمة البحث ثم اضغط زر البحث أو <em>Enter</em></p>
-    <input type="search" class="search-field mb-3" id="phoneInput" name="s" placeholder="ابحث عن اسم الهاتف..." required>
-    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">🔍 بحث</button>
-  </form>
+  <!-- تعديل مربع البحث لإضافة خيار البحث حسب الاسم أو الموديل -->
+<form id="searchForm" class="search-form text-center">
+  <p class="message mt-2">اكتب اسم الهاتف أو الموديل ثم اضغط زر البحث أو <em>Enter</em></p>
+  <input type="search" class="search-field mb-3" id="phoneInput" name="s" placeholder="ابحث عن اسم الهاتف أو الموديل..." required>
+  <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">🔍 بحث</button>
+</form>
+
 </div>
 
 <!-- 📦 نتائج البحث -->
@@ -335,54 +337,51 @@ const form = document.getElementById("searchForm");
 const input = document.getElementById("phoneInput");
 const resultDiv = document.getElementById("result");
 
-form.addEventListener("submit", async(e)=>{
+form.addEventListener("submit", async(e) => {
   e.preventDefault();
   const phone = input.value.trim();
-  if(!phone) return;
+  if (!phone) return;
+
   resultDiv.innerHTML = `<div class='alert alert-info'>🔍 جاري البحث عن "${phone}"...</div>`;
 
-  try{
-    const res = await fetch(`/api/${encodeURIComponent(phone)}`);
-    const data = await res.json();
-    if(data.error){ resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${data.error}</div>`; return; }
+  try {
+    // التحقق مما إذا كان البحث يحتوي على موديل معين
+    const isModelSearch = /[A-Z0-9\-]+/i.test(phone);  // البحث عن نمط الموديلات (مثل STK-L21)
+    
+    let url = `/api/search?query=${encodeURIComponent(phone)}`;
+    if (isModelSearch) {
+      // إذا كان البحث يحتوي على موديل، نرسل البحث مع الموديل
+      url = `/api/model?query=${encodeURIComponent(phone)}`;
+    }
 
-    if(!data.mode || data.mode==="list"){
-      let cards="<div class='row'>";
-      for(const item of data.results){
-        cards+=`
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    if (data.error) {
+      resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${data.error}</div>`;
+      return;
+    }
+
+    let cards = "<div class='row'>";
+    data.results.forEach(item => {
+      cards += `
         <div class="col-md-4 mb-4">
           <div class="card phone-card shadow h-100">
-            ${item.img?`<img src="${item.img}" class="card-img-top" alt="${item.title}">`:""}
+            ${item.img ? `<img src="${item.img}" class="card-img-top" alt="${item.title}">` : ""}
             <div class="card-body d-flex flex-column">
               <h6 class="card-title">${item.title}</h6>
               <p class="text-muted mb-2">
                 <strong>المعالج:</strong>
-                <span class="chipset-badge" data-tooltip="${item.chipsetTooltip||`المعالج ${item.chipset||'غير معروف'} — اضغط لعرض مزيد من التفاصيل.`}">${item.chipset||"غير محدد"}</span>
+                <span class="chipset-badge">${item.chipset || "غير محدد"}</span>
               </p>
-              ${item.model ? `<p class="text-muted mb-2"><strong>الموديل/الطراز:</strong> ${item.model}</p>` : ""}
-
-              <button class="btn btn-primary mt-auto" data-url="${item.link}" data-img="${item.img||''}">عرض المواصفات</button>
+              <button class="btn btn-primary mt-auto" data-url="${item.link}" data-img="${item.img || ''}">عرض المواصفات</button>
             </div>
           </div>
         </div>`;
-      }
-      cards+="</div>";
-      resultDiv.innerHTML = cards;
-    }
-    else if(data.mode==="details"){
-      let specsHtml="";
-      for(const [key,val] of Object.entries(data.specs)) specsHtml+=`<li><strong>${key}:</strong> ${val}</li>`;
-      resultDiv.innerHTML = `
-      <div class="card shadow mt-4">
-        ${data.img?`<img src="${data.img}" class="card-img-top" style="height:300px;object-fit:cover;">`:""}
-        <div class="card-body">
-          <h4>${data.title}</h4>
-          <ul>${specsHtml}</ul>
-          <a href="${data.source}" target="_blank" class="btn btn-outline-primary mt-2">عرض على موقع المصدر</a>
-        </div>
-      </div>`;
-    }
-  } catch(err){
+    });
+    cards += "</div>";
+    resultDiv.innerHTML = cards;
+  } catch (err) {
     resultDiv.innerHTML = `<div class='alert alert-danger'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
   }
 });
