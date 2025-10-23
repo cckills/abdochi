@@ -367,20 +367,18 @@ form.addEventListener("submit", async(e)=>{
         cards+=`
         <div class="col-md-4 mb-4">
           <div class="card phone-card shadow h-100">
-            ${item.img?`<img src="${item.img}" class="card-img-top" alt="${item.title}">`:""}
-            <div class="card-body d-flex flex-column">
-              <h6 class="card-title">${item.title}</h6>
-              <p class="text-muted mb-2">
-                <strong>المعالج:</strong>
-                <span class="chipset-badge" data-tooltip="${item.chipsetTooltip||`المعالج ${item.chipset||'غير معروف'} — اضغط لعرض مزيد من التفاصيل.`}">${item.chipset||"غير محدد"}</span>
-              </p>
-${item.model ? `<p class="mb-2">
-  <strong>الموديل/الطراز:</strong> 
-  <span class="model-badge">${item.model}</span>
-</p>` : ""}
-
 <!-- اضغط على البطاقة نفسها لعرض المواصفات -->
-<div class="phone-card-content flex-grow-1 d-flex flex-column h-100" data-url="${item.link}" data-img="${item.img||''}" style="cursor:pointer;"></div>
+<div class="card phone-card shadow h-100" data-url="${item.link}" data-img="${item.img||''}" style="cursor:pointer;">
+  ${item.img?`<img src="${item.img}" class="card-img-top" alt="${item.title}">`:""}
+  <div class="card-body d-flex flex-column">
+    <h6 class="card-title">${item.title}</h6>
+    <p class="text-muted mb-2">
+      <strong>المعالج:</strong>
+      <span class="chipset-badge" data-tooltip="${item.chipsetTooltip||`المعالج ${item.chipset||'غير معروف'} — اضغط لعرض مزيد من التفاصيل.`}">${item.chipset||"غير محدد"}</span>
+    </p>
+    ${item.model ? `<p class="mb-2"><strong>الموديل/الطراز:</strong> <span class="model-badge">${item.model}</span></p>` : ""}
+  </div>
+</div>
               
             </div>
           </div>
