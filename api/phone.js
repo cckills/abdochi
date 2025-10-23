@@ -10,7 +10,6 @@ export default async function handler(req, res) {
     let page = 1;
     let hasNext = true;
 
-    // 🔁 البحث في صفحات الموقع (حتى 5 صفحات فقط)
     while (hasNext && page <= 5) {
       const searchUrl =
         page === 1
@@ -45,7 +44,6 @@ export default async function handler(req, res) {
 
         if (link && title) {
           try {
-            // 🧠 جلب صفحة الهاتف لمعرفة نوع المعالج
             const phonePage = await fetch(link, {
               headers: {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -57,19 +55,16 @@ export default async function handler(req, res) {
               const phoneHtml = await phonePage.text();
               const $$ = cheerio.load(phoneHtml);
 
-              // استخراج المعالج من جدول المواصفات
               let fullChipset =
                 $$("tr:contains('المعالج') td.aps-attr-value span").text().trim() ||
                 $$("tr:contains('المعالج') td.aps-attr-value").text().trim() ||
                 "";
 
-              // تنظيف النص من الزوائد
               fullChipset = fullChipset.replace(/\s+/g, " ").trim();
 
               let shortChipset = fullChipset;
 
               if (fullChipset) {
-                // إزالة الكلمات الزائدة مثل "ثماني النواة" إلخ
                 fullChipset = fullChipset
                   .replace(/ثماني النواة|سداسي النواة|رباعي النواة|ثنائي النواة/gi, "")
                   .replace(/[\(\)\-\–\,]/g, " ")
@@ -78,16 +73,22 @@ export default async function handler(req, res) {
                   .replace(/\s+/g, " ")
                   .trim();
 
-                // استخراج الاسم الأساسي فقط مثل Kirin 710F أو MediaTek MT6737
                 const match = fullChipset.match(/[A-Za-z\u0600-\u06FF]+\s*[A-Za-z0-9\-]+/);
                 shortChipset = match ? match[0].trim() : fullChipset;
               }
+
+              // 🔹 جلب موديل/طراز الجهاز إن وجد
+              const model =
+                $$("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
+                $$("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
+                "";
 
               results.push({
                 title,
                 link,
                 img,
                 chipset: shortChipset || "غير محدد",
+                model: model || "", // إضافة الموديل هنا
                 source: "telfonak.com",
               });
             }
@@ -101,40 +102,37 @@ export default async function handler(req, res) {
       page++;
     }
 
-    // 🔹 فلترة النتائج لتطابق كلمة البحث بالكامل
-// 🔹 فلترة النتائج لتطابق كلمة البحث في العنوان أو الموديل
-const searchTerm = phone.toLowerCase();
-let filteredResults = results.filter(item => {
-  const title = item.title.toLowerCase();
-  const model = (item.model || "").toLowerCase(); // إذا كان لديك موديل
-  return title.includes(searchTerm) || model.includes(searchTerm);
-});
+    const searchTerm = phone.toLowerCase();
+
+    // 🔹 فلترة النتائج لتطابق كلمة البحث في العنوان أو الموديل
+    let filteredResults = results.filter(item =>
+      item.title.toLowerCase().includes(searchTerm) ||
+      (item.model && item.model.toLowerCase().includes(searchTerm))
+    );
 
     // 🔹 ترتيب النتائج بحيث تبدأ الأجهزة الأقرب لاسم البحث أولاً
     filteredResults.sort((a,b)=>{
       const titleA = a.title.toLowerCase();
       const titleB = b.title.toLowerCase();
-      const startA = titleA.startsWith(searchTerm) ? 0 : 1;
-      const startB = titleB.startsWith(searchTerm) ? 0 : 1;
+      const startA = titleA.startsWith(searchTerm) || (a.model && a.model.toLowerCase().startsWith(searchTerm)) ? 0 : 1;
+      const startB = titleB.startsWith(searchTerm) || (b.model && b.model.toLowerCase().startsWith(searchTerm)) ? 0 : 1;
       return startA - startB;
     });
 
-    // ✅ إرسال النتائج بعد الفلترة والترتيب
- // 🔹 إزالة النتائج المكررة حسب العنوان
-const uniqueResultsMap = new Map();
-for (const item of filteredResults) {
-  const key = item.title.toLowerCase().trim();
-  if (!uniqueResultsMap.has(key)) uniqueResultsMap.set(key, item);
-}
-const uniqueResults = Array.from(uniqueResultsMap.values());
+    // 🔹 إزالة النتائج المكررة حسب العنوان والموديل
+    const uniqueResultsMap = new Map();
+    for (const item of filteredResults) {
+      const key = `${item.title.toLowerCase().trim()}|${(item.model||"").toLowerCase().trim()}`;
+      if (!uniqueResultsMap.has(key)) uniqueResultsMap.set(key, item);
+    }
+    const uniqueResults = Array.from(uniqueResultsMap.values());
 
-// ✅ إرسال النتائج بعد الفلترة والترتيب وإزالة التكرار
-if (uniqueResults.length > 0) {
-  res.status(200).json({ mode: "list", results: uniqueResults });
-  return;
-}
+    // ✅ إرسال النتائج النهائية
+    if (uniqueResults.length > 0) {
+      res.status(200).json({ mode: "list", results: uniqueResults });
+      return;
+    }
 
-    // 🚫 لا توجد نتائج
     res.status(404).json({
       error: "❌ لم يتم العثور على أي نتائج لهذا الاسم في الموقع.",
     });
@@ -143,4 +141,3 @@ if (uniqueResults.length > 0) {
     res.status(500).json({ error: "حدث خطأ أثناء جلب البيانات." });
   }
 }
-
