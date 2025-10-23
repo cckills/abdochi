@@ -372,11 +372,10 @@ form.addEventListener("submit", async(e)=>{
               <h6 class="card-title">${item.title}</h6>
               <p class="text-muted mb-2">
                 <strong>المعالج:</strong>
-                <span class="chipset-badge" data-tooltip="${item.chipsetTooltip||`المعالج ${item.chipset||'غير معروف'} — اضغط لعرض مزيد من التفاصيل.`}">${item.chipset||"غير محدد"}</span>
+               // <span class="chipset-badge" data-tooltip="${item.chipsetTooltip||`المعالج ${item.chipset||'غير معروف'} — اضغط لعرض مزيد من التفاصيل.`}">${item.chipset||"غير محدد"}</span>
               </p>
 ${item.model ? `<p class="mb-2">
-  <strong>الموديل/الطراز:</strong> 
-  <span class="model-badge">${item.model}</span>
+ <span class="model-badge">الموديل/الطراز: ${item.model}</span>
 </p>` : ""}
 
 
@@ -450,4 +449,5 @@ resultDiv.addEventListener("click",(e)=>{
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
