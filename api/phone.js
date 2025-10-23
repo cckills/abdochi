@@ -1,14 +1,10 @@
 import * as cheerio from "cheerio";
 
 export default async function handler(req, res) {
-  const { phone, searchType } = req.query;
+  const { phone } = req.query;
   
   if (!phone)
-    return res.status(400).json({ error: "يرجى إدخال اسم الهاتف." });
-
-  if (!searchType || !["model", "name"].includes(searchType)) {
-    return res.status(400).json({ error: "يرجى تحديد نوع البحث (model أو name)." });
-  }
+    return res.status(400).json({ error: "يرجى إدخال اسم الهاتف أو الموديل." });
 
   try {
     const results = [];
@@ -109,17 +105,10 @@ export default async function handler(req, res) {
 
     const searchTerm = phone.toLowerCase();
 
-    // 🔹 فلترة النتائج بناءً على نوع البحث (الموديل أو الاسم)
-    let filteredResults = [];
-    if (searchType === "name") {
-      filteredResults = results.filter(item =>
-        item.title.toLowerCase().includes(searchTerm)
-      );
-    } else if (searchType === "model") {
-      filteredResults = results.filter(item =>
-        item.model.toLowerCase().includes(searchTerm)
-      );
-    }
+    // 🔹 فلترة النتائج لتشمل الاسم أو الموديل
+    let filteredResults = results.filter(item =>
+      item.title.toLowerCase().includes(searchTerm) || (item.model && item.model.toLowerCase().includes(searchTerm))
+    );
 
     // 🔹 ترتيب النتائج بحيث تبدأ الأجهزة الأقرب لاسم البحث أولاً
     filteredResults.sort((a, b) => {
@@ -145,7 +134,7 @@ export default async function handler(req, res) {
     }
 
     res.status(404).json({
-      error: "❌ لم يتم العثور على أي نتائج لهذا الاسم في الموقع.",
+      error: "❌ لم يتم العثور على أي نتائج لهذا الاسم أو الموديل.",
     });
   } catch (err) {
     console.error("⚠️ خطأ أثناء الجلب:", err);
