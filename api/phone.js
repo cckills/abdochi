@@ -2,9 +2,8 @@ import * as cheerio from "cheerio";
 
 export default async function handler(req, res) {
   const { phone } = req.query;
-  
   if (!phone)
-    return res.status(400).json({ error: "يرجى إدخال اسم الهاتف أو الموديل." });
+    return res.status(400).json({ error: "يرجى إدخال اسم الهاتف." });
 
   try {
     const results = [];
@@ -84,8 +83,6 @@ export default async function handler(req, res) {
                 $$("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
                 "";
 
-              console.log("Model found:", model); // اضف هذه السطر لتتبع الموديل
-
               results.push({
                 title,
                 link,
@@ -107,17 +104,14 @@ export default async function handler(req, res) {
 
     const searchTerm = phone.toLowerCase();
 
-    // 🔹 فلترة النتائج
+    // 🔹 فلترة النتائج لتطابق كلمة البحث في العنوان أو الموديل
     let filteredResults = results.filter(item =>
       item.title.toLowerCase().includes(searchTerm) ||
       (item.model && item.model.toLowerCase().includes(searchTerm))
     );
 
-    // 🔹 إضافة لوج عند الفلترة
-    console.log("Filtered results:", filteredResults);
-
-    // 🔹 ترتيب النتائج
-    filteredResults.sort((a, b) => {
+    // 🔹 ترتيب النتائج بحيث تبدأ الأجهزة الأقرب لاسم البحث أولاً
+    filteredResults.sort((a,b)=>{
       const titleA = a.title.toLowerCase();
       const titleB = b.title.toLowerCase();
       const startA = titleA.startsWith(searchTerm) || (a.model && a.model.toLowerCase().startsWith(searchTerm)) ? 0 : 1;
@@ -128,7 +122,7 @@ export default async function handler(req, res) {
     // 🔹 إزالة النتائج المكررة حسب العنوان والموديل
     const uniqueResultsMap = new Map();
     for (const item of filteredResults) {
-      const key = `${item.title.toLowerCase().trim()}|${(item.model || "").toLowerCase().trim()}`;
+      const key = `${item.title.toLowerCase().trim()}|${(item.model||"").toLowerCase().trim()}`;
       if (!uniqueResultsMap.has(key)) uniqueResultsMap.set(key, item);
     }
     const uniqueResults = Array.from(uniqueResultsMap.values());
@@ -140,10 +134,11 @@ export default async function handler(req, res) {
     }
 
     res.status(404).json({
-      error: "❌ لم يتم العثور على أي نتائج لهذا الاسم أو الموديل في الموقع.",
+      error: "❌ لم يتم العثور على أي نتائج لهذا الاسم في الموقع.",
     });
   } catch (err) {
     console.error("⚠️ خطأ أثناء الجلب:", err);
     res.status(500).json({ error: "حدث خطأ أثناء جلب البيانات." });
   }
 }
+
