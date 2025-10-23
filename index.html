@@ -414,7 +414,7 @@ if(!data.mode || data.mode==="list"){
                 opacity: 0; 
                 pointer-events: none; 
                 transition: 0.3s;">
-                هذا هو الطراز أو الموديل
+                ${item.modelTooltip || item.model || 'غير معروف'}
               </span>
             </span>
           </p>` : ""}
