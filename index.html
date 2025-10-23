@@ -359,7 +359,7 @@ form.addEventListener("submit", async(e)=>{
                 <strong>المعالج:</strong>
                 <span class="chipset-badge" data-tooltip="${item.chipsetTooltip||`المعالج ${item.chipset||'غير معروف'} — اضغط لعرض مزيد من التفاصيل.`}">${item.chipset||"غير محدد"}</span>
               </p>
-              ${item.model ? `<p class="text-muted mb-2"><strong>الموديل/الطراز:</strong> ${item.model}</p>` : ""}
+${item.model ? `<p class="text-muted mb-2"><strong>الموديل/الطراز:</strong> ${item.model.replace(new RegExp(phone, "gi"), (match) => `<span class="bg-warning text-dark px-1 rounded">${match}</span>`)}</p>` : ""}
 
               <button class="btn btn-primary mt-auto" data-url="${item.link}" data-img="${item.img||''}">عرض المواصفات</button>
             </div>
@@ -431,3 +431,4 @@ resultDiv.addEventListener("click",(e)=>{
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
