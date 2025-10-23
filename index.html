@@ -6,18 +6,19 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
 
-    .model-badge {
-    background: #e3f2fd;
-    color: #0d6efd;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 8px;
-    display: inline-block;
-    font-size: 14px;
-    cursor: help;
-    transition: background 0.2s;
-    position: relative;
+  .model-badge {
+  background: #e3f2fd;
+  color: #0d6efd;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  display: inline-block;
+  font-size: 14px;
+  cursor: help;
+  transition: background 0.2s;
+  position: relative;
 }
+
 
     /* 🟦 قائمة المواصفات الأساسية */
 .aps-features-list { padding: 0; margin: 0; list-style: none; }
@@ -375,7 +376,7 @@ form.addEventListener("submit", async(e)=>{
               </p>
 ${item.model ? `<p class="mb-2">
   <strong>الموديل/الطراز:</strong> 
-  ${item.model.split(',').map(m => `<span class="model-badge">${m.trim()}</span>`).join(', ')}
+  <span class="model-badge">${item.model}</span>
 </p>` : ""}
 
 
