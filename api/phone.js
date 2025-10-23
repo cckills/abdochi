@@ -3,7 +3,7 @@ import * as cheerio from "cheerio";
 export default async function handler(req, res) {
   const { phone } = req.query;
   if (!phone)
-    return res.status(400).json({ error: "يرجى إدخال اسم الهاتف." });
+    return res.status(400).json({ error: "يرجى إدخال اسم الهاتف أو الموديل." });
 
   try {
     const results = [];
@@ -77,24 +77,23 @@ export default async function handler(req, res) {
                 shortChipset = match ? match[0].trim() : fullChipset;
               }
 
-              // 🔹 جلب موديل/طراز الجهاز إن وجد من جدول أو قائمة
-              let model =
+              // 🔹 جلب الموديل / الطراز
+              const modelRow =
+                $$("tr:contains('الموديل / الطراز') td.aps-attr-value span").text().trim() ||
                 $$("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
                 $$("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
                 "";
 
-              // 🔹 محاولة جلب الموديل من قائمة أخرى إذا كانت موجودة
-              if(!model){
-                const listModel = $$("li:contains('الموديل / الطراز') span").text().trim();
-                if(listModel) model = listModel;
-              }
+              // إذا كان هناك أكثر من موديل مفصول بفاصلة، نحوله لمصفوفة للبحث
+              const modelArray = modelRow ? modelRow.split(",").map(m => m.trim()) : [];
 
               results.push({
                 title,
                 link,
                 img,
                 chipset: shortChipset || "غير محدد",
-                model: model || "", // إضافة الموديل هنا
+                model: modelArray.join(", "), // الاحتفاظ بنفس طريقة العرض
+                modelArray, // مصفوفة للبحث
                 source: "telfonak.com",
               });
             }
@@ -110,32 +109,25 @@ export default async function handler(req, res) {
 
     const searchTerm = phone.toLowerCase();
 
-    // 🔹 فلترة النتائج لتطابق كلمة البحث في العنوان أو أي موديل مفصول بفواصل
-    let filteredResults = results.filter(item => {
-      const titleMatch = item.title.toLowerCase().includes(searchTerm);
-
-      let modelMatch = false;
-      if(item.model){
-        const models = item.model.split(",").map(m => m.trim().toLowerCase());
-        modelMatch = models.some(m => m.includes(searchTerm));
-      }
-
-      return titleMatch || modelMatch;
-    });
+    // 🔹 فلترة النتائج لتطابق الاسم أو أي موديل
+    let filteredResults = results.filter(item =>
+      item.title.toLowerCase().includes(searchTerm) ||
+      item.modelArray.some(m => m.toLowerCase() === searchTerm)
+    );
 
     // 🔹 ترتيب النتائج بحيث تبدأ الأجهزة الأقرب لاسم البحث أولاً
     filteredResults.sort((a,b)=>{
       const titleA = a.title.toLowerCase();
       const titleB = b.title.toLowerCase();
-      const startA = titleA.startsWith(searchTerm) || (a.model && a.model.toLowerCase().startsWith(searchTerm)) ? 0 : 1;
-      const startB = titleB.startsWith(searchTerm) || (b.model && b.model.toLowerCase().startsWith(searchTerm)) ? 0 : 1;
+      const startA = titleA.startsWith(searchTerm) || a.modelArray.some(m => m.toLowerCase().startsWith(searchTerm)) ? 0 : 1;
+      const startB = titleB.startsWith(searchTerm) || b.modelArray.some(m => m.toLowerCase().startsWith(searchTerm)) ? 0 : 1;
       return startA - startB;
     });
 
     // 🔹 إزالة النتائج المكررة حسب العنوان والموديل
     const uniqueResultsMap = new Map();
     for (const item of filteredResults) {
-      const key = `${item.title.toLowerCase().trim()}|${(item.model||"").toLowerCase().trim()}`;
+      const key = `${item.title.toLowerCase().trim()}|${item.model.toLowerCase().trim()}`;
       if (!uniqueResultsMap.has(key)) uniqueResultsMap.set(key, item);
     }
     const uniqueResults = Array.from(uniqueResultsMap.values());
