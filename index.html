@@ -403,20 +403,22 @@ if (!data.mode || data.mode === "list") {
                 bottom: 120%; 
                 left: 50%; 
                 transform: translateX(-50%) scale(0.9); 
-                background: rgba(13,110,253,0.95); 
+                background: rgba(13,110,253,0.97); 
                 color: #fff; 
-                padding: 10px 14px; 
-                border-radius: 10px; 
+                padding: 12px 14px; 
+                border-radius: 12px; 
                 max-width: 260px; 
                 white-space: normal; 
                 word-wrap: break-word;
                 line-height: 1.5;
                 text-align: center;
+                font-size: 13px;
                 opacity: 0; 
                 pointer-events: none; 
-                box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+                box-shadow: 0 6px 18px rgba(0,0,0,0.3);
                 transition: all 0.3s ease;
                 z-index: 9999;">
+                <strong style="display:block; font-size:12px; opacity:0.9;">⚙️ نوع المعالج</strong>
                 ${item.chipsetTooltip || item.chipset || 'غير معروف'}
               </span>
             </span>
@@ -430,20 +432,22 @@ if (!data.mode || data.mode === "list") {
                 bottom: 120%; 
                 left: 50%; 
                 transform: translateX(-50%) scale(0.9); 
-                background: rgba(25,135,84,0.95); 
+                background: rgba(25,135,84,0.97); 
                 color: #fff; 
-                padding: 10px 14px; 
-                border-radius: 10px; 
+                padding: 12px 14px; 
+                border-radius: 12px; 
                 max-width: 260px; 
                 white-space: normal; 
                 word-wrap: break-word; 
-                line-height: 1.5;
+                line-height: 1.6;
                 text-align: center;
+                font-size: 13px;
                 opacity: 0; 
                 pointer-events: none; 
-                box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+                box-shadow: 0 6px 18px rgba(0,0,0,0.3);
                 transition: all 0.3s ease;
                 z-index: 9999;">
+                <strong style="display:block; font-size:12px; opacity:0.9;">📱 الموديل والطراز</strong>
                 ${item.modelTooltip || item.model || 'غير معروف'}
               </span>
             </span>` : ""}
