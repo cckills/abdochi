@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "index.html", "use": "@vercel/static" }
+  ],
+"routes": [
+  { "src": "/api/details", "dest": "/api/details.js" },
+  { "src": "/api/(.*)", "dest": "/api/phone.js?phone=$1" },
+  { "src": "/", "dest": "/index.html" }
+]
+
+}
+
