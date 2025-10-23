@@ -84,6 +84,8 @@ export default async function handler(req, res) {
                 $$("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
                 "";
 
+              console.log("Model found:", model); // اضف هذه السطر لتتبع الموديل
+
               results.push({
                 title,
                 link,
@@ -105,12 +107,16 @@ export default async function handler(req, res) {
 
     const searchTerm = phone.toLowerCase();
 
-    // 🔹 فلترة النتائج لتشمل الاسم أو الموديل
+    // 🔹 فلترة النتائج
     let filteredResults = results.filter(item =>
-      item.title.toLowerCase().includes(searchTerm) || (item.model && item.model.toLowerCase().includes(searchTerm))
+      item.title.toLowerCase().includes(searchTerm) ||
+      (item.model && item.model.toLowerCase().includes(searchTerm))
     );
 
-    // 🔹 ترتيب النتائج بحيث تبدأ الأجهزة الأقرب لاسم البحث أولاً
+    // 🔹 إضافة لوج عند الفلترة
+    console.log("Filtered results:", filteredResults);
+
+    // 🔹 ترتيب النتائج
     filteredResults.sort((a, b) => {
       const titleA = a.title.toLowerCase();
       const titleB = b.title.toLowerCase();
@@ -134,7 +140,7 @@ export default async function handler(req, res) {
     }
 
     res.status(404).json({
-      error: "❌ لم يتم العثور على أي نتائج لهذا الاسم أو الموديل.",
+      error: "❌ لم يتم العثور على أي نتائج لهذا الاسم أو الموديل في الموقع.",
     });
   } catch (err) {
     console.error("⚠️ خطأ أثناء الجلب:", err);
