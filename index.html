@@ -359,7 +359,10 @@ form.addEventListener("submit", async(e)=>{
                 <strong>المعالج:</strong>
                 <span class="chipset-badge" data-tooltip="${item.chipsetTooltip||`المعالج ${item.chipset||'غير معروف'} — اضغط لعرض مزيد من التفاصيل.`}">${item.chipset||"غير محدد"}</span>
               </p>
-${item.model ? `<p class="text-muted mb-2"><strong>الموديل/الطراز:</strong> ${item.model.replace(new RegExp(phone, "gi"), (match) => `<span class="bg-warning text-dark px-1 rounded">${match}</span>`)}</p>` : ""}
+${item.model ? `<p class="text-muted mb-2">
+  <strong>الموديل/الطراز:</strong> 
+  ${item.model.replace(new RegExp(phone, "gi"), (match) => `<span style="background: #e3f2fd; color: #0d6efd; font-weight: 600; padding: 4px 10px; border-radius: 8px; display: inline-block; font-size: 14px; cursor: help; transition: background 0.2s; position: relative;">${match}</span>`)}
+</p>` : ""}
 
               <button class="btn btn-primary mt-auto" data-url="${item.link}" data-img="${item.img||''}">عرض المواصفات</button>
             </div>
