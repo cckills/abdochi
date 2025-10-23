@@ -373,10 +373,11 @@ form.addEventListener("submit", async(e)=>{
                 <strong>المعالج:</strong>
                 <span class="chipset-badge" data-tooltip="${item.chipsetTooltip||`المعالج ${item.chipset||'غير معروف'} — اضغط لعرض مزيد من التفاصيل.`}">${item.chipset||"غير محدد"}</span>
               </p>
-${item.model ? `<p class="text-muted mb-2">
+${item.model ? `<p class="mb-2">
   <strong>الموديل/الطراز:</strong> 
-  ${item.model.replace(new RegExp(phone, "gi"), (match) => `<span class="model-badge">${match}</span>`)}
+  ${item.model.split(',').map(m => `<span class="model-badge">${m.trim()}</span>`).join(', ')}
 </p>` : ""}
+
 
               <button class="btn btn-primary mt-auto" data-url="${item.link}" data-img="${item.img||''}">عرض المواصفات</button>
             </div>
