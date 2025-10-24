@@ -22,6 +22,28 @@
       @media(max-width:1199.98px){.result-item{flex:0 0 30%;}}
       @media(max-width:767.98px){.result-item{flex:0 0 48%;}}
       @media(max-width:479.98px){.result-item{flex:0 0 100%;}}
+
+      /* مودال المواصفات */
+      .aps-feature-card { background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%); padding: 16px; border-radius: 12px; box-shadow: 0 6px 18px rgba(12,28,55,0.04); display:flex; flex-direction:column; align-items:center; }
+      .aps-list-icon { width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; color:#fff; margin-bottom:10px; }
+      .aps-icon-mobile { background-color: #0d6efd; }
+      .aps-icon-mobile::before { content:"📱"; }
+      .aps-icon-cpu { background-color:#198754; }
+      .aps-icon-cpu::before { content:"🧠"; }
+      .aps-icon-camera { background-color:#fd7e14; }
+      .aps-icon-camera::before { content:"📸"; }
+      .aps-icon-hdd { background-color:#6f42c1; }
+      .aps-icon-hdd::before { content:"💾"; }
+      .aps-icon-code { background-color:#20c997; }
+      .aps-icon-code::before { content:"⚙️"; }
+      .aps-icon-battery { background-color:#ffc107; color:#000; }
+      .aps-icon-battery::before { content:"🔋"; }
+      .aps-feature-info strong { color:#111; font-size:15px; }
+      .aps-feature-info span { font-size:14px; color:#333; text-align:center; }
+      .nav-tabs { overflow-x:auto; white-space:nowrap; flex-wrap:nowrap!important; }
+      .nav-tabs .nav-link { font-weight:600; color:#0d6efd; border-radius:12px 12px 0 0; margin:2px; }
+      .nav-tabs .nav-link.active { background-color:#0d6efd; color:#fff; }
+      .tab-content ul li { border-bottom:1px solid #eee; padding:6px 0; }
     </style>
   </head>
   <body>
@@ -70,34 +92,91 @@
         try {
           const res = await fetch(`/api/details?url=${encodeURIComponent(url)}`);
           const data = await res.json();
-          if (data.error) { modalBody.innerHTML = `<div class='alert alert-danger text-center'>❌ ${data.error}</div>`; return; }
-          modalBody.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`; // يمكن استبدالها بالهيكل المفصل كما تريد
+          if(data.error){ modalBody.innerHTML = `<div class='alert alert-danger text-center'>❌ ${data.error}</div>`; return; }
+
+          const specs = data.specs || {};
+          const sections = [
+            { key:"الشاشة", icon:"aps-icon-mobile" },
+            { key:"المعالج", icon:"aps-icon-cpu" },
+            { key:"الكاميرات", icon:"aps-icon-camera" },
+            { key:"الذاكرة + الرام", icon:"aps-icon-hdd" },
+            { key:"نظام التشغيل", icon:"aps-icon-code" },
+            { key:"البطارية", icon:"aps-icon-battery" }
+          ];
+
+          const cardsHtml = sections.map(section=>{
+            let val="";
+            switch(section.key){
+              case "الشاشة":
+                val = specs["الشاشة"]||"غير محددة";
+                break;
+              case "المعالج":
+                val = specs["المعالج"]||"غير محدد";
+                break;
+              case "الكاميرات":
+                const back = specs["كاميرا خلفية"]||specs["الكاميرا الخلفية"]||"";
+                const front = specs["كاميرا امامية"]||specs["الكاميرا الأمامية"]||"";
+                val = (back?`خلفية ${back}`:"") + (front?` / أمامية ${front}`:"") || "غير محددة";
+                break;
+              case "الذاكرة + الرام":
+                const storage = specs["الذاكرة"]||specs["التخزين"]||"";
+                const ram = specs["RAM"]||specs["الرام"]||"";
+                val = [storage,ram].filter(Boolean).join(" + ") || "غير محددة";
+                break;
+              case "نظام التشغيل":
+                val = specs["نظام التشغيل"]||"غير محدد";
+                break;
+              case "البطارية":
+                const capacity = specs["سعة البطارية"]||"";
+                const charge = specs["الشحن"]||"";
+                val = [capacity,charge].filter(Boolean).join(" / ") || "غير محددة";
+                break;
+            }
+            return `<div class="col-12 col-md-6">
+              <div class="aps-feature-card">
+                <div class="aps-list-icon ${section.icon}"></div>
+                <div class="aps-feature-info text-center mt-2">
+                  <strong>${section.key}</strong><br>
+                  <span>${val}</span>
+                </div>
+              </div>
+            </div>`;
+          }).join("");
+
+          modalBody.innerHTML = `
+            <div class="d-flex flex-column flex-lg-row gap-4 align-items-center">
+              <div class="text-center flex-shrink-0">
+                <img src="${phoneImg||data.img||'https://via.placeholder.com/400x300'}" class="rounded shadow-sm mb-2" style="max-width:400px;width:100%;">
+                <h4 class="fw-bold mt-2">${data.title}</h4>
+              </div>
+              <div class="flex-grow-1 w-100">
+                <div class="row g-3 justify-content-start">${cardsHtml}</div>
+              </div>
+            </div>
+          `;
           new bootstrap.Modal(document.getElementById("specsModal")).show();
-        } catch (err) {
-          console.error(err);
-          modalBody.innerHTML = `<div class='alert alert-danger text-center'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
-        }
+        } catch(err){ console.error(err); modalBody.innerHTML = `<div class='alert alert-danger text-center'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;}
       }
 
       const form = document.getElementById("searchForm");
       const input = document.getElementById("phoneInput");
       const resultDiv = document.getElementById("result");
 
-      form.addEventListener("submit", async (e) => {
+      form.addEventListener("submit", async (e)=>{
         e.preventDefault();
         const phone = input.value.trim();
-        if (!phone) return;
+        if(!phone) return;
         resultDiv.innerHTML = `<div class='alert alert-info w-100 text-center'>🔍 جاري البحث عن "${phone}"...</div>`;
-        try {
+        try{
           const res = await fetch(`/api/${encodeURIComponent(phone)}`);
           const data = await res.json();
           if(data.error){ resultDiv.innerHTML = `<div class='alert alert-danger w-100 text-center'>❌ ${data.error}</div>`; return; }
-          if(!data.results || data.results.length===0){ resultDiv.innerHTML = `<div class='alert alert-warning w-100 text-center'>⚠️ لا توجد نتائج</div>`; return; }
+          if(!data.results||data.results.length===0){ resultDiv.innerHTML = `<div class='alert alert-warning w-100 text-center'>⚠️ لا توجد نتائج</div>`; return; }
 
           let cardsHtml = '';
           data.results.forEach(item=>{
-            const chipsetText = Array.isArray(item.chipset)? item.chipset.join(", ") : item.chipset || "غير محدد";
-            const modelText = Array.isArray(item.model)? item.model.join(", ") : item.model || "";
+            const chipsetText = Array.isArray(item.chipset)?item.chipset.join(", "):item.chipset||"غير محدد";
+            const modelText = Array.isArray(item.model)?item.model.join(", "):item.model||"";
             cardsHtml += `
               <div class="result-item" data-url="${item.link}" data-img="${item.img||''}">
                 <img src="${item.img||'https://via.placeholder.com/300x180'}" class="result-thumb" alt="${item.title}">
@@ -108,7 +187,6 @@
                 </div>
               </div>`;
           });
-
           resultDiv.innerHTML = cardsHtml;
 
           const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
