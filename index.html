@@ -377,9 +377,9 @@ form.addEventListener("submit", async(e)=>{
 if (!data.mode || data.mode === "list") {
   let cards = "<div class='row justify-content-start g-3'>";
   for (const item of data.results) {
-    // 🔹 تجهيز الموديلات بشكل منسق (يفصلها بفواصل ومسافات)
+    // تجهيز الموديلات النصية
     let modelText = item.model ? item.model.replace(/[,،]+/g, ', ') : "";
-    let modelTooltip = item.modelTooltip || modelText || "غير معروف";
+    let modelTooltip = item.modelTooltip || item.model || "غير معروف";
 
     cards += `
     <div class="col-6 col-sm-4 col-md-3 col-lg-custom mb-4">
@@ -402,11 +402,9 @@ if (!data.mode || data.mode === "list") {
 
             <!-- زر المعالج -->
             ${item.chipset ? `
-            <button type="button" class="btn btn-sm btn-outline-primary chipset-btn px-3 py-1"
-              data-bs-toggle="popover"
-              data-bs-trigger="focus"
-              title="⚙️ نوع المعالج"
-              data-bs-content="${item.chipsetTooltip || item.chipset || 'غير معروف'}">
+            <button type="button" class="btn btn-sm btn-outline-primary px-3 py-1 text-truncate"
+              style="max-width: 200px;"
+              title="${item.chipsetTooltip || item.chipset}">
               ${item.chipset}
             </button>` : `
             <button type="button" class="btn btn-sm btn-outline-secondary px-3 py-1" disabled>
@@ -415,14 +413,33 @@ if (!data.mode || data.mode === "list") {
 
             <!-- زر الموديل -->
             ${item.model ? `
-            <button type="button" class="btn btn-sm btn-outline-success model-btn px-3 py-1 text-truncate"
-              style="max-width: 220px;"
-              data-bs-toggle="popover"
-              data-bs-trigger="focus"
-              title="📱 الموديلات والطرازات"
-              data-bs-content="<div style='max-width:250px; text-align:start; white-space:normal; line-height:1.5;'>${modelTooltip.replaceAll(',', '<br>')}</div>">
-              ${modelText}
-            </button>` : ""}
+            <div class="position-relative d-inline-block">
+              <button type="button" class="btn btn-sm btn-outline-success px-3 py-1 text-truncate model-btn"
+                style="max-width: 220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                ${modelText}
+              </button>
+
+              <!-- التلميح المنسق عند المرور -->
+              <div class="model-tooltip position-absolute"
+                style="
+                  display:none;
+                  top: 105%;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  background: rgba(25,135,84,0.95);
+                  color: #fff;
+                  padding: 10px 12px;
+                  border-radius: 10px;
+                  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+                  font-size: 0.85rem;
+                  line-height: 1.5;
+                  text-align: start;
+                  max-width: 240px;
+                  white-space: normal;
+                  z-index: 9999;">
+                ${modelTooltip.split(/[,،]/).map(m => m.trim()).join('<br>')}
+              </div>
+            </div>` : ""}
           </div>
         </div>
       </div>
@@ -432,14 +449,18 @@ if (!data.mode || data.mode === "list") {
   cards += "</div>";
   resultDiv.innerHTML = cards;
 
-  // ✅ تفعيل popover من Bootstrap بعد إدخال الكروت
-  const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-  popoverTriggerList.map(el => new bootstrap.Popover(el, {
-    placement: 'top',
-    container: 'body',
-    html: true,
-  }));
-
+  // ✅ تفعيل عرض التلميح عند المرور
+  document.querySelectorAll(".model-btn").forEach(btn => {
+    const tooltip = btn.parentElement.querySelector(".model-tooltip");
+    btn.addEventListener("mouseenter", () => {
+      tooltip.style.display = "block";
+      tooltip.style.opacity = "1";
+    });
+    btn.addEventListener("mouseleave", () => {
+      tooltip.style.display = "none";
+      tooltip.style.opacity = "0";
+    });
+  });
 
 
   // سكربت تفعيل التلميحات
