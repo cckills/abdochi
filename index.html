@@ -377,10 +377,6 @@ form.addEventListener("submit", async(e)=>{
 if (!data.mode || data.mode === "list") {
   let cards = "<div class='row justify-content-start g-3'>";
   for (const item of data.results) {
-    // تجهيز الموديلات النصية
-    let modelText = item.model ? item.model.replace(/[,،]+/g, ', ') : "";
-    let modelTooltip = item.modelTooltip || item.model || "غير معروف";
-
     cards += `
     <div class="col-6 col-sm-4 col-md-3 col-lg-custom mb-4">
       <div class="card phone-card shadow-sm rounded-4 h-100 position-relative"
@@ -397,49 +393,27 @@ if (!data.mode || data.mode === "list") {
         <div class="card-body text-center d-flex flex-column position-relative" style="overflow: visible; z-index: 2;">
           <h6 class="card-title fw-bold mb-3">${item.title}</h6>
 
-          <!-- ✅ أزرار المعالج والموديل -->
+          <!-- ✅ المعالج والموديل في نفس السطر -->
           <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap text-muted small">
 
             <!-- زر المعالج -->
-            ${item.chipset ? `
-            <button type="button" class="btn btn-sm btn-outline-primary px-3 py-1 text-truncate"
-              style="max-width: 200px;"
-              title="${item.chipsetTooltip || item.chipset}">
-              ${item.chipset}
-            </button>` : `
-            <button type="button" class="btn btn-sm btn-outline-secondary px-3 py-1" disabled>
-              غير محدد
-            </button>`}
+            <button type="button" class="btn btn-sm btn-outline-primary chipset-btn px-3 py-1"
+              data-bs-toggle="popover"
+              data-bs-trigger="focus"
+              title="⚙️ نوع المعالج"
+              data-bs-content="${item.chipsetTooltip || item.chipset || 'غير معروف'}">
+              المعالج
+            </button>
 
             <!-- زر الموديل -->
             ${item.model ? `
-            <div class="position-relative d-inline-block">
-              <button type="button" class="btn btn-sm btn-outline-success px-3 py-1 text-truncate model-btn"
-                style="max-width: 220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                ${modelText}
-              </button>
-
-              <!-- التلميح المنسق عند المرور -->
-              <div class="model-tooltip position-absolute"
-                style="
-                  display:none;
-                  top: 105%;
-                  left: 50%;
-                  transform: translateX(-50%);
-                  background: rgba(25,135,84,0.95);
-                  color: #fff;
-                  padding: 10px 12px;
-                  border-radius: 10px;
-                  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-                  font-size: 0.85rem;
-                  line-height: 1.5;
-                  text-align: start;
-                  max-width: 240px;
-                  white-space: normal;
-                  z-index: 9999;">
-                ${modelTooltip.split(/[,،]/).map(m => m.trim()).join('<br>')}
-              </div>
-            </div>` : ""}
+            <button type="button" class="btn btn-sm btn-outline-success model-btn px-3 py-1"
+              data-bs-toggle="popover"
+              data-bs-trigger="focus"
+              title="📱 الموديل والطراز"
+              data-bs-content="${item.modelTooltip || item.model || 'غير معروف'}">
+              الموديل / الطراز
+            </button>` : ""}
           </div>
         </div>
       </div>
@@ -449,18 +423,14 @@ if (!data.mode || data.mode === "list") {
   cards += "</div>";
   resultDiv.innerHTML = cards;
 
-  // ✅ تفعيل عرض التلميح عند المرور
-  document.querySelectorAll(".model-btn").forEach(btn => {
-    const tooltip = btn.parentElement.querySelector(".model-tooltip");
-    btn.addEventListener("mouseenter", () => {
-      tooltip.style.display = "block";
-      tooltip.style.opacity = "1";
-    });
-    btn.addEventListener("mouseleave", () => {
-      tooltip.style.display = "none";
-      tooltip.style.opacity = "0";
-    });
-  });
+  // ✅ تفعيل popover من Bootstrap بعد إدخال الكروت
+  const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+  popoverTriggerList.map(el => new bootstrap.Popover(el, {
+    placement: 'top',
+    container: 'body',
+    html: true,
+  }));
+
 
 
   // سكربت تفعيل التلميحات
