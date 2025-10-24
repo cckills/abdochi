@@ -396,14 +396,18 @@ if (!data.mode || data.mode === "list") {
           <!-- ✅ المعالج والموديل في نفس السطر -->
           <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap text-muted small">
 
-            <!-- زر المعالج -->
+            <!-- زر المعالج يعرض الاسم -->
+            ${item.chipset ? `
             <button type="button" class="btn btn-sm btn-outline-primary chipset-btn px-3 py-1"
               data-bs-toggle="popover"
               data-bs-trigger="focus"
               title="⚙️ نوع المعالج"
               data-bs-content="${item.chipsetTooltip || item.chipset || 'غير معروف'}">
-              المعالج
-            </button>
+              ${item.chipset}
+            </button>` : `
+            <button type="button" class="btn btn-sm btn-outline-secondary px-3 py-1" disabled>
+              غير محدد
+            </button>`}
 
             <!-- زر الموديل -->
             ${item.model ? `
@@ -430,6 +434,8 @@ if (!data.mode || data.mode === "list") {
     container: 'body',
     html: true,
   }));
+
+
 
   // سكربت تفعيل التلميحات
   document.querySelectorAll('.chipset-badge, .model-badge').forEach(badge=>{
@@ -506,7 +512,3 @@ const card = e.target.closest(".phone-card");
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-
-
-
