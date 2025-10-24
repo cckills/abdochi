@@ -1,26 +1,33 @@
 import * as cheerio from "cheerio";
 
+const searchCache = new Map(); // ✅ Cache داخلي
+
 export default async function handler(req, res) {
   const { phone } = req.query;
   if (!phone)
     return res.status(400).json({ error: "يرجى إدخال اسم الهاتف أو الموديل." });
+
+  const searchTerm = phone.toLowerCase().trim();
+
+  // ✅ إذا تم البحث عن هذا الاسم من قبل — نرجع من الذاكرة مباشرة
+  if (searchCache.has(searchTerm)) {
+    return res.status(200).json({ mode: "list", results: searchCache.get(searchTerm) });
+  }
 
   try {
     const results = [];
     let page = 1;
     let hasNext = true;
 
-    while (hasNext && page <= 5) {
+    while (hasNext && page <= 3) { // ✅ تقليل الصفحات = أسرع
       const searchUrl =
         page === 1
           ? `https://telfonak.com/?s=${encodeURIComponent(phone)}`
           : `https://telfonak.com/page/${page}/?s=${encodeURIComponent(phone)}`;
 
-      console.log("⏳ Fetching:", searchUrl);
-
       const response = await fetch(searchUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win32; x64)",
           "Accept-Language": "ar,en;q=0.9",
         },
       });
@@ -30,119 +37,87 @@ export default async function handler(req, res) {
       const $ = cheerio.load(html);
       const items = $(".media, .post, article");
 
-      if (items.length === 0) {
-        hasNext = false;
-        break;
-      }
+      if (items.length === 0) break;
 
       for (const el of items.toArray()) {
         const link = $(el).find("a.image-link").attr("href");
-        const title = $(el).find("a.image-link").attr("title");
-        const img =
+        const title = $(el).find("a.image-link").attr("title")?.trim();
+        let img =
           $(el).find("span.img").attr("data-bgsrc") ||
-          $(el).find("img").attr("src");
+          $(el).find("img").attr("src") ||
+          "";
 
-        if (link && title) {
-          try {
-            const phonePage = await fetch(link, {
-              headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                "Accept-Language": "ar,en;q=0.9",
-              },
-            });
+        img = img.replace(/-150x150|-\d+x\d+/g, ""); // ✅ صورة بجودة أصلية
 
-            if (phonePage.ok) {
-              const phoneHtml = await phonePage.text();
-              const $$ = cheerio.load(phoneHtml);
+        if (!link || !title) continue;
 
-              let fullChipset =
-                $$("tr:contains('المعالج') td.aps-attr-value span").text().trim() ||
-                $$("tr:contains('المعالج') td.aps-attr-value").text().trim() ||
-                "";
+        try {
+          const phonePage = await fetch(link, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win32; x64)",
+              "Accept-Language": "ar,en;q=0.9",
+            },
+          });
 
-              fullChipset = fullChipset.replace(/\s+/g, " ").trim();
+          if (!phonePage.ok) continue;
+          const phoneHtml = await phonePage.text();
+          const $$ = cheerio.load(phoneHtml);
 
-              let shortChipset = fullChipset;
+          // ✅ استخراج المعالج بدقة
+          let fullChipset =
+            $$("tr:contains('المعالج') td.aps-attr-value").text().trim().replace(/\s+/g, " ");
 
-              if (fullChipset) {
-                fullChipset = fullChipset
-                  .replace(/ثماني النواة|سداسي النواة|رباعي النواة|ثنائي النواة/gi, "")
-                  .replace(/[\(\)\-\–\,]/g, " ")
-                  .replace(/\b\d+(\.\d+)?\s*GHz\b/gi, "")
-                  .replace(/\b\d+\s*nm\b/gi, "")
-                  .replace(/\s+/g, " ")
-                  .trim();
+          let shortChipset = fullChipset.replace(/(ثماني|سداسي|رباعي|ثنائي) النواة/gi, "")
+            .replace(/[\d.]+\s*GHz/gi, "")
+            .replace(/[\(\)\-,]/g, " ")
+            .trim();
 
-                const match = fullChipset.match(/[A-Za-z\u0600-\u06FF]+\s*[A-Za-z0-9\-]+/);
-                shortChipset = match ? match[0].trim() : fullChipset;
-              }
+          const match = shortChipset.match(/[A-Za-z0-9]+[- ]*[A-Za-z0-9]+/);
+          shortChipset = match ? match[0] : (fullChipset || "غير محدد");
 
-              // 🔹 جلب الموديل / الطراز
-              const modelRow =
-                $$("tr:contains('الموديل / الطراز') td.aps-attr-value span").text().trim() ||
-                $$("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
-                $$("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
-                "";
+          // ✅ استخراج الموديل
+          const modelRow =
+            $$("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
+            $$("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
+            "";
 
-              // إذا كان هناك أكثر من موديل مفصول بفاصلة، نحوله لمصفوفة للبحث
-              const modelArray = modelRow ? modelRow.split(",").map(m => m.trim()) : [];
+          const modelArray = modelRow.split(/[,\s]+/).filter(Boolean);
 
-              results.push({
-                title,
-                link,
-                img,
-                chipset: shortChipset || "غير محدد",
-                model: modelArray.join(", "), // الاحتفاظ بنفس طريقة العرض
-                modelArray, // مصفوفة للبحث
-                source: "telfonak.com",
-              });
-            }
-          } catch (err) {
-            console.error("⚠️ خطأ أثناء جلب صفحة الهاتف:", err.message);
-          }
-        }
+          results.push({
+            title,
+            link,
+            img,
+            chipset: shortChipset,
+            model: modelArray.join(", "),
+            modelArray,
+            source: "telfonak.com",
+          });
+
+        } catch {}
       }
 
       hasNext = $(".pagination .next, .nav-links .next").length > 0;
       page++;
     }
 
-    const searchTerm = phone.toLowerCase();
-
-    // 🔹 فلترة النتائج لتطابق الاسم أو أي موديل
-    let filteredResults = results.filter(item =>
-      item.title.toLowerCase().includes(searchTerm) ||
-      item.modelArray.some(m => m.toLowerCase() === searchTerm)
+    // ✅ فلترة و ترتيب وإزالة تكرار
+    let filtered = results.filter(r =>
+      r.title.toLowerCase().includes(searchTerm) ||
+      r.modelArray.some(m => m.toLowerCase().includes(searchTerm))
     );
 
-    // 🔹 ترتيب النتائج بحيث تبدأ الأجهزة الأقرب لاسم البحث أولاً
-    filteredResults.sort((a,b)=>{
-      const titleA = a.title.toLowerCase();
-      const titleB = b.title.toLowerCase();
-      const startA = titleA.startsWith(searchTerm) || a.modelArray.some(m => m.toLowerCase().startsWith(searchTerm)) ? 0 : 1;
-      const startB = titleB.startsWith(searchTerm) || b.modelArray.some(m => m.toLowerCase().startsWith(searchTerm)) ? 0 : 1;
-      return startA - startB;
-    });
+    filtered = Array.from(new Map(filtered.map(i => [i.title.toLowerCase(), i])).values());
 
-    // 🔹 إزالة النتائج المكررة حسب العنوان والموديل
-    const uniqueResultsMap = new Map();
-    for (const item of filteredResults) {
-      const key = `${item.title.toLowerCase().trim()}|${item.model.toLowerCase().trim()}`;
-      if (!uniqueResultsMap.has(key)) uniqueResultsMap.set(key, item);
-    }
-    const uniqueResults = Array.from(uniqueResultsMap.values());
+    // ✅ حفظ في Cache
+    searchCache.set(searchTerm, filtered);
 
-    // ✅ إرسال النتائج النهائية
-    if (uniqueResults.length > 0) {
-      res.status(200).json({ mode: "list", results: uniqueResults });
-      return;
-    }
+    if (filtered.length > 0)
+      return res.status(200).json({ mode: "list", results: filtered });
 
-    res.status(404).json({
-      error: "❌ ❌ لم يتم العثور على أي نتائج لهذا الاسم أو الموديل في الموقع.",
-    });
+    res.status(404).json({ error: "❌ لا توجد نتائج مطابقة." });
+
   } catch (err) {
-    console.error("⚠️ خطأ أثناء الجلب:", err);
-    res.status(500).json({ error: "حدث خطأ أثناء جلب البيانات." });
+    console.error(err);
+    res.status(500).json({ error: "⚠️ حدث خطأ أثناء الجلب." });
   }
 }
