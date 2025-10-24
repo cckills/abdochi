@@ -4,379 +4,54 @@
     <meta charset="UTF-8" />
     <title>بحث عن الهواتف</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <!-- Font Awesome CDN (إن رغبت باستعمال أيقونات إضافية لاحقًا) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <style>
-    /* شبكة البطاقات */
-  .results-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    justify-content: center;
-  }
-
-  /* كل بطاقة */
-  .result-item {
-    background: #96f3b5fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    transition: transform 0.2s, box-shadow 0.2s;
-    overflow: hidden;
-    flex: 0 0 23%; /* أربع بطاقات في الصف */
-    display: flex;
-    flex-direction: column;
-    cursor: pointer;
-  }
-
-  .result-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
-  }
-
-  /* الصورة */
-  .result-thumb {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    display: block;
-  }
-
-  /* محتوى البطاقة */
-  .result-item > div {
-    padding: 8px 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  /* الاسم */
-  .result-item .fw-bold {
-    font-size: 15px;
-    color: #0d6efd;
-    text-align: center;
-  }
-
-  /* الأزرار */
-  .result-item button {
-    font-size: 13px;
-    border-radius: 8px;
-    padding: 4px 6px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: left;
-  }
-
-  .result-item button.btn-outline-primary {
-    border-color: rgba(13,110,253,0.15);
-    color: #0d6efd;
-  }
-
-  .result-item button.btn-outline-success {
-    border-color: rgba(25,135,84,0.15);
-    color: #198754;
-  }
-
-  /* دعم RTL */
-  html[dir="rtl"] .result-item button {
-    text-align: right;
-  }
-
-  /* استجابة للشاشات الصغيرة */
-  @media (max-width: 1199.98px) {
-    .result-item { flex: 0 0 30%; }
-  }
-  @media (max-width: 767.98px) {
-    .result-item { flex: 0 0 48%; }
-  }
-  @media (max-width: 479.98px) {
-    .result-item { flex: 0 0 100%; }
-  }
-      /* خط النظام الافتراضي كما طلبت */
-      body {
-        background: #f7f8fb;
-        font-family: Tahoma, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        color: #222;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
-
-      /* صندوق البحث المركزي */
-      .search-modal-box {
-        max-width: 720px;
-        margin: 48px auto;
-        background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 6px 22px rgba(13, 110, 253, 0.06);
-        padding: 26px;
-      }
-
-      /* زر البحث الرئيسي */
-      .search-field {
-        width: 100%;
-        padding: 12px 14px;
-        border: 2px solid #e6e9ee;
-        border-radius: 12px;
-        font-size: 16px;
-        transition: box-shadow .15s, border-color .15s;
-      }
-      .search-field:focus {
-        outline: none;
-        border-color: #bcd7ff;
-        box-shadow: 0 6px 18px rgba(13,110,253,0.06);
-      }
-
-      .message {
-        margin-top: 10px;
-        color: #6c757d;
-        font-size: 14px;
-      }
-
-      /* ===========================
-         بطاقات نتائج البحث (شبكة مرنة)
-         =========================== */
-
-      #result {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        justify-content: center;
-      }
-
-      /* تعريف بطاقات الهواتف بمرونة واحدة فقط */
-      .phone-card {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        height: 100%;
-        background-color: #fff;
-        border-radius: 14px;
-        box-shadow: 0 6px 18px rgba(22, 28, 45, 0.06);
-        transition: transform .18s ease, box-shadow .18s ease;
-        cursor: pointer;
-        overflow: hidden;
-        border: 1px solid rgba(12, 28, 55, 0.04);
-      }
-      .phone-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 18px 40px rgba(13, 110, 253, 0.08);
-      }
-
-      /* صورة البطاقة */
-      .phone-card .card-img-top {
-        width: 100%;
-        height: 180px;
-        object-fit: cover;
-        display: block;
-      }
-
-      /* محتوى البطاقة */
-      .phone-card .card-body {
-        padding: 14px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .phone-card .card-title {
-        font-size: 15px;
-        font-weight: 700;
-        color: #0d6efd;
-        text-align: center;
-        min-height: 46px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      /* أزرار chipset / model داخل البطاقة */
-      .chipset-btn,
-      .model-btn {
-        display: block;
-        width: 100%;
-        text-align: left;
-        direction: ltr;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 13px;
-        border-radius: 8px;
-      }
-
-      .chipset-btn { border-color: rgba(13,110,253,0.15); color: #0d6efd; }
-      .model-btn { border-color: rgba(25,135,84,0.12); color: #198754; }
-
-      /* توزيع الأعمدة بحسب العرض */
-      .col-lg-custom {
-        flex: 0 0 20%;
-        max-width: 20%;
-      }
-      @media (max-width: 1199.98px) {
-        .col-lg-custom { flex: 0 0 33.3333%; max-width: 33.3333%; }
-      }
-      @media (max-width: 767.98px) {
-        .col-lg-custom { flex: 0 0 48%; max-width: 48%; }
-      }
-      @media (max-width: 479.98px) {
-        .col-lg-custom { flex: 0 0 100%; max-width: 100%; }
-      }
-
-      /* صف النتائج: تباعد متناسق */
-      .results-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-      }
-
-      /* ===========================
-         بطاقات المواصفات (داخل المودال)
-         =========================== */
-
-      .aps-feature-card {
-        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-        padding: 16px;
-        border-radius: 12px;
-        box-shadow: 0 6px 18px rgba(12, 28, 55, 0.04);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-      .aps-list-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        color: #fff;
-        margin-bottom: 10px;
-      }
-
-      /* أيقونات ملونة لكل نوع */
-      /* 🟢 ألوان وأيقونات مختلفة لكل ميزة */
-      .aps-icon-mobile {
-        background-color: #0d6efd;
-      }
-      .aps-icon-mobile::before {
-        content: "📱";
-      }
-      .aps-icon-cpu {
-        background-color: #198754;
-      }
-      .aps-icon-cpu::before {
-        content: "🧠";
-      }
-      .aps-icon-camera {
-        background-color: #fd7e14;
-      }
-      .aps-icon-camera::before {
-        content: "📸";
-      }
-      .aps-icon-hdd {
-        background-color: #6f42c1;
-      }
-      .aps-icon-hdd::before {
-        content: "💾";
-      }
-      .aps-icon-code {
-        background-color: #20c997;
-      }
-      .aps-icon-code::before {
-        content: "⚙️";
-      }
-      .aps-icon-battery {
-        background-color: #ffc107;
-        color: #000;
-      }
-      .aps-icon-battery::before {
-        content: "🔋";
-      }
-
-      .aps-feature-info strong { color: #111; font-size: 15px; }
-      .aps-feature-info span { font-size: 14px; color: #333; text-align: center; }
-
-      /* تنسيق تبويبات المودال */
-      
-      .nav-tabs {
-        overflow-x: auto;
-        white-space: nowrap;
-        flex-wrap: nowrap !important;
-        -webkit-overflow-scrolling: touch;
-      }
-      .nav-tabs .nav-link {
-        font-weight: 600;
-        color: #0d6efd;
-        border-radius: 12px 12px 0 0;
-        margin: 2px;
-      }
-      .nav-tabs .nav-link.active {
-        background-color: #0d6efd;
-        color: #fff;
-      }
-      .tab-content ul li {
-        border-bottom: 1px solid #eee;
-        padding: 6px 0;
-      }
-
-
-      /* tooltip-popup (في حال استخدامه مستقبلاً) */
-      .tooltip-popup {
-        position: absolute;
-        background: #222;
-        color: #fff;
-        padding: 8px 10px;
-        border-radius: 8px;
-        font-size: 13px;
-        max-width: 260px;
-        line-height: 1.5;
-        z-index: 9999;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-      }
-
-      /* تحسينات صغيرة للعرض */
-      .aps-main-image img { width: 100%; height: auto; border-radius: 10px; }
-      .card-title small { display:block; color:#6c757d; font-weight:400; }
-
+      body { background: #f7f8fb; font-family: Tahoma, "Segoe UI", Roboto, Arial, sans-serif; color: #222; }
+      .search-field { width: 100%; padding: 12px 14px; border-radius: 12px; font-size: 16px; border: 2px solid #e6e9ee; transition: box-shadow .15s, border-color .15s; }
+      .search-field:focus { outline:none; border-color:#bcd7ff; box-shadow:0 6px 18px rgba(13,110,253,0.06);}
+      .results-grid { display:flex; flex-wrap:wrap; gap:16px; justify-content:center; }
+      .result-item { background:#fff; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.08); transition: transform .2s, box-shadow .2s; overflow:hidden; flex:0 0 23%; display:flex; flex-direction:column; cursor:pointer; }
+      .result-item:hover { transform:translateY(-4px); box-shadow:0 12px 24px rgba(0,0,0,0.12);}
+      .result-thumb { width:100%; height:180px; object-fit:cover; display:block; border-radius:8px; }
+      .result-item > div { padding:8px 10px; display:flex; flex-direction:column; gap:4px; }
+      .result-item .fw-bold { font-size:15px; color:#0d6efd; text-align:center; }
+      .result-item button { font-size:13px; border-radius:8px; padding:4px 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left; margin-top:2px;}
+      .result-item button.btn-outline-primary { border-color: rgba(13,110,253,0.15); color:#0d6efd; }
+      .result-item button.btn-outline-success { border-color: rgba(25,135,84,0.15); color:#198754; }
+      html[dir="rtl"] .result-item button { text-align:right; }
+      @media(max-width:1199.98px){.result-item{flex:0 0 30%;}}
+      @media(max-width:767.98px){.result-item{flex:0 0 48%;}}
+      @media(max-width:479.98px){.result-item{flex:0 0 100%;}}
     </style>
   </head>
   <body>
     <div class="container my-4">
-      <!-- ✅ مربع البحث داخل بطاقة -->
       <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-          <h5 class="text-center mb-3 fw-bold text-primary">🔍 بحث عن الهواتف</h5>
-          <form id="searchForm" class="text-center">
-            <p class="message mb-3">اكتب كلمة البحث ثم اضغط زر البحث أو <em>Enter</em></p>
-            <input
-              type="search"
-              class="search-field form-control mb-3 text-center"
-              id="phoneInput"
-              name="s"
-              placeholder="ابحث عن اسم الهاتف..."
-              required
-            />
-            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>
+        <div class="card-body text-center">
+          <h5 class="fw-bold text-primary mb-3">🔍 بحث عن الهواتف</h5>
+          <form id="searchForm">
+            <input type="search" class="search-field mb-3 text-center" id="phoneInput" placeholder="ابحث عن اسم الهاتف..." required />
+            <button type="submit" class="btn btn-primary w-100 fw-bold py-2">بحث</button>
           </form>
         </div>
       </div>
-<!-- 📦 نتائج البحث داخل بطاقة -->
-<div class="container my-4">
-  <div class="card shadow-sm border-0 rounded-4">
-    <div class="card-body">
-      <h5 class="text-center mb-4 text-primary fw-bold">📱 نتائج البحث</h5>
-      <!-- ✅ مكان عرض البطاقات -->
-      <div id="result" class="row g-4 justify-content-center"></div>
     </div>
-  </div>
-</div>
-   <!-- 🟢 مودال عرض المواصفات -->
-    <div class="modal fade" id="specsModal" tabindex="-1" aria-labelledby="specsModalLabel" aria-hidden="true">
+
+    <div class="container my-4">
+      <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body">
+          <h5 class="text-center fw-bold text-primary mb-4">📱 نتائج البحث</h5>
+          <div id="result" class="results-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="specsModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content shadow-lg rounded-4">
+        <div class="modal-content rounded-4 shadow-lg">
           <div class="modal-header bg-primary text-white">
             <h5 class="modal-title" id="modalTitle">تفاصيل الهاتف</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body" id="specsModalBody">
             <div class="text-center py-5">
@@ -392,265 +67,18 @@
       async function getDetails(url, phoneImg) {
         const modalBody = document.getElementById("specsModalBody");
         modalBody.innerHTML = `<div class='alert alert-info text-center'>📱 جاري جلب المواصفات...</div>`;
-
         try {
           const res = await fetch(`/api/details?url=${encodeURIComponent(url)}`);
           const data = await res.json();
-
-          if (data.error) {
-            modalBody.innerHTML = `<div class='alert alert-danger text-center'>❌ ${data.error}</div>`;
-            return;
-          }
-
-          const sections = {
-            "نظرة عامة": ["الإصدار", "الماركة", "الاسم", "النوع", "الخامة"],
-            السعر: ["السعر", "Price", "الأسعار"],
-            النظام: ["نظام التشغيل", "الواجهة", "الإصدار"],
-            الشاشة: ["الشاشة", "النوع", "الدقة", "السطوع", "معدل التحديث"],
-            الذاكرة: ["الذاكرة", "التخزين", "SD", "الرام"],
-            الأبعاد: ["الأبعاد", "الوزن", "الحجم"],
-            الكاميرا: ["الكاميرا", "الخلفية", "الأمامية", "الفيديو"],
-            // "البطارية": ["البطارية","الشحن","السعة"],
-            الصوت: ["الصوت", "سماعات", "جاك"],
-            أخرى: [],
-          };
-
-          const icons = {
-            "نظرة عامة": "📋",
-            السعر: "💰",
-            النظام: "⚙️",
-            الشاشة: "📱",
-            الذاكرة: "💾",
-            الأبعاد: "📏",
-            الكاميرا: "📸",
-            البطارية: "🔋",
-            الصوت: "🔈",
-            أخرى: "📎",
-          };
-
-          // تجميع البيانات حسب الأقسام
-          const grouped = {};
-          for (const [key, val] of Object.entries(data.specs)) {
-            let found = false;
-            for (const [section, keywords] of Object.entries(sections)) {
-              if (keywords.some((k) => key.includes(k))) {
-                (grouped[section] ??= []).push({ key, val });
-                found = true;
-                break;
-              }
-            }
-            if (!found) (grouped["أخرى"] ??= []).push({ key, val });
-          }
-
-          const tabs = Object.keys(sections);
-          const navTabs = tabs
-            .map(
-              (tab, i) => `
-      <li class="nav-item" role="presentation">
-        <button class="nav-link ${i === 0 ? "active" : ""}" id="tab-${i}" data-bs-toggle="tab" data-bs-target="#content-${i}" type="button" role="tab">
-          ${icons[tab]} ${tab}
-        </button>
-      </li>`
-            )
-            .join("");
-
-          const tabContents = tabs
-            .map((tab, i) => {
-              if (tab === "نظرة عامة") {
-                const mainImage =
-                  phoneImg || data.img || "https://telfonak.com/wp-content/uploads/2023/12/huawei-y9-prime-2019.webp";
-
-                return `
-<div class="tab-pane fade show active" id="content-${i}" role="tabpanel">
-  <div class="d-flex flex-column flex-lg-row align-items-center gap-4">
-
-    <!-- الصورة -->
-    <div class="text-center flex-shrink-0">
-      <div class="aps-main-image mb-3">
-        <img fetchpriority="high" class="aps-image-zoom rounded shadow-sm" 
-             src="${mainImage}" 
-             style="width:100%; max-width:400px;" 
-             alt="${data.title}">
-        <div class="aps-img-loader"><span class="aps-loader"></span></div>
-      </div>
-      <h4 class="fw-bold mt-2">${data.title}</h4>
-    </div>
-
-    <!-- البطاقات -->
-    <div class="flex-grow-1 w-100">
-      <div class="row g-3 justify-content-start">
-        ${[
-          {
-            key: "الشاشة",
-            val: (() => {
-              const screenRaw = data.specs["الشاشة"] || "غير محددة";
-
-              if (screenRaw === "غير محددة") return screenRaw;
-
-              // 🔍 استخراج نوع الشاشة
-              const typeMatch = screenRaw.match(/(IPS\s*LCD|AMOLED|OLED|Super\s*AMOLED|LTPO|PLS|TFT)/i);
-              const type = typeMatch ? typeMatch[0].replace(/\s+/g, " ").trim().toUpperCase() : "";
-
-              // 🔍 استخراج الحجم بالبوصة
-              const sizeMatch = screenRaw.match(/(\d+(\.\d+)?)\s*(بوصة|بوصه|inch|")/i);
-              const size = sizeMatch ? `${sizeMatch[1]} بوصة` : "";
-
-              // 🔍 استخراج الدقة
-              let res = "";
-              if (/FHD/i.test(screenRaw)) res = "بدقة FHD+";
-              else if (/HD\+/i.test(screenRaw)) res = "بدقة HD+";
-              else if (/QHD/i.test(screenRaw)) res = "بدقة QHD+";
-              else if (/UHD|4K/i.test(screenRaw)) res = "بدقة 4K";
-              else {
-                const resMatch = screenRaw.match(/(\d{3,4})\s*[x×]\s*(\d{3,4})/i);
-                if (resMatch) {
-                  const width = Math.max(resMatch[1], resMatch[2]);
-                  res = width >= 2000 ? "بدقة FHD+" : "بدقة HD+";
-                }
-              }
-
-              // 📱 تركيب النتيجة النهائية
-              if (type || size || res) {
-                return `${type}${type && size ? " بحجم " : ""}${size}${(type || size) && res ? " " : ""}${res}`.trim();
-              } else {
-                return screenRaw;
-              }
-            })(),
-            icon: "aps-icon-mobile",
-          },
-
-          { key: "المعالج", val: data.specs["المعالج"] || "غير محدد", icon: "aps-icon-cpu" },
-          {
-            key: "الكاميرات",
-            val: (() => {
-              const backRaw = data.specs["كاميرا خلفية"] || data.specs["الكاميرا الخلفية"] || "";
-              const frontRaw = data.specs["كاميرا امامية"] || data.specs["الكاميرا الأمامية"] || "";
-
-              const extractMP = (text) => {
-                const matches = text.match(/(\d+)\s*(?:ميجا|م\.ب)/g); // فقط الأرقام المتبوعة بميجا أو م.ب
-                if (!matches) return "غير محددة";
-                const clean = matches.map((m) => m.replace(/\D/g, "")); // نحذف أي حروف ونحتفظ بالأرقام فقط
-                return clean.join("+") + " م.ب";
-              };
-
-              const back = extractMP(backRaw);
-              const front = extractMP(frontRaw);
-
-              if (back !== "غير محددة" && front !== "غير محددة") {
-                return `خلفية ${back} / أمامية ${front}`;
-              } else if (back !== "غير محددة") {
-                return `خلفية ${back}`;
-              } else if (front !== "غير محددة") {
-                return `أمامية ${front}`;
-              } else {
-                return "غير محددة";
-              }
-            })(),
-            icon: "aps-icon-camera",
-          },
-
-          {
-            key: "الذاكرة + الرام",
-            val: (() => {
-              // 🔍 البحث عن المفاتيح المحتملة للذاكرة والرام
-              const storageKey = Object.keys(data.specs).find((k) => /ذاكرة|تخزين|داخلية/i.test(k)) || "";
-              const ramKey = Object.keys(data.specs).find((k) => /رام|الرامات|عشوائية/i.test(k)) || "";
-
-              const storage = storageKey ? data.specs[storageKey].replace(/\s*\.\s*$/, "") : "";
-              const ram = ramKey ? data.specs[ramKey].replace(/\s*\.\s*$/, "") : "";
-
-              if (storage && ram) return `${storage} + ${ram}`;
-              else if (storage) return storage;
-              else if (ram) return ram;
-              else return "غير محددة";
-            })(),
-            icon: "aps-icon-hdd",
-          },
-
-          { key: "نظام التشغيل", val: data.specs["نظام التشغيل"] || "غير محدد", icon: "aps-icon-code" },
-          {
-            key: "البطارية",
-            val: (() => {
-              // 🔋 جلب القيم مباشرة من الموقع
-              const capacity = data.specs["سعة البطارية"] || data.specs["Battery Capacity"] || "";
-              const charging = data.specs["قدرة الشحن"] || data.specs["الشحن"] || "";
-
-              if (!capacity && !charging) return "غير محددة";
-
-              // ⚙️ تنظيف النصوص قليلاً
-              const capClean =
-                capacity
-                  .replace(/ملي|مللي|mAh/gi, "")
-                  .trim()
-                  .replace(/\.+$/, "") + " م.أ";
-              const chargeClean = charging.replace(/واط|W/gi, "").trim().replace(/\.+$/, "") + " واط";
-
-              // 🧩 دمج الناتج بشكل منسق
-              if (capacity && charging) return `${capClean} / ${chargeClean}`;
-              if (capacity) return capClean;
-              if (charging) return chargeClean;
-              return "غير محددة";
-            })(),
-            icon: "aps-icon-battery",
-          },
-        ]
-          .map(
-            (item) => `
-          <div class="col-12 col-md-6">
-            <div class="aps-feature-card">
-              <div class="aps-list-icon ${item.icon}"></div>
-              <div class="aps-feature-info text-center mt-2">
-                <strong>${item.key}</strong><br>
-                <span>${item.val}</span>
-              </div>
-            </div>
-          </div>`
-          )
-          .join("")}
-      </div>
-    </div>
-
-  </div>
-</div>`;
-              }
-
-              if (tab === "السعر") {
-                const priceVal = grouped["السعر"]?.[0]?.val || "غير متوفر";
-                return `<div class="tab-pane fade" id="content-${i}" role="tabpanel">
-          <div class="card border-success text-center shadow-sm p-4 bg-light">
-            <h4 class="text-success fw-bold mb-3">💰 السعر</h4>
-            <p class="fs-4 text-success">${priceVal}</p>
-          </div>
-        </div>`;
-              }
-
-              const sectionItems = grouped[tab]?.length
-                ? grouped[tab]
-                    .map(
-                      (item) =>
-                        `<li class="list-group-item d-flex justify-content-between align-items-center"><strong>${item.key}</strong><span>${item.val}</span></li>`
-                    )
-                    .join("")
-                : "<li class='list-group-item text-center text-muted'>❌ لا توجد بيانات متاحة.</li>";
-
-              return `<div class="tab-pane fade" id="content-${i}" role="tabpanel"><ul class="list-group list-group-flush">${sectionItems}</ul></div>`;
-            })
-            .join("");
-
-          modalBody.innerHTML = `
-      <ul class="nav nav-tabs justify-content-center flex-wrap" id="specTabs" role="tablist">${navTabs}</ul>
-      <div class="tab-content p-3 border border-top-0 rounded-bottom bg-light mt-1" id="specTabsContent">${tabContents}</div>
-    `;
-
+          if (data.error) { modalBody.innerHTML = `<div class='alert alert-danger text-center'>❌ ${data.error}</div>`; return; }
+          modalBody.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`; // يمكن استبدالها بالهيكل المفصل كما تريد
           new bootstrap.Modal(document.getElementById("specsModal")).show();
         } catch (err) {
           console.error(err);
           modalBody.innerHTML = `<div class='alert alert-danger text-center'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
         }
       }
-    </script>
 
-    <script>
       const form = document.getElementById("searchForm");
       const input = document.getElementById("phoneInput");
       const resultDiv = document.getElementById("result");
@@ -659,188 +87,40 @@
         e.preventDefault();
         const phone = input.value.trim();
         if (!phone) return;
-        resultDiv.innerHTML = `<div class='alert alert-info'>🔍 جاري البحث عن "${phone}"...</div>`;
-
+        resultDiv.innerHTML = `<div class='alert alert-info w-100 text-center'>🔍 جاري البحث عن "${phone}"...</div>`;
         try {
           const res = await fetch(`/api/${encodeURIComponent(phone)}`);
           const data = await res.json();
-          if (data.error) {
-            resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${data.error}</div>`;
-            return;
-          }
+          if(data.error){ resultDiv.innerHTML = `<div class='alert alert-danger w-100 text-center'>❌ ${data.error}</div>`; return; }
+          if(!data.results || data.results.length===0){ resultDiv.innerHTML = `<div class='alert alert-warning w-100 text-center'>⚠️ لا توجد نتائج</div>`; return; }
 
-          if (!data.mode || data.mode === "list") {
-            let cards = "<div class='row justify-content-start g-3'>";
-            for (const item of data.results) {
-              // ✅ معالجة النصوص (لو فيها أكثر من موديل أو معالج)
-              const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
+          let cardsHtml = '';
+          data.results.forEach(item=>{
+            const chipsetText = Array.isArray(item.chipset)? item.chipset.join(", ") : item.chipset || "غير محدد";
+            const modelText = Array.isArray(item.model)? item.model.join(", ") : item.model || "";
+            cardsHtml += `
+              <div class="result-item" data-url="${item.link}" data-img="${item.img||''}">
+                <img src="${item.img||'https://via.placeholder.com/300x180'}" class="result-thumb" alt="${item.title}">
+                <div>
+                  <div class="fw-bold">${item.title}</div>
+                  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="popover" data-bs-trigger="hover focus" title="⚙️ نوع المعالج" data-bs-content="${item.chipsetTooltip||chipsetText}">${chipsetText}</button>
+                  ${modelText? `<button class="btn btn-sm btn-outline-success" data-bs-toggle="popover" data-bs-trigger="hover focus" title="📱 الموديل والطراز" data-bs-content="${item.modelTooltip||modelText}">${modelText}</button>` : ''}
+                </div>
+              </div>`;
+          });
 
-              const modelText = Array.isArray(item.model) ? item.model.join(", ") : item.model || "";
+          resultDiv.innerHTML = cardsHtml;
 
-cards += `
-  <div class="col-6 col-sm-4 col-md-3 col-lg-custom mb-4">
-    <div class="result-item shadow-sm rounded-3 p-2 h-100"
-         data-url="${item.link}"
-         data-img="${item.img || ""}"
-         style="cursor:pointer; background:#fff; transition: transform 0.2s, box-shadow 0.2s;">
-         
-      ${item.img ? `<img src="${item.img}" class="result-thumb rounded mb-2" style="width:100%; height:180px; object-fit:cover;" alt="${item.title}">` : ""}
+          const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+          popoverTriggerList.map(el=>new bootstrap.Popover(el,{html:true,container:'body'}));
 
-      <div class="text-center">
-        <div class="fw-bold mb-1">${item.title}</div>
+          document.querySelectorAll(".result-item").forEach(card=>{
+            card.addEventListener("click",()=>getDetails(card.dataset.url, card.dataset.img));
+          });
 
-        <!-- زر المعالج -->
-        <button type="button"
-          class="btn btn-sm btn-outline-primary w-100 mb-1 text-truncate"
-          style="direction:ltr;"
-          data-bs-toggle="popover"
-          data-bs-trigger="hover focus"
-          title="⚙️ نوع المعالج"
-          data-bs-content="${item.chipsetTooltip || chipsetText}">
-          ${chipsetText}
-        </button>
-
-        <!-- زر الموديل -->
-        ${modelText ? `
-        <button type="button"
-          class="btn btn-sm btn-outline-success w-100 text-truncate"
-          style="direction:ltr;"
-          data-bs-toggle="popover"
-          data-bs-trigger="hover focus"
-          title="📱 الموديل والطراز"
-          data-bs-content="${item.modelTooltip || modelText}">
-          ${modelText}
-        </button>` : ""}
-      </div>
-    </div>
-  </div>
-`;
-
-            }
-
-            cards += "</div>";
-            resultDiv.innerHTML = cards;
-
-            // ✅ تفعيل popover من Bootstrap بعد إدخال الكروت
-            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-            popoverTriggerList.map(
-              (el) =>
-                new bootstrap.Popover(el, {
-                  placement: "top",
-                  container: "body",
-                  html: true,
-                })
-            );
-
-            // ✅ أنماط CSS لمنع التوسّع وجعل النص من اليسار إلى اليمين
-            const style = document.createElement("style");
-            style.innerHTML = `
-   .truncate-hover {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      transition: none !important;
-      transform: none !important;
-      direction: ltr; /* ← عرض النص من الشمال إلى اليمين */
-      text-align: left !important;
-   }
-  `;
-            document.head.appendChild(style);
-
-            document.head.appendChild(style);
-            // سكربت تفعيل التلميحات
-            document.querySelectorAll(".chipset-badge, .model-badge").forEach((badge) => {
-              const tooltip = badge.querySelector(".tooltip");
-              badge.addEventListener("mouseenter", () => {
-                tooltip.style.opacity = "1";
-                tooltip.style.pointerEvents = "auto";
-              });
-              badge.addEventListener("mouseleave", () => {
-                tooltip.style.opacity = "0";
-                tooltip.style.pointerEvents = "none";
-              });
-            });
-          } else if (data.mode === "details") {
-            let specsHtml = "";
-            for (const [key, val] of Object.entries(data.specs))
-              specsHtml += `<li><strong>${key}:</strong> ${val}</li>`;
-
-resultDiv.innerHTML = `
-  <div class="col mb-4">
-    <div class="card phone-card" data-url="${item.link}" data-img="${item.img}">
-      <img src="${item.img}" class="card-img-top" alt="${item.title}">
-      <div class="card-body">
-        <h6 class="card-title">${item.title}</h6>
-        <button class="btn btn-outline-primary btn-sm mb-2">${item.chipset}</button>
-        <button class="btn btn-outline-success btn-sm">${item.model}</button>
-      </div>
-    </div>
-  </div>
-`;
-
-                        }
-                       } catch (err) {
-                        resultDiv.innerHTML = `<div class='alert alert-danger'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
-                            }
-                           });
-
-      // 🧠 التلميحات
-      document.addEventListener("click", (e) => {
-        const badge = e.target.closest(".chipset-badge");
-        if (!badge) return;
-        const tooltipText = badge.getAttribute("data-tooltip");
-        if (!tooltipText) return;
-        document.querySelectorAll(".tooltip-popup").forEach((el) => el.remove());
-        const tooltip = document.createElement("div");
-        tooltip.className = "tooltip-popup";
-        tooltip.textContent = tooltipText;
-        document.body.appendChild(tooltip);
-        const rect = badge.getBoundingClientRect();
-        tooltip.style.top = `${rect.bottom + window.scrollY + 10}px`;
-        tooltip.style.left = `${rect.left + window.scrollX}px`;
-        const closeTooltip = (ev) => {
-          if (!tooltip.contains(ev.target) && ev.target !== badge) {
-            tooltip.remove();
-            document.removeEventListener("click", closeTooltip);
-          }
-        };
-        setTimeout(() => document.addEventListener("click", closeTooltip), 10);
-      });
-      document.addEventListener("mouseover", (e) => {
-        const badge = e.target.closest(".chipset-badge");
-        if (!badge) return;
-        const tooltipText = badge.getAttribute("data-tooltip");
-        if (!tooltipText) return;
-        if (badge.dataset.tooltipOpen === "true") return;
-        badge.dataset.tooltipOpen = "true";
-        const tooltip = document.createElement("div");
-        tooltip.className = "tooltip-popup";
-        tooltip.textContent = tooltipText;
-        document.body.appendChild(tooltip);
-        const rect = badge.getBoundingClientRect();
-        tooltip.style.top = `${rect.bottom + window.scrollY + 10}px`;
-        tooltip.style.left = `${rect.left + window.scrollX}px`;
-        badge.addEventListener(
-          "mouseleave",
-          () => {
-            tooltip.remove();
-            badge.dataset.tooltipOpen = "false";
-          },
-          { once: true }
-        );
-      });
-
-      // 🟢 فتح مودال المواصفات بالصورة من بطاقة البحث
-      // الضغط على البطاقة نفسها
-      resultDiv.addEventListener("click", (e) => {
-        const card = e.target.closest(".phone-card");
-        if (!card) return;
-        getDetails(card.dataset.url, card.dataset.img);
+        } catch(err){ console.error(err); resultDiv.innerHTML = `<div class='alert alert-danger text-center'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`; }
       });
     </script>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
-
-
