@@ -170,20 +170,71 @@
       }
 
       /* أيقونات ملونة لكل نوع */
-      .aps-icon-mobile { background: #0d6efd; }
-      .aps-icon-cpu { background: #198754; }
-      .aps-icon-camera { background: #fd7e14; }
-      .aps-icon-hdd { background: #6f42c1; }
-      .aps-icon-code { background: #20c997; }
-      .aps-icon-battery { background: #ffc107; color: #000; }
+      /* 🟢 ألوان وأيقونات مختلفة لكل ميزة */
+      .aps-icon-mobile {
+        background-color: #0d6efd;
+      }
+      .aps-icon-mobile::before {
+        content: "📱";
+      }
+      .aps-icon-cpu {
+        background-color: #198754;
+      }
+      .aps-icon-cpu::before {
+        content: "🧠";
+      }
+      .aps-icon-camera {
+        background-color: #fd7e14;
+      }
+      .aps-icon-camera::before {
+        content: "📸";
+      }
+      .aps-icon-hdd {
+        background-color: #6f42c1;
+      }
+      .aps-icon-hdd::before {
+        content: "💾";
+      }
+      .aps-icon-code {
+        background-color: #20c997;
+      }
+      .aps-icon-code::before {
+        content: "⚙️";
+      }
+      .aps-icon-battery {
+        background-color: #ffc107;
+        color: #000;
+      }
+      .aps-icon-battery::before {
+        content: "🔋";
+      }
 
       .aps-feature-info strong { color: #111; font-size: 15px; }
       .aps-feature-info span { font-size: 14px; color: #333; text-align: center; }
 
       /* تنسيق تبويبات المودال */
-      .nav-tabs { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
-      .nav-tabs .nav-link { font-weight: 600; color: #0d6efd; border-radius: 10px 10px 0 0; margin: 2px; }
-      .nav-tabs .nav-link.active { background-color: #0d6efd; color: #fff; }
+      
+      .nav-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+      }
+      .nav-tabs .nav-link {
+        font-weight: 600;
+        color: #0d6efd;
+        border-radius: 12px 12px 0 0;
+        margin: 2px;
+      }
+      .nav-tabs .nav-link.active {
+        background-color: #0d6efd;
+        color: #fff;
+      }
+      .tab-content ul li {
+        border-bottom: 1px solid #eee;
+        padding: 6px 0;
+      }
+
 
       /* tooltip-popup (في حال استخدامه مستقبلاً) */
       .tooltip-popup {
