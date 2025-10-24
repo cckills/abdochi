@@ -593,59 +593,45 @@
 
               const modelText = Array.isArray(item.model) ? item.model.join(", ") : item.model || "";
 
-              cards += `
-    <div class="col-6 col-sm-4 col-md-3 col-lg-custom mb-4">
-      <div class="card phone-card shadow-sm rounded-4 h-100 position-relative"
-           data-url="${item.link}"
-           data-img="${item.img || ""}"
-           style="cursor:pointer; transition: transform 0.3s, box-shadow 0.3s;">
-           
-        ${
-          item.img
-            ? `
-          <div class="card-img-wrapper position-relative" style="z-index: 1;">
-            <img src="${item.img}" class="card-img-top rounded-top" style="height:180px; object-fit:cover;" alt="${item.title}">
-          </div>
-        `
-            : ""
-        }
+cards += `
+  <div class="col-6 col-sm-4 col-md-3 col-lg-custom mb-4">
+    <div class="result-item shadow-sm rounded-3 p-2 h-100"
+         data-url="${item.link}"
+         data-img="${item.img || ""}"
+         style="cursor:pointer; background:#fff; transition: transform 0.2s, box-shadow 0.2s;">
+         
+      ${item.img ? `<img src="${item.img}" class="result-thumb rounded mb-2" style="width:100%; height:180px; object-fit:cover;" alt="${item.title}">` : ""}
 
-        <div class="card-body text-center d-flex flex-column position-relative" style="overflow: visible; z-index: 2;">
-          <h6 class="card-title fw-bold mb-3">${item.title}</h6>
+      <div class="text-center">
+        <div class="fw-bold mb-1">${item.title}</div>
 
-          <!-- ✅ أزرار المعالج والموديل -->
-           <div class="d-flex flex-column gap-2 text-muted small w-100">
+        <!-- زر المعالج -->
+        <button type="button"
+          class="btn btn-sm btn-outline-primary w-100 mb-1 text-truncate"
+          style="direction:ltr;"
+          data-bs-toggle="popover"
+          data-bs-trigger="hover focus"
+          title="⚙️ نوع المعالج"
+          data-bs-content="${item.chipsetTooltip || chipsetText}">
+          ${chipsetText}
+        </button>
 
-            <!-- زر المعالج -->
-            <button type="button"
-              class="btn btn-sm btn-outline-primary chipset-btn px-3 py-1 truncate-hover text-start"
-              style="max-width: 220px; direction: ltr;"
-              data-bs-toggle="popover"
-              data-bs-trigger="hover focus"
-              title="⚙️ نوع المعالج"
-              data-bs-content="${item.chipsetTooltip || chipsetText}">
-              ${chipsetText}
-            </button>
-
-            <!-- زر الموديل -->
-            ${
-              modelText
-                ? `
-            <button type="button"
-              class="btn btn-sm btn-outline-success model-btn px-3 py-1 truncate-hover text-start"
-              style="max-width: 220px; direction: ltr;"
-              data-bs-toggle="popover"
-              data-bs-trigger="hover focus"
-              title="📱 الموديل والطراز"
-              data-bs-content="${item.modelTooltip || modelText}">
-              ${modelText}
-            </button>`
-                : ""
-            }
-          </div>
-        </div>
+        <!-- زر الموديل -->
+        ${modelText ? `
+        <button type="button"
+          class="btn btn-sm btn-outline-success w-100 text-truncate"
+          style="direction:ltr;"
+          data-bs-toggle="popover"
+          data-bs-trigger="hover focus"
+          title="📱 الموديل والطراز"
+          data-bs-content="${item.modelTooltip || modelText}">
+          ${modelText}
+        </button>` : ""}
       </div>
-    </div>`;
+    </div>
+  </div>
+`;
+
             }
 
             cards += "</div>";
@@ -772,3 +758,4 @@ resultDiv.innerHTML = `
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
+
