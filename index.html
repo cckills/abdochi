@@ -545,7 +545,7 @@ document.querySelectorAll(".result-item").forEach(card => {
   card.addEventListener("click", () => {
     const phoneUrl = card.getAttribute("data-url");
     const phoneImg = card.getAttribute("data-img") || "";
-    getDetails(phoneUrl, phoneImg);
+    //getDetails(phoneUrl, phoneImg);
     new bootstrap.Modal(document.getElementById("specsModal")).show();
   });
 });
@@ -561,20 +561,6 @@ document.querySelectorAll(".result-item").forEach(card => {
                 })
             );
 
-            // ✅ أنماط CSS لمنع التوسّع وجعل النص من اليسار إلى اليمين
-            const style = document.createElement("style");
-            style.innerHTML = `
-   .truncate-hover {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      transition: none !important;
-      transform: none !important;
-      direction: ltr; /* ← عرض النص من الشمال إلى اليمين */
-      text-align: left !important;
-   }
-  `;
-            document.head.appendChild(style);
             // سكربت تفعيل التلميحات
             document.querySelectorAll(".chipset-badge, .model-badge").forEach((badge) => {
               const tooltip = badge.querySelector(".tooltip");
@@ -587,23 +573,22 @@ document.querySelectorAll(".result-item").forEach(card => {
                 tooltip.style.pointerEvents = "none";
               });
             });
-          } else if (data.mode === "details") {
-            let specsHtml = "";
-            for (const [key, val] of Object.entries(data.specs))
-              specsHtml += `<li><strong>${key}:</strong> ${val}</li>`;
+   } else if (data.mode === "details") {
+  // عرض مواصفات الهاتف مباشرة
+  let specsHtml = "";
+  for (const [key, val] of Object.entries(data.specs)) {
+    specsHtml += `<li><strong>${key}:</strong> ${val}</li>`;
+  }
 
-resultDiv.innerHTML = `
-  <div class="col mb-4">
-    <div class="card phone-card" data-url="${item.link}" data-img="${item.img}">
-      <img src="${item.img}" class="card-img-top" alt="${item.title}">
-      <div class="card-body">
-        <h6 class="card-title">${item.title}</h6>
-        <button class="btn btn-outline-primary btn-sm mb-2">${item.chipset}</button>
-        <button class="btn btn-outline-success btn-sm">${item.model}</button>
-      </div>
+  resultDiv.innerHTML = `
+    <div class="card p-3 shadow-sm">
+      <h5 class="text-center mb-3 fw-bold text-primary">${data.title}</h5>
+      <img src="${data.img}" class="rounded mx-auto d-block mb-3" style="max-width:260px;">
+      <ul class="list-group list-group-flush">${specsHtml}</ul>
+      <button class="btn btn-primary mt-3 w-100" onclick="getDetails('${data.link}', '${data.img}')">عرض التفاصيل الكاملة</button>
     </div>
-  </div>
-`;
+  `;
+
 
                         }
                        } catch (err) {
@@ -669,3 +654,4 @@ resultDiv.innerHTML = `
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
+
