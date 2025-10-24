@@ -408,7 +408,8 @@ if (!data.mode || data.mode === "list") {
 
             <!-- زر المعالج -->
             <button type="button"
-              class="btn btn-sm btn-outline-primary chipset-btn px-3 py-1 truncate-hover"
+              class="btn btn-sm btn-outline-primary chipset-btn px-3 py-1 truncate-hover text-start"
+              style="max-width: 220px; direction: ltr;"
               data-bs-toggle="popover"
               data-bs-trigger="hover focus"
               title="⚙️ نوع المعالج"
@@ -419,7 +420,8 @@ if (!data.mode || data.mode === "list") {
             <!-- زر الموديل -->
             ${modelText ? `
             <button type="button"
-              class="btn btn-sm btn-outline-success model-btn px-3 py-1 truncate-hover"
+              class="btn btn-sm btn-outline-success model-btn px-3 py-1 truncate-hover text-start"
+              style="max-width: 220px; direction: ltr;"
               data-bs-toggle="popover"
               data-bs-trigger="hover focus"
               title="📱 الموديل والطراز"
@@ -443,34 +445,22 @@ if (!data.mode || data.mode === "list") {
     html: true,
   }));
 
-  // ✅ إضافة نمط CSS ديناميكي لجعل الأزرار تتوسع عند المرور
+  // ✅ أنماط CSS لمنع التوسّع وجعل النص من اليسار إلى اليمين
   const style = document.createElement("style");
   style.innerHTML = `
- .truncate-hover {
-  max-width: 220px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: none !important;
-  transform: none !important;
-}
-
-.truncate-hover:hover {
-  white-space: normal;
-  overflow: visible;
-  max-width: 220px; /* يبقى بنفس الحجم */
-  transition: none !important;
-  transform: none !important;
-}
-
-
-
-
+   .truncate-hover {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: none !important;
+      transform: none !important;
+      direction: ltr; /* ← عرض النص من الشمال إلى اليمين */
+      text-align: left !important;
+   }
   `;
   document.head.appendChild(style);
 
-
-
+  document.head.appendChild(style);
   // سكربت تفعيل التلميحات
   document.querySelectorAll('.chipset-badge, .model-badge').forEach(badge=>{
     const tooltip = badge.querySelector('.tooltip');
