@@ -378,6 +378,15 @@ if (!data.mode || data.mode === "list") {
   let cards = "<div class='row justify-content-start g-3'>";
   for (const item of data.results) {
 
+    // تنسيق النص داخل الأزرار ليعرض كل العناصر بفاصلة
+    const chipsetText = Array.isArray(item.chipset)
+      ? item.chipset.join(", ")
+      : (item.chipset || "غير محدد");
+
+    const modelText = Array.isArray(item.model)
+      ? item.model.join(", ")
+      : (item.model || "");
+
     cards += `
     <div class="col-6 col-sm-4 col-md-3 col-lg-custom mb-4">
       <div class="card phone-card shadow-sm rounded-4 h-100 position-relative"
@@ -398,28 +407,26 @@ if (!data.mode || data.mode === "list") {
           <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap text-muted small">
 
             <!-- زر المعالج -->
-            ${item.chipset ? `
-            <button type="button" class="btn btn-sm btn-outline-primary chipset-btn px-3 py-1 text-truncate"
+            <button type="button"
+              class="btn btn-sm btn-outline-primary chipset-btn px-3 py-1 text-truncate"
               style="max-width: 220px;"
               data-bs-toggle="popover"
-              data-bs-trigger="focus"
+              data-bs-trigger="hover focus"
               title="⚙️ نوع المعالج"
-              data-bs-content="${item.chipsetTooltip || item.chipset}">
-              ${item.chipset}
-            </button>` : `
-            <button type="button" class="btn btn-sm btn-outline-secondary px-3 py-1" disabled>
-              غير محدد
-            </button>`}
+              data-bs-content="${item.chipsetTooltip || chipsetText}">
+              ${chipsetText}
+            </button>
 
             <!-- زر الموديل -->
-            ${item.model ? `
-            <button type="button" class="btn btn-sm btn-outline-success model-btn px-3 py-1 text-truncate"
+            ${modelText ? `
+            <button type="button"
+              class="btn btn-sm btn-outline-success model-btn px-3 py-1 text-truncate"
               style="max-width: 220px;"
               data-bs-toggle="popover"
-              data-bs-trigger="focus"
+              data-bs-trigger="hover focus"
               title="📱 الموديل والطراز"
-              data-bs-content="${item.modelTooltip || item.model}">
-              ${item.model}
+              data-bs-content="${item.modelTooltip || modelText}">
+              ${modelText}
             </button>` : ""}
           </div>
         </div>
@@ -437,7 +444,6 @@ if (!data.mode || data.mode === "list") {
     container: 'body',
     html: true,
   }));
-
 
 
   // سكربت تفعيل التلميحات
