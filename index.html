@@ -1,185 +1,410 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <title>بحث عن الهواتف</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <head>
+    <meta charset="UTF-8" />
+    <title>بحث عن الهواتف</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-  <style>
+    <style>
+      @media (min-width: 992px) {
+        .col-lg-custom {
+          flex: 0 0 20%;
+          max-width: 20%;
+        }
+      }
 
+    
+      .model-badge {
+        background: #e3f2fd;
+        color: #0d6efd;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 8px;
+        display: inline-block;
+        font-size: 10px;
+        cursor: help;
+        transition: background 0.2s;
+        position: relative;
+      }
 
-@media (min-width: 992px) {
-  .col-lg-custom {
-    flex: 0 0 20%;
-    max-width: 20%;
-  }
+      /* 🟦 قائمة المواصفات الأساسية */
+      .aps-features-list {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+      .aps-features-list li {
+        margin-bottom: 15px;
+      }
+
+      /* 🟢 ألوان وأيقونات مختلفة لكل ميزة */
+      .aps-icon-mobile {
+        background-color: #0d6efd;
+      }
+      .aps-icon-mobile::before {
+        content: "📱";
+      }
+      .aps-icon-cpu {
+        background-color: #198754;
+      }
+      .aps-icon-cpu::before {
+        content: "🧠";
+      }
+      .aps-icon-camera {
+        background-color: #fd7e14;
+      }
+      .aps-icon-camera::before {
+        content: "📸";
+      }
+      .aps-icon-hdd {
+        background-color: #6f42c1;
+      }
+      .aps-icon-hdd::before {
+        content: "💾";
+      }
+      .aps-icon-code {
+        background-color: #20c997;
+      }
+      .aps-icon-code::before {
+        content: "⚙️";
+      }
+      .aps-icon-battery {
+        background-color: #ffc107;
+        color: #000;
+      }
+      .aps-icon-battery::before {
+        content: "🔋";
+      }
+
+      /* البطاقة */
+      .aps-feature-card {
+        background: #f0f8ff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .aps-feature-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+      }
+      .aps-list-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: #fff;
+        margin-bottom: 10px;
+      }
+      .aps-icon-mobile {
+        background-color: #0d6efd;
+      }
+      .aps-icon-cpu {
+        background-color: #198754;
+      }
+      .aps-icon-camera {
+        background-color: #fd7e14;
+      }
+      .aps-icon-hdd {
+        background-color: #6f42c1;
+      }
+      .aps-icon-code {
+        background-color: #20c997;
+      }
+      .aps-icon-battery {
+        background-color: #ffc107;
+        color: #000;
+      }
+      .aps-feature-info strong {
+        color: #000;
+        font-size: 15px;
+      }
+      .aps-feature-info span {
+        font-size: 14px;
+        color: #333;
+        text-align: center;
+      }
+
+      /* 🎨 التنسيقات */
+      body {
+        background: #f9f9f9;
+        font-family: "Cairo", sans-serif;
+      }
+      .search-modal-box {
+        max-width: 600px;
+        margin: 80px auto;
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+      }
+      .search-field {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 12px;
+        font-size: 18px;
+      }
+      .message {
+        margin-top: 10px;
+        color: #777;
+        font-size: 14px;
+      }
+     
+
+      /* 🔍 تلميح */
+      .chipset-badge {
+        background: #e3f2fd;
+        color: #0d6efd;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 8px;
+        display: inline-block;
+        font-size: 10px;
+        cursor: help;
+        transition: background 0.2s;
+        position: relative;
+      }
+      .chipset-badge:hover {
+        background: #d0e7ff;
+      }
+      .tooltip-popup {
+        position: absolute;
+        background: #333;
+        color: #fff;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        max-width: 250px;
+        line-height: 1.5;
+        z-index: 9999;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 0.15s ease-in-out;
+      }
+      .tooltip-popup::after {
+        content: "";
+        position: absolute;
+        top: -6px;
+        left: 15px;
+        border-width: 6px;
+        border-style: solid;
+        border-color: transparent transparent #333 transparent;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .nav-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+      }
+      .nav-tabs .nav-link {
+        font-weight: 600;
+        color: #0d6efd;
+        border-radius: 12px 12px 0 0;
+        margin: 2px;
+      }
+      .nav-tabs .nav-link.active {
+        background-color: #0d6efd;
+        color: #fff;
+      }
+      .tab-content ul li {
+        border-bottom: 1px solid #eee;
+        padding: 6px 0;
+      }
+
+/* ✅ توحيد تنسيق الكروت لتكون كلها بنفس الارتفاع */
+.phone-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* جعل كل الكروت بنفس الارتفاع داخل الشبكة */
+.row > [class*="col-"] {
+  display: flex;
+}
+
+.row > [class*="col-"] > .phone-card {
+  flex: 1;
+}
+
+/* تنسيق الصورة داخل البطاقة */
+.phone-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+/* تنسيق النص داخل البطاقة */
+.phone-card .card-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* عنوان الهاتف */
+.phone-card .card-title {
+  min-height: 40px; /* توحيد ارتفاع العنوان */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* الأزرار متناسقة */
+.chipset-btn, .model-btn {
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+/* هوفر أنيق */
 .phone-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
+  
 
-  .model-badge {
-  background: #e3f2fd;
-  color: #0d6efd;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 8px;
-  display: inline-block;
-  font-size: 10px;
-  cursor: help;
-  transition: background 0.2s;
-  position: relative;
-}
+    </style>
+  </head>
+  <body>
+    <!-- 🔍 مربع البحث -->
+    <div class="search-modal-box" role="dialog" aria-modal="true">
+      <form id="searchForm" class="search-form text-center">
+        <p class="message mt-2">اكتب كلمة البحث ثم اضغط زر البحث أو <em>Enter</em></p>
+        <input
+          type="search"
+          class="search-field mb-3"
+          id="phoneInput"
+          name="s"
+          placeholder="ابحث عن اسم الهاتف..."
+          required
+        />
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">🔍 بحث</button>
+      </form>
+    </div>
 
+    <!-- 📦 نتائج البحث -->
+    <div class="container">
+      <div id="result"></div>
+    </div>
 
-    /* 🟦 قائمة المواصفات الأساسية */
-.aps-features-list { padding: 0; margin: 0; list-style: none; }
-.aps-features-list li { margin-bottom: 15px; }
-
-/* 🟢 ألوان وأيقونات مختلفة لكل ميزة */
-.aps-icon-mobile { background-color: #0d6efd; } 
-.aps-icon-mobile::before { content: "📱"; }
-.aps-icon-cpu { background-color: #198754; } 
-.aps-icon-cpu::before { content: "🧠"; }
-.aps-icon-camera { background-color: #fd7e14; } 
-.aps-icon-camera::before { content: "📸"; }
-.aps-icon-hdd { background-color: #6f42c1; } 
-.aps-icon-hdd::before { content: "💾"; }
-.aps-icon-code { background-color: #20c997; } 
-.aps-icon-code::before { content: "⚙️"; }
-.aps-icon-battery { background-color: #ffc107; color: #000; } 
-.aps-icon-battery::before { content: "🔋"; }
-
-/* البطاقة */
-.aps-feature-card { background: #f0f8ff; padding: 20px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; flex-direction: column; align-items: center; }
-.aps-feature-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
-.aps-list-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; margin-bottom: 10px; }
-.aps-icon-mobile { background-color: #0d6efd; }
-.aps-icon-cpu { background-color: #198754; }
-.aps-icon-camera { background-color: #fd7e14; }
-.aps-icon-hdd { background-color: #6f42c1; }
-.aps-icon-code { background-color: #20c997; }
-.aps-icon-battery { background-color: #ffc107; color: #000; }
-.aps-feature-info strong { color: #000; font-size: 15px; }
-.aps-feature-info span { font-size: 14px; color: #333; text-align: center; }
-
-/* 🎨 التنسيقات */
-body { background: #f9f9f9; font-family: 'Cairo', sans-serif; }
-.search-modal-box { max-width: 600px; margin: 80px auto; background: #fff; border-radius: 20px; box-shadow: 0 3px 12px rgba(0,0,0,0.1); padding: 30px; }
-.search-field { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; }
-.message { margin-top: 10px; color: #777; font-size: 14px; }
-.phone-card img { height: 250px; object-fit: cover; border-top-left-radius: 12px; border-top-right-radius: 12px; }
-
-/* 🔍 تلميح */
-.chipset-badge { background: #e3f2fd; color: #0d6efd; font-weight: 600; padding: 4px 10px; border-radius: 8px; display: inline-block; font-size: 10px; cursor: help; transition: background 0.2s; position: relative; }
-.chipset-badge:hover { background: #d0e7ff; }
-.tooltip-popup { position: absolute; background: #333; color: #fff; padding: 8px 10px; border-radius: 8px; font-size: 13px; max-width: 250px; line-height: 1.5; z-index: 9999; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: fadeIn 0.15s ease-in-out; }
-.tooltip-popup::after { content: ""; position: absolute; top: -6px; left: 15px; border-width: 6px; border-style: solid; border-color: transparent transparent #333 transparent; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-
-.nav-tabs { overflow-x: auto; white-space: nowrap; flex-wrap: nowrap !important; -webkit-overflow-scrolling: touch; }
-.nav-tabs .nav-link { font-weight: 600; color: #0d6efd; border-radius: 12px 12px 0 0; margin: 2px; }
-.nav-tabs .nav-link.active { background-color: #0d6efd; color: #fff; }
-.tab-content ul li { border-bottom: 1px solid #eee; padding: 6px 0; }
-
-</style>
-</head>
-<body>
-
-<!-- 🔍 مربع البحث -->
-<div class="search-modal-box" role="dialog" aria-modal="true">
-  <form id="searchForm" class="search-form text-center">
-      <p class="message mt-2">اكتب كلمة البحث ثم اضغط زر البحث أو <em>Enter</em></p>
-    <input type="search" class="search-field mb-3" id="phoneInput" name="s" placeholder="ابحث عن اسم الهاتف..." required>
-    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">🔍 بحث</button>
-  </form>
-</div>
-
-<!-- 📦 نتائج البحث -->
-<div class="container">
-  <div id="result"></div>
-</div>
-
-<!-- 🟢 Bootstrap Modal لعرض المواصفات -->
-<div class="modal fade" id="specsModal" tabindex="-1" aria-labelledby="specsModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content shadow-lg rounded-4">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="modalTitle">تفاصيل الهاتف</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
-      </div>
-      <div class="modal-body" id="specsModalBody">
-        <div class="text-center py-5">
-          <div class="spinner-border text-primary" role="status"></div>
-          <p class="mt-3 text-muted">جاري التحميل...</p>
+    <!-- 🟢 Bootstrap Modal لعرض المواصفات -->
+    <div class="modal fade" id="specsModal" tabindex="-1" aria-labelledby="specsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content shadow-lg rounded-4">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="modalTitle">تفاصيل الهاتف</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+          </div>
+          <div class="modal-body" id="specsModalBody">
+            <div class="text-center py-5">
+              <div class="spinner-border text-primary" role="status"></div>
+              <p class="mt-3 text-muted">جاري التحميل...</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<script>
-async function getDetails(url, phoneImg) {
-  const modalBody = document.getElementById("specsModalBody");
-  modalBody.innerHTML = `<div class='alert alert-info text-center'>📱 جاري جلب المواصفات...</div>`;
+    <script>
+      async function getDetails(url, phoneImg) {
+        const modalBody = document.getElementById("specsModalBody");
+        modalBody.innerHTML = `<div class='alert alert-info text-center'>📱 جاري جلب المواصفات...</div>`;
 
-  try {
-    const res = await fetch(`/api/details?url=${encodeURIComponent(url)}`);
-    const data = await res.json();
+        try {
+          const res = await fetch(`/api/details?url=${encodeURIComponent(url)}`);
+          const data = await res.json();
 
-    if (data.error) {
-      modalBody.innerHTML = `<div class='alert alert-danger text-center'>❌ ${data.error}</div>`;
-      return;
-    }
+          if (data.error) {
+            modalBody.innerHTML = `<div class='alert alert-danger text-center'>❌ ${data.error}</div>`;
+            return;
+          }
 
-    const sections = {
-      "نظرة عامة": ["الإصدار","الماركة","الاسم","النوع","الخامة"],
-      "السعر": ["السعر","Price","الأسعار"],
-      "النظام": ["نظام التشغيل","الواجهة","الإصدار"],
-      "الشاشة": ["الشاشة","النوع","الدقة","السطوع","معدل التحديث"],
-      "الذاكرة": ["الذاكرة","التخزين","SD","الرام"],
-      "الأبعاد": ["الأبعاد","الوزن","الحجم"],
-      "الكاميرا": ["الكاميرا","الخلفية","الأمامية","الفيديو"],
-     // "البطارية": ["البطارية","الشحن","السعة"],
-      "الصوت": ["الصوت","سماعات","جاك"],
-      "أخرى": []
-    };
+          const sections = {
+            "نظرة عامة": ["الإصدار", "الماركة", "الاسم", "النوع", "الخامة"],
+            السعر: ["السعر", "Price", "الأسعار"],
+            النظام: ["نظام التشغيل", "الواجهة", "الإصدار"],
+            الشاشة: ["الشاشة", "النوع", "الدقة", "السطوع", "معدل التحديث"],
+            الذاكرة: ["الذاكرة", "التخزين", "SD", "الرام"],
+            الأبعاد: ["الأبعاد", "الوزن", "الحجم"],
+            الكاميرا: ["الكاميرا", "الخلفية", "الأمامية", "الفيديو"],
+            // "البطارية": ["البطارية","الشحن","السعة"],
+            الصوت: ["الصوت", "سماعات", "جاك"],
+            أخرى: [],
+          };
 
-    const icons = {
-      "نظرة عامة": "📋", "السعر": "💰", "النظام": "⚙️", "الشاشة": "📱",
-      "الذاكرة": "💾", "الأبعاد": "📏", "الكاميرا": "📸", "البطارية": "🔋",
-      "الصوت": "🔈", "أخرى": "📎"
-    };
+          const icons = {
+            "نظرة عامة": "📋",
+            السعر: "💰",
+            النظام: "⚙️",
+            الشاشة: "📱",
+            الذاكرة: "💾",
+            الأبعاد: "📏",
+            الكاميرا: "📸",
+            البطارية: "🔋",
+            الصوت: "🔈",
+            أخرى: "📎",
+          };
 
-    // تجميع البيانات حسب الأقسام
-    const grouped = {};
-    for(const [key,val] of Object.entries(data.specs)){
-      let found=false;
-      for(const [section,keywords] of Object.entries(sections)){
-        if(keywords.some(k=>key.includes(k))){
-          (grouped[section]??=[]).push({key,val});
-          found=true;
-          break;
-        }
-      }
-      if(!found) (grouped["أخرى"]??=[]).push({key,val});
-    }
+          // تجميع البيانات حسب الأقسام
+          const grouped = {};
+          for (const [key, val] of Object.entries(data.specs)) {
+            let found = false;
+            for (const [section, keywords] of Object.entries(sections)) {
+              if (keywords.some((k) => key.includes(k))) {
+                (grouped[section] ??= []).push({ key, val });
+                found = true;
+                break;
+              }
+            }
+            if (!found) (grouped["أخرى"] ??= []).push({ key, val });
+          }
 
-    const tabs = Object.keys(sections);
-    const navTabs = tabs.map((tab,i)=>`
+          const tabs = Object.keys(sections);
+          const navTabs = tabs
+            .map(
+              (tab, i) => `
       <li class="nav-item" role="presentation">
-        <button class="nav-link ${i===0?"active":""}" id="tab-${i}" data-bs-toggle="tab" data-bs-target="#content-${i}" type="button" role="tab">
+        <button class="nav-link ${i === 0 ? "active" : ""}" id="tab-${i}" data-bs-toggle="tab" data-bs-target="#content-${i}" type="button" role="tab">
           ${icons[tab]} ${tab}
         </button>
-      </li>`).join("");
+      </li>`
+            )
+            .join("");
 
-    const tabContents = tabs.map((tab,i)=>{
-      if(tab === "نظرة عامة") {
-        const mainImage = phoneImg || data.img || 'https://telfonak.com/wp-content/uploads/2023/12/huawei-y9-prime-2019.webp';
+          const tabContents = tabs
+            .map((tab, i) => {
+              if (tab === "نظرة عامة") {
+                const mainImage =
+                  phoneImg || data.img || "https://telfonak.com/wp-content/uploads/2023/12/huawei-y9-prime-2019.webp";
 
-        return `
+                return `
 <div class="tab-pane fade show active" id="content-${i}" role="tabpanel">
   <div class="d-flex flex-column flex-lg-row align-items-center gap-4">
 
@@ -199,118 +424,122 @@ async function getDetails(url, phoneImg) {
     <div class="flex-grow-1 w-100">
       <div class="row g-3 justify-content-start">
         ${[
-{ 
-  
-  key:"الشاشة", 
-  val:(() => {
-    const screenRaw = data.specs["الشاشة"] || "غير محددة";
+          {
+            key: "الشاشة",
+            val: (() => {
+              const screenRaw = data.specs["الشاشة"] || "غير محددة";
 
-    if (screenRaw === "غير محددة") return screenRaw;
+              if (screenRaw === "غير محددة") return screenRaw;
 
-    // 🔍 استخراج نوع الشاشة
-    const typeMatch = screenRaw.match(/(IPS\s*LCD|AMOLED|OLED|Super\s*AMOLED|LTPO|PLS|TFT)/i);
-    const type = typeMatch ? typeMatch[0].replace(/\s+/g, " ").trim().toUpperCase() : "";
+              // 🔍 استخراج نوع الشاشة
+              const typeMatch = screenRaw.match(/(IPS\s*LCD|AMOLED|OLED|Super\s*AMOLED|LTPO|PLS|TFT)/i);
+              const type = typeMatch ? typeMatch[0].replace(/\s+/g, " ").trim().toUpperCase() : "";
 
-    // 🔍 استخراج الحجم بالبوصة
-    const sizeMatch = screenRaw.match(/(\d+(\.\d+)?)\s*(بوصة|بوصه|inch|")/i);
-    const size = sizeMatch ? `${sizeMatch[1]} بوصة` : "";
+              // 🔍 استخراج الحجم بالبوصة
+              const sizeMatch = screenRaw.match(/(\d+(\.\d+)?)\s*(بوصة|بوصه|inch|")/i);
+              const size = sizeMatch ? `${sizeMatch[1]} بوصة` : "";
 
-    // 🔍 استخراج الدقة
-    let res = "";
-    if (/FHD/i.test(screenRaw)) res = "بدقة FHD+";
-    else if (/HD\+/i.test(screenRaw)) res = "بدقة HD+";
-    else if (/QHD/i.test(screenRaw)) res = "بدقة QHD+";
-    else if (/UHD|4K/i.test(screenRaw)) res = "بدقة 4K";
-    else {
-      const resMatch = screenRaw.match(/(\d{3,4})\s*[x×]\s*(\d{3,4})/i);
-      if (resMatch) {
-        const width = Math.max(resMatch[1], resMatch[2]);
-        res = width >= 2000 ? "بدقة FHD+" : "بدقة HD+";
-      }
-    }
+              // 🔍 استخراج الدقة
+              let res = "";
+              if (/FHD/i.test(screenRaw)) res = "بدقة FHD+";
+              else if (/HD\+/i.test(screenRaw)) res = "بدقة HD+";
+              else if (/QHD/i.test(screenRaw)) res = "بدقة QHD+";
+              else if (/UHD|4K/i.test(screenRaw)) res = "بدقة 4K";
+              else {
+                const resMatch = screenRaw.match(/(\d{3,4})\s*[x×]\s*(\d{3,4})/i);
+                if (resMatch) {
+                  const width = Math.max(resMatch[1], resMatch[2]);
+                  res = width >= 2000 ? "بدقة FHD+" : "بدقة HD+";
+                }
+              }
 
-    // 📱 تركيب النتيجة النهائية
-    if (type || size || res) {
-      return `${type}${type && size ? " بحجم " : ""}${size}${(type || size) && res ? " " : ""}${res}`.trim();
-    } else {
-      return screenRaw;
-    }
-  })(),
-  icon:"aps-icon-mobile" 
-},
+              // 📱 تركيب النتيجة النهائية
+              if (type || size || res) {
+                return `${type}${type && size ? " بحجم " : ""}${size}${(type || size) && res ? " " : ""}${res}`.trim();
+              } else {
+                return screenRaw;
+              }
+            })(),
+            icon: "aps-icon-mobile",
+          },
 
-          
-          { key:"المعالج", val:data.specs["المعالج"]||"غير محدد", icon:"aps-icon-cpu" },
- { key:"الكاميرات", 
-  val:(() => {
-    const backRaw = data.specs["كاميرا خلفية"] || data.specs["الكاميرا الخلفية"] || "";
-    const frontRaw = data.specs["كاميرا امامية"] || data.specs["الكاميرا الأمامية"] || "";
+          { key: "المعالج", val: data.specs["المعالج"] || "غير محدد", icon: "aps-icon-cpu" },
+          {
+            key: "الكاميرات",
+            val: (() => {
+              const backRaw = data.specs["كاميرا خلفية"] || data.specs["الكاميرا الخلفية"] || "";
+              const frontRaw = data.specs["كاميرا امامية"] || data.specs["الكاميرا الأمامية"] || "";
 
-  const extractMP = (text) => {
-  const matches = text.match(/(\d+)\s*(?:ميجا|م\.ب)/g); // فقط الأرقام المتبوعة بميجا أو م.ب
-  if (!matches) return "غير محددة";
-  const clean = matches.map(m => m.replace(/\D/g, "")); // نحذف أي حروف ونحتفظ بالأرقام فقط
-  return clean.join("+") + " م.ب";
-};
+              const extractMP = (text) => {
+                const matches = text.match(/(\d+)\s*(?:ميجا|م\.ب)/g); // فقط الأرقام المتبوعة بميجا أو م.ب
+                if (!matches) return "غير محددة";
+                const clean = matches.map((m) => m.replace(/\D/g, "")); // نحذف أي حروف ونحتفظ بالأرقام فقط
+                return clean.join("+") + " م.ب";
+              };
 
+              const back = extractMP(backRaw);
+              const front = extractMP(frontRaw);
 
-    const back = extractMP(backRaw);
-    const front = extractMP(frontRaw);
+              if (back !== "غير محددة" && front !== "غير محددة") {
+                return `خلفية ${back} / أمامية ${front}`;
+              } else if (back !== "غير محددة") {
+                return `خلفية ${back}`;
+              } else if (front !== "غير محددة") {
+                return `أمامية ${front}`;
+              } else {
+                return "غير محددة";
+              }
+            })(),
+            icon: "aps-icon-camera",
+          },
 
-    if(back !== "غير محددة" && front !== "غير محددة") {
-      return `خلفية ${back} / أمامية ${front}`;
-    } else if(back !== "غير محددة") {
-      return `خلفية ${back}`;
-    } else if(front !== "غير محددة") {
-      return `أمامية ${front}`;
-    } else {
-      return "غير محددة";
-    }
-  })(),
-  icon:"aps-icon-camera" 
-},
+          {
+            key: "الذاكرة + الرام",
+            val: (() => {
+              // 🔍 البحث عن المفاتيح المحتملة للذاكرة والرام
+              const storageKey = Object.keys(data.specs).find((k) => /ذاكرة|تخزين|داخلية/i.test(k)) || "";
+              const ramKey = Object.keys(data.specs).find((k) => /رام|الرامات|عشوائية/i.test(k)) || "";
 
-{
-  key: "الذاكرة + الرام",
-  val: (() => {
-    // 🔍 البحث عن المفاتيح المحتملة للذاكرة والرام
-    const storageKey = Object.keys(data.specs).find(k => /ذاكرة|تخزين|داخلية/i.test(k)) || "";
-    const ramKey = Object.keys(data.specs).find(k => /رام|الرامات|عشوائية/i.test(k)) || "";
+              const storage = storageKey ? data.specs[storageKey].replace(/\s*\.\s*$/, "") : "";
+              const ram = ramKey ? data.specs[ramKey].replace(/\s*\.\s*$/, "") : "";
 
-    const storage = storageKey ? data.specs[storageKey].replace(/\s*\.\s*$/, "") : "";
-    const ram = ramKey ? data.specs[ramKey].replace(/\s*\.\s*$/, "") : "";
+              if (storage && ram) return `${storage} + ${ram}`;
+              else if (storage) return storage;
+              else if (ram) return ram;
+              else return "غير محددة";
+            })(),
+            icon: "aps-icon-hdd",
+          },
 
-    if (storage && ram) return `${storage} + ${ram}`;
-    else if (storage) return storage;
-    else if (ram) return ram;
-    else return "غير محددة";
-  })(),
-  icon: "aps-icon-hdd"
-},
+          { key: "نظام التشغيل", val: data.specs["نظام التشغيل"] || "غير محدد", icon: "aps-icon-code" },
+          {
+            key: "البطارية",
+            val: (() => {
+              // 🔋 جلب القيم مباشرة من الموقع
+              const capacity = data.specs["سعة البطارية"] || data.specs["Battery Capacity"] || "";
+              const charging = data.specs["قدرة الشحن"] || data.specs["الشحن"] || "";
 
-{ key:"نظام التشغيل", val:data.specs["نظام التشغيل"]||"غير محدد", icon:"aps-icon-code" },
-{
-  key: "البطارية",
-  val: (() => {
-    // 🔋 جلب القيم مباشرة من الموقع
-    const capacity = data.specs["سعة البطارية"] || data.specs["Battery Capacity"] || "";
-    const charging = data.specs["قدرة الشحن"] || data.specs["الشحن"] || "";
+              if (!capacity && !charging) return "غير محددة";
 
-    if (!capacity && !charging) return "غير محددة";
+              // ⚙️ تنظيف النصوص قليلاً
+              const capClean =
+                capacity
+                  .replace(/ملي|مللي|mAh/gi, "")
+                  .trim()
+                  .replace(/\.+$/, "") + " م.أ";
+              const chargeClean = charging.replace(/واط|W/gi, "").trim().replace(/\.+$/, "") + " واط";
 
-    // ⚙️ تنظيف النصوص قليلاً
-    const capClean = capacity.replace(/ملي|مللي|mAh/gi, "").trim().replace(/\.+$/, "") + " م.أ";
-    const chargeClean = charging.replace(/واط|W/gi, "").trim().replace(/\.+$/, "") + " واط";
-
-    // 🧩 دمج الناتج بشكل منسق
-    if (capacity && charging) return `${capClean} / ${chargeClean}`;
-    if (capacity) return capClean;
-    if (charging) return chargeClean;
-    return "غير محددة";
-  })(),
-  icon: "aps-icon-battery"
-},
-        ].map(item => `
+              // 🧩 دمج الناتج بشكل منسق
+              if (capacity && charging) return `${capClean} / ${chargeClean}`;
+              if (capacity) return capClean;
+              if (charging) return chargeClean;
+              return "غير محددة";
+            })(),
+            icon: "aps-icon-battery",
+          },
+        ]
+          .map(
+            (item) => `
           <div class="col-12 col-md-6">
             <div class="aps-feature-card">
               <div class="aps-list-icon ${item.icon}"></div>
@@ -319,86 +548,95 @@ async function getDetails(url, phoneImg) {
                 <span>${item.val}</span>
               </div>
             </div>
-          </div>`).join("")}
+          </div>`
+          )
+          .join("")}
       </div>
     </div>
 
   </div>
 </div>`;
-      }
+              }
 
-      if(tab==="السعر"){
-        const priceVal = grouped["السعر"]?.[0]?.val || "غير متوفر";
-        return `<div class="tab-pane fade" id="content-${i}" role="tabpanel">
+              if (tab === "السعر") {
+                const priceVal = grouped["السعر"]?.[0]?.val || "غير متوفر";
+                return `<div class="tab-pane fade" id="content-${i}" role="tabpanel">
           <div class="card border-success text-center shadow-sm p-4 bg-light">
             <h4 class="text-success fw-bold mb-3">💰 السعر</h4>
             <p class="fs-4 text-success">${priceVal}</p>
           </div>
         </div>`;
-      }
+              }
 
-      const sectionItems = grouped[tab]?.length
-        ? grouped[tab].map(item=>`<li class="list-group-item d-flex justify-content-between align-items-center"><strong>${item.key}</strong><span>${item.val}</span></li>`).join("")
-        : "<li class='list-group-item text-center text-muted'>❌ لا توجد بيانات متاحة.</li>";
+              const sectionItems = grouped[tab]?.length
+                ? grouped[tab]
+                    .map(
+                      (item) =>
+                        `<li class="list-group-item d-flex justify-content-between align-items-center"><strong>${item.key}</strong><span>${item.val}</span></li>`
+                    )
+                    .join("")
+                : "<li class='list-group-item text-center text-muted'>❌ لا توجد بيانات متاحة.</li>";
 
-      return `<div class="tab-pane fade" id="content-${i}" role="tabpanel"><ul class="list-group list-group-flush">${sectionItems}</ul></div>`;
-    }).join("");
+              return `<div class="tab-pane fade" id="content-${i}" role="tabpanel"><ul class="list-group list-group-flush">${sectionItems}</ul></div>`;
+            })
+            .join("");
 
-    modalBody.innerHTML = `
+          modalBody.innerHTML = `
       <ul class="nav nav-tabs justify-content-center flex-wrap" id="specTabs" role="tablist">${navTabs}</ul>
       <div class="tab-content p-3 border border-top-0 rounded-bottom bg-light mt-1" id="specTabsContent">${tabContents}</div>
     `;
 
-    new bootstrap.Modal(document.getElementById('specsModal')).show();
-  } catch(err){
-    console.error(err);
-    modalBody.innerHTML = `<div class='alert alert-danger text-center'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
-  }
-}
+          new bootstrap.Modal(document.getElementById("specsModal")).show();
+        } catch (err) {
+          console.error(err);
+          modalBody.innerHTML = `<div class='alert alert-danger text-center'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
+        }
+      }
+    </script>
 
-</script>
+    <script>
+      const form = document.getElementById("searchForm");
+      const input = document.getElementById("phoneInput");
+      const resultDiv = document.getElementById("result");
 
-<script>
-const form = document.getElementById("searchForm");
-const input = document.getElementById("phoneInput");
-const resultDiv = document.getElementById("result");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const phone = input.value.trim();
+        if (!phone) return;
+        resultDiv.innerHTML = `<div class='alert alert-info'>🔍 جاري البحث عن "${phone}"...</div>`;
 
-form.addEventListener("submit", async(e)=>{
-  e.preventDefault();
-  const phone = input.value.trim();
-  if(!phone) return;
-  resultDiv.innerHTML = `<div class='alert alert-info'>🔍 جاري البحث عن "${phone}"...</div>`;
+        try {
+          const res = await fetch(`/api/${encodeURIComponent(phone)}`);
+          const data = await res.json();
+          if (data.error) {
+            resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${data.error}</div>`;
+            return;
+          }
 
-  try{
-    const res = await fetch(`/api/${encodeURIComponent(phone)}`);
-    const data = await res.json();
-    if(data.error){ resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${data.error}</div>`; return; }
+          if (!data.mode || data.mode === "list") {
+            let cards = "<div class='row justify-content-start g-3'>";
+            for (const item of data.results) {
+              // ✅ معالجة النصوص (لو فيها أكثر من موديل أو معالج)
+              const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
 
-if (!data.mode || data.mode === "list") {
-  let cards = "<div class='row justify-content-start g-3'>";
-  for (const item of data.results) {
+              const modelText = Array.isArray(item.model) ? item.model.join(", ") : item.model || "";
 
-    // ✅ معالجة النصوص (لو فيها أكثر من موديل أو معالج)
-    const chipsetText = Array.isArray(item.chipset)
-      ? item.chipset.join(", ")
-      : (item.chipset || "غير محدد");
-
-    const modelText = Array.isArray(item.model)
-      ? item.model.join(", ")
-      : (item.model || "");
-
-    cards += `
+              cards += `
     <div class="col-6 col-sm-4 col-md-3 col-lg-custom mb-4">
       <div class="card phone-card shadow-sm rounded-4 h-100 position-relative"
            data-url="${item.link}"
-           data-img="${item.img || ''}"
+           data-img="${item.img || ""}"
            style="cursor:pointer; transition: transform 0.3s, box-shadow 0.3s;">
            
-        ${item.img ? `
+        ${
+          item.img
+            ? `
           <div class="card-img-wrapper position-relative" style="z-index: 1;">
             <img src="${item.img}" class="card-img-top rounded-top" style="height:180px; object-fit:cover;" alt="${item.title}">
           </div>
-        ` : ""}
+        `
+            : ""
+        }
 
         <div class="card-body text-center d-flex flex-column position-relative" style="overflow: visible; z-index: 2;">
           <h6 class="card-title fw-bold mb-3">${item.title}</h6>
@@ -418,7 +656,9 @@ if (!data.mode || data.mode === "list") {
             </button>
 
             <!-- زر الموديل -->
-            ${modelText ? `
+            ${
+              modelText
+                ? `
             <button type="button"
               class="btn btn-sm btn-outline-success model-btn px-3 py-1 truncate-hover text-start"
               style="max-width: 220px; direction: ltr;"
@@ -427,27 +667,32 @@ if (!data.mode || data.mode === "list") {
               title="📱 الموديل والطراز"
               data-bs-content="${item.modelTooltip || modelText}">
               ${modelText}
-            </button>` : ""}
+            </button>`
+                : ""
+            }
           </div>
         </div>
       </div>
     </div>`;
-  }
+            }
 
-  cards += "</div>";
-  resultDiv.innerHTML = cards;
+            cards += "</div>";
+            resultDiv.innerHTML = cards;
 
-  // ✅ تفعيل popover من Bootstrap بعد إدخال الكروت
-  const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-  popoverTriggerList.map(el => new bootstrap.Popover(el, {
-    placement: 'top',
-    container: 'body',
-    html: true,
-  }));
+            // ✅ تفعيل popover من Bootstrap بعد إدخال الكروت
+            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            popoverTriggerList.map(
+              (el) =>
+                new bootstrap.Popover(el, {
+                  placement: "top",
+                  container: "body",
+                  html: true,
+                })
+            );
 
-  // ✅ أنماط CSS لمنع التوسّع وجعل النص من اليسار إلى اليمين
-  const style = document.createElement("style");
-  style.innerHTML = `
+            // ✅ أنماط CSS لمنع التوسّع وجعل النص من اليسار إلى اليمين
+            const style = document.createElement("style");
+            style.innerHTML = `
    .truncate-hover {
       white-space: nowrap;
       overflow: hidden;
@@ -458,81 +703,94 @@ if (!data.mode || data.mode === "list") {
       text-align: left !important;
    }
   `;
-  document.head.appendChild(style);
+            document.head.appendChild(style);
 
-  document.head.appendChild(style);
-  // سكربت تفعيل التلميحات
-  document.querySelectorAll('.chipset-badge, .model-badge').forEach(badge=>{
-    const tooltip = badge.querySelector('.tooltip');
-    badge.addEventListener('mouseenter',()=>{ tooltip.style.opacity='1'; tooltip.style.pointerEvents='auto'; });
-    badge.addEventListener('mouseleave',()=>{ tooltip.style.opacity='0'; tooltip.style.pointerEvents='none'; });
-  });
-}
-
-
-    else if(data.mode==="details"){
-      let specsHtml="";
-      for(const [key,val] of Object.entries(data.specs)) specsHtml+=`<li><strong>${key}:</strong> ${val}</li>`;
-      resultDiv.innerHTML = `
+            document.head.appendChild(style);
+            // سكربت تفعيل التلميحات
+            document.querySelectorAll(".chipset-badge, .model-badge").forEach((badge) => {
+              const tooltip = badge.querySelector(".tooltip");
+              badge.addEventListener("mouseenter", () => {
+                tooltip.style.opacity = "1";
+                tooltip.style.pointerEvents = "auto";
+              });
+              badge.addEventListener("mouseleave", () => {
+                tooltip.style.opacity = "0";
+                tooltip.style.pointerEvents = "none";
+              });
+            });
+          } else if (data.mode === "details") {
+            let specsHtml = "";
+            for (const [key, val] of Object.entries(data.specs))
+              specsHtml += `<li><strong>${key}:</strong> ${val}</li>`;
+            resultDiv.innerHTML = `
       <div class="card shadow mt-4">
-        ${data.img?`<img src="${data.img}" class="card-img-top" style="height:300px;object-fit:cover;">`:""}
+        ${data.img ? `<img src="${data.img}" class="card-img-top" style="height:300px;object-fit:cover;">` : ""}
         <div class="card-body">
           <h4>${data.title}</h4>
           <ul>${specsHtml}</ul>
         </div>
       </div>`;
-    }
-  } catch(err){
-    resultDiv.innerHTML = `<div class='alert alert-danger'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
-  }
-});
+          }
+        } catch (err) {
+          resultDiv.innerHTML = `<div class='alert alert-danger'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
+        }
+      });
 
-// 🧠 التلميحات
-document.addEventListener("click",(e)=>{
-  const badge=e.target.closest(".chipset-badge");
-  if(!badge) return;
-  const tooltipText = badge.getAttribute("data-tooltip");
-  if(!tooltipText) return;
-  document.querySelectorAll(".tooltip-popup").forEach(el=>el.remove());
-  const tooltip = document.createElement("div");
-  tooltip.className="tooltip-popup";
-  tooltip.textContent=tooltipText;
-  document.body.appendChild(tooltip);
-  const rect = badge.getBoundingClientRect();
-  tooltip.style.top=`${rect.bottom + window.scrollY + 10}px`;
-  tooltip.style.left=`${rect.left + window.scrollX}px`;
-  const closeTooltip=(ev)=>{if(!tooltip.contains(ev.target)&&ev.target!==badge){tooltip.remove();document.removeEventListener("click",closeTooltip);}};
-  setTimeout(()=>document.addEventListener("click",closeTooltip),10);
-});
-document.addEventListener("mouseover",(e)=>{
-  const badge=e.target.closest(".chipset-badge");
-  if(!badge) return;
-  const tooltipText = badge.getAttribute("data-tooltip");
-  if(!tooltipText) return;
-  if(badge.dataset.tooltipOpen==="true") return;
-  badge.dataset.tooltipOpen="true";
-  const tooltip = document.createElement("div");
-  tooltip.className="tooltip-popup";
-  tooltip.textContent=tooltipText;
-  document.body.appendChild(tooltip);
-  const rect = badge.getBoundingClientRect();
-  tooltip.style.top=`${rect.bottom + window.scrollY + 10}px`;
-  tooltip.style.left=`${rect.left + window.scrollX}px`;
-  badge.addEventListener("mouseleave",()=>{tooltip.remove();badge.dataset.tooltipOpen="false";},{once:true});
-});
+      // 🧠 التلميحات
+      document.addEventListener("click", (e) => {
+        const badge = e.target.closest(".chipset-badge");
+        if (!badge) return;
+        const tooltipText = badge.getAttribute("data-tooltip");
+        if (!tooltipText) return;
+        document.querySelectorAll(".tooltip-popup").forEach((el) => el.remove());
+        const tooltip = document.createElement("div");
+        tooltip.className = "tooltip-popup";
+        tooltip.textContent = tooltipText;
+        document.body.appendChild(tooltip);
+        const rect = badge.getBoundingClientRect();
+        tooltip.style.top = `${rect.bottom + window.scrollY + 10}px`;
+        tooltip.style.left = `${rect.left + window.scrollX}px`;
+        const closeTooltip = (ev) => {
+          if (!tooltip.contains(ev.target) && ev.target !== badge) {
+            tooltip.remove();
+            document.removeEventListener("click", closeTooltip);
+          }
+        };
+        setTimeout(() => document.addEventListener("click", closeTooltip), 10);
+      });
+      document.addEventListener("mouseover", (e) => {
+        const badge = e.target.closest(".chipset-badge");
+        if (!badge) return;
+        const tooltipText = badge.getAttribute("data-tooltip");
+        if (!tooltipText) return;
+        if (badge.dataset.tooltipOpen === "true") return;
+        badge.dataset.tooltipOpen = "true";
+        const tooltip = document.createElement("div");
+        tooltip.className = "tooltip-popup";
+        tooltip.textContent = tooltipText;
+        document.body.appendChild(tooltip);
+        const rect = badge.getBoundingClientRect();
+        tooltip.style.top = `${rect.bottom + window.scrollY + 10}px`;
+        tooltip.style.left = `${rect.left + window.scrollX}px`;
+        badge.addEventListener(
+          "mouseleave",
+          () => {
+            tooltip.remove();
+            badge.dataset.tooltipOpen = "false";
+          },
+          { once: true }
+        );
+      });
 
-// 🟢 فتح مودال المواصفات بالصورة من بطاقة البحث
-// الضغط على البطاقة نفسها
-resultDiv.addEventListener("click",(e)=>{
-const card = e.target.closest(".phone-card");
-  if(!card) return;
-  getDetails(card.dataset.url, card.dataset.img);
-});
+      // 🟢 فتح مودال المواصفات بالصورة من بطاقة البحث
+      // الضغط على البطاقة نفسها
+      resultDiv.addEventListener("click", (e) => {
+        const card = e.target.closest(".phone-card");
+        if (!card) return;
+        getDetails(card.dataset.url, card.dataset.img);
+      });
+    </script>
 
-
-</script>
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>
