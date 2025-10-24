@@ -446,24 +446,21 @@ if (!data.mode || data.mode === "list") {
   // ✅ إضافة نمط CSS ديناميكي لجعل الأزرار تتوسع عند المرور
   const style = document.createElement("style");
   style.innerHTML = `
- .truncate-hover,
-.truncate-hover:hover {
+ .truncate-hover {
   max-width: 220px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   transition: none !important;
   transform: none !important;
-  animation: none !important;
 }
 
 .truncate-hover:hover {
-  white-space: normal !important;
-  overflow: visible !important;
-  max-width: 100% !important;
-  z-index: 10 !important;
-  background: #f8f9fa !important;
-  box-shadow: 0 0 10px rgba(0,0,0,0.15) !important;
+  white-space: normal;
+  overflow: visible;
+  max-width: 220px; /* يبقى بنفس الحجم */
+  transition: none !important;
+  transform: none !important;
 }
 
 
