@@ -7,7 +7,91 @@
     <!-- Font Awesome CDN (إن رغبت باستعمال أيقونات إضافية لاحقًا) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <style>
-   
+    /* شبكة البطاقات */
+  .results-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  /* كل بطاقة */
+  .result-item {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+    flex: 0 0 23%; /* أربع بطاقات في الصف */
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+  }
+
+  .result-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+  }
+
+  /* الصورة */
+  .result-thumb {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* محتوى البطاقة */
+  .result-item > div {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  /* الاسم */
+  .result-item .fw-bold {
+    font-size: 15px;
+    color: #0d6efd;
+    text-align: center;
+  }
+
+  /* الأزرار */
+  .result-item button {
+    font-size: 13px;
+    border-radius: 8px;
+    padding: 4px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+  }
+
+  .result-item button.btn-outline-primary {
+    border-color: rgba(13,110,253,0.15);
+    color: #0d6efd;
+  }
+
+  .result-item button.btn-outline-success {
+    border-color: rgba(25,135,84,0.15);
+    color: #198754;
+  }
+
+  /* دعم RTL */
+  html[dir="rtl"] .result-item button {
+    text-align: right;
+  }
+
+  /* استجابة للشاشات الصغيرة */
+  @media (max-width: 1199.98px) {
+    .result-item { flex: 0 0 30%; }
+  }
+  @media (max-width: 767.98px) {
+    .result-item { flex: 0 0 48%; }
+  }
+  @media (max-width: 479.98px) {
+    .result-item { flex: 0 0 100%; }
+  }
       /* خط النظام الافتراضي كما طلبت */
       body {
         background: #f7f8fb;
@@ -758,4 +842,5 @@ resultDiv.innerHTML = `
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
+
 
