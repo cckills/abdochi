@@ -377,6 +377,10 @@ form.addEventListener("submit", async(e)=>{
 if (!data.mode || data.mode === "list") {
   let cards = "<div class='row justify-content-start g-3'>";
   for (const item of data.results) {
+    // 🔹 تجهيز الموديلات بشكل منسق (يفصلها بفواصل ومسافات)
+    let modelText = item.model ? item.model.replace(/[,،]+/g, ', ') : "";
+    let modelTooltip = item.modelTooltip || modelText || "غير معروف";
+
     cards += `
     <div class="col-6 col-sm-4 col-md-3 col-lg-custom mb-4">
       <div class="card phone-card shadow-sm rounded-4 h-100 position-relative"
@@ -393,10 +397,10 @@ if (!data.mode || data.mode === "list") {
         <div class="card-body text-center d-flex flex-column position-relative" style="overflow: visible; z-index: 2;">
           <h6 class="card-title fw-bold mb-3">${item.title}</h6>
 
-          <!-- ✅ المعالج والموديل في نفس السطر -->
+          <!-- ✅ أزرار المعالج والموديل -->
           <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap text-muted small">
 
-            <!-- زر المعالج يعرض الاسم -->
+            <!-- زر المعالج -->
             ${item.chipset ? `
             <button type="button" class="btn btn-sm btn-outline-primary chipset-btn px-3 py-1"
               data-bs-toggle="popover"
@@ -411,12 +415,13 @@ if (!data.mode || data.mode === "list") {
 
             <!-- زر الموديل -->
             ${item.model ? `
-            <button type="button" class="btn btn-sm btn-outline-success model-btn px-3 py-1"
+            <button type="button" class="btn btn-sm btn-outline-success model-btn px-3 py-1 text-truncate"
+              style="max-width: 220px;"
               data-bs-toggle="popover"
               data-bs-trigger="focus"
-              title="📱 الموديل والطراز"
-              data-bs-content="${item.modelTooltip || item.model || 'غير معروف'}">
-              الموديل / الطراز
+              title="📱 الموديلات والطرازات"
+              data-bs-content="<div style='max-width:250px; text-align:start; white-space:normal; line-height:1.5;'>${modelTooltip.replaceAll(',', '<br>')}</div>">
+              ${modelText}
             </button>` : ""}
           </div>
         </div>
