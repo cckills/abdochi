@@ -304,6 +304,74 @@
   transform: none !important;
 }
 
+
+/* ✅ ضبط عرض كل بطاقة لتكون 5 في الصف */
+@media (min-width: 1200px) {
+  .col-lg-custom {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+}
+
+/* ✅ تباعد متناسق بين البطاقات */
+.row.g-3 {
+  row-gap: 20px;
+  column-gap: 20px;
+  justify-content: center;
+}
+
+/* ✅ تنسيق البطاقة لتكون بنفس الارتفاع */
+.phone-card {
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.phone-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* ✅ الصورة داخل البطاقة */
+.phone-card img {
+  height: 180px;
+  width: 100%;
+  object-fit: cover;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+/* ✅ النص في المنتصف */
+.phone-card .card-title {
+  text-align: center;
+  font-weight: 600;
+  min-height: 45px;
+}
+
+/* ✅ الأزرار بنفس العرض والتنسيق */
+.chipset-btn,
+.model-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  direction: ltr;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  border-radius: 8px;
+  transition: none !important;
+}
+
+.chipset-btn:hover,
+.model-btn:hover {
+  opacity: 0.9;
+  transform: none !important;
+}
+
     </style>
   </head>
   <body>
