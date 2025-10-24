@@ -545,8 +545,9 @@ document.querySelectorAll(".result-item").forEach(card => {
   card.addEventListener("click", () => {
     const phoneUrl = card.getAttribute("data-url");
     const phoneImg = card.getAttribute("data-img") || "";
-    //getDetails(phoneUrl, phoneImg);
+    // ✅ هنا نفتح المودال ثم نجلب التفاصيل
     new bootstrap.Modal(document.getElementById("specsModal")).show();
+    getDetails(phoneUrl, phoneImg);
   });
 });
 
