@@ -378,7 +378,7 @@ if (!data.mode || data.mode === "list") {
   let cards = "<div class='row justify-content-start g-3'>";
   for (const item of data.results) {
 
-    // تنسيق النص داخل الأزرار ليعرض كل العناصر بفاصلة
+    // ✅ معالجة النصوص (لو فيها أكثر من موديل أو معالج)
     const chipsetText = Array.isArray(item.chipset)
       ? item.chipset.join(", ")
       : (item.chipset || "غير محدد");
@@ -403,13 +403,12 @@ if (!data.mode || data.mode === "list") {
         <div class="card-body text-center d-flex flex-column position-relative" style="overflow: visible; z-index: 2;">
           <h6 class="card-title fw-bold mb-3">${item.title}</h6>
 
-          <!-- ✅ المعالج والموديل في نفس السطر -->
+          <!-- ✅ أزرار المعالج والموديل -->
           <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap text-muted small">
 
             <!-- زر المعالج -->
             <button type="button"
-              class="btn btn-sm btn-outline-primary chipset-btn px-3 py-1 text-truncate"
-              style="max-width: 220px;"
+              class="btn btn-sm btn-outline-primary chipset-btn px-3 py-1 truncate-hover"
               data-bs-toggle="popover"
               data-bs-trigger="hover focus"
               title="⚙️ نوع المعالج"
@@ -420,8 +419,7 @@ if (!data.mode || data.mode === "list") {
             <!-- زر الموديل -->
             ${modelText ? `
             <button type="button"
-              class="btn btn-sm btn-outline-success model-btn px-3 py-1 text-truncate"
-              style="max-width: 220px;"
+              class="btn btn-sm btn-outline-success model-btn px-3 py-1 truncate-hover"
               data-bs-toggle="popover"
               data-bs-trigger="hover focus"
               title="📱 الموديل والطراز"
@@ -444,6 +442,28 @@ if (!data.mode || data.mode === "list") {
     container: 'body',
     html: true,
   }));
+
+  // ✅ إضافة نمط CSS ديناميكي لجعل الأزرار تتوسع عند المرور
+  const style = document.createElement("style");
+  style.innerHTML = `
+    .truncate-hover {
+      max-width: 220px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: all 0.3s ease;
+    }
+    .truncate-hover:hover {
+      white-space: normal !important;
+      overflow: visible !important;
+      max-width: 100% !important;
+      z-index: 10;
+      background: #f8f9fa;
+      box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    }
+  `;
+  document.head.appendChild(style);
+
 
 
   // سكربت تفعيل التلميحات
