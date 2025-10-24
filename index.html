@@ -287,9 +287,9 @@
 .chipset-btn,
 .model-btn {
   display: block;
-  width: 100%; /* الزر يأخذ عرض الكرت بالكامل */
-  text-align: left; /* النص من اليسار */
-  direction: ltr; /* عرض النص من الشمال إلى اليمين */
+  width: 100%;              /* الزر يأخذ عرض الكرت بالكامل */
+  text-align: center;       /* ✅ توسيط النص داخل الزر */
+  direction: ltr;           /* النص من الشمال إلى اليمين */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -298,7 +298,6 @@
   transition: none !important;
 }
 
-/* تنسيق جميل عند المرور */
 .chipset-btn:hover,
 .model-btn:hover {
   opacity: 0.9;
