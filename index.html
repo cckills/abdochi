@@ -230,6 +230,48 @@ body {
   padding: 6px 0;
 }
 
+.content {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* توسيط عمودي */
+  align-items: center;     /* توسيط أفقي */
+  text-align: center;
+  padding: 10px;           /* مساحة حول النص */
+  box-sizing: border-box;  /* يمنع تمدد المحتوى خارج الكارت */
+}
+
+/* ⚙️ تحسين العرض على الشاشات الصغيرة */
+@media (max-width: 600px) {
+  .card {
+    width: 200px;          /* تصغير عرض البطاقة على الجوال */
+    height: 280px;
+  }
+
+  .imgBox {
+    width: 120px;
+    height: 140px;
+    top: -30px;            /* رفع الصورة قليلاً لتناسب الحجم */
+  }
+
+  .fw-bold {
+    font-size: 1rem;       /* تصغير حجم الخط */
+    margin-top: 90px;      /* تقليل المسافة أسفل الصورة */
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .modelsTitle {
+    font-size: 0.75rem;
+    line-height: 1.2rem;
+  }
+}
+
     </style>
   </head>
   <body>
