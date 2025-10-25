@@ -76,12 +76,18 @@ body {
 }
 
 /* نتائج البحث */
+/* ✅ توزيع الكروت في شبكة متناسقة */
 #result {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 25px;
+  justify-items: center;
+  align-items: start;
+  padding: 30px;
+  width: 100%;
+  box-sizing: border-box;
 }
+
 /* 🌟 كارت تصميم vivo Y91C */
 .result-item {
   position: relative;
@@ -152,13 +158,6 @@ body {
   padding: 0 10px;
 }
 
-/* 🔹 توزيع متجاوب */
-#result {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 40px 30px;
-}
 
 
 /* أزرار داخل البطاقة */
