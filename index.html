@@ -4,190 +4,180 @@
   <meta charset="UTF-8" />
   <title>بحث عن الهواتف</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <style>
-    body { background: #f7f8fb; font-family: Tahoma, "Segoe UI", Roboto, Arial, sans-serif; color: #222; }
-    .search-field { width: 100%; padding: 12px 14px; border: 2px solid #e6e9ee; border-radius: 12px; font-size: 16px; }
-    #result { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 25px; justify-items: center; align-items: start; padding: 30px; }
-    .result-item { position: relative; width: 250px; height: 320px; box-shadow: 0 35px 80px rgba(0,0,0,0.15); background:#fff; border-radius:15px; overflow:visible; cursor:pointer; transition: transform .25s ease; }
-    .result-item:hover { transform: translateY(-5px); }
-    .result-item .imgBox { position: absolute; left: 50%; top: -41px; transform: translateX(-50%); width: 150px; height: 174px; background: #fff; border-radius: 20px; box-shadow:0 15px 50px rgba(0,0,0,0.35); overflow:hidden; }
-    .result-item .imgBox img { width: 100%; height: 100%; object-fit: cover; }
-    .result-item .content { position: absolute; bottom: 0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
-    .result-item .fw-bold { margin-top:110px; font-size:1.1rem; font-weight:700; color:#f30707; }
-    .result-item .subtitle { font-size:1rem; font-weight:500; color:#555; margin-top:5px; }
-    .result-item .modelsTitle { font-size:0.85rem; color:#666; line-height:1.4rem; margin-top:10px; padding:0 10px; }
-    .col-lg-custom { flex: 0 0 20%; max-width: 20%; }
-    @media (max-width:1199px) { .col-lg-custom { flex:0 0 33.33%; max-width:33.33%; } }
-    @media (max-width:767px) { .col-lg-custom { flex:0 0 48%; max-width:48%; } }
-    @media (max-width:479px) { .col-lg-custom { flex:0 0 100%; max-width:100%; } }
-    .aps-feature-card { background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%); padding: 16px; border-radius: 12px; box-shadow: 0 6px 18px rgba(12,28,55,0.04); display: flex; flex-direction: column; align-items: center; }
-    .aps-list-icon { width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:10px; color:#fff; }
-    .aps-icon-mobile { background:#0d6efd; } .aps-icon-mobile::before { content:"📱"; }
-    .aps-icon-cpu { background:#198754; } .aps-icon-cpu::before { content:"🧠"; }
-    .aps-icon-camera { background:#fd7e14; } .aps-icon-camera::before { content:"📸"; }
-    .aps-icon-hdd { background:#6f42c1; } .aps-icon-hdd::before { content:"💾"; }
-    .aps-icon-code { background:#20c997; } .aps-icon-code::before { content:"⚙️"; }
-    .aps-icon-battery { background:#ffc107; color:#000; } .aps-icon-battery::before { content:"🔋"; }
-    .nav-tabs { overflow-x:auto; white-space:nowrap; flex-wrap:nowrap !important;}
-    .nav-tabs .nav-link { font-weight:600; color:#0d6efd; border-radius:12px 12px 0 0; margin:2px; }
-    .nav-tabs .nav-link.active { background:#0d6efd; color:#fff; }
-    .tab-content ul li { border-bottom: 1px solid #eee; padding: 6px 0; }
-    .modal.fade .modal-dialog { transition: transform .25s ease-out; transform: translateY(-12px); }
-    .modal.show .modal-dialog { transform: translateY(0); }
+    body { background:#f7f8fb; font-family: Tahoma, sans-serif; color:#222; }
+    .search-field { width:100%; padding:12px; border-radius:12px; border:2px solid #e6e9ee; }
+    #result { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:25px; }
+    .result-item { position:relative; width:250px; height:320px; background:#fff; border-radius:15px; overflow:visible; cursor:pointer; transition:transform .25s ease; box-shadow:0 35px 80px rgba(0,0,0,0.15);}
+    .result-item:hover { transform:translateY(-5px); }
+    .result-item .imgBox { position:absolute; left:50%; top:-41px; transform:translateX(-50%); width:150px; height:174px; background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 15px 50px rgba(0,0,0,0.35);}
+    .result-item .imgBox img { width:100%; height:100%; object-fit:cover; }
+    .result-item .content { position:absolute; bottom:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;}
+    .result-item .fw-bold { margin-top:110px; font-size:1.2rem; color:#222; font-weight:700; }
+    .subtitle { font-size:1rem; color:#555; margin-top:5px; }
+    .modelsTitle { font-size:0.85rem; color:#666; margin-top:10px; padding:0 10px; line-height:1.4rem; }
+    .col-lg-custom { flex:0 0 20%; max-width:20%; }
+    @media (max-width:1199px){.col-lg-custom{flex:0 0 33.33%; max-width:33.33%;}}
+    @media (max-width:767px){.col-lg-custom{flex:0 0 48%; max-width:48%;}}
+    @media (max-width:479px){.col-lg-custom{flex:0 0 100%; max-width:100%;}}
+    .aps-feature-card { background:#fff; padding:16px; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); text-align:center;}
+    .aps-list-icon { width:50px; height:50px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:22px; margin-bottom:10px; color:#fff;}
+    .aps-icon-mobile{background:#0d6efd;} .aps-icon-cpu{background:#198754;} .aps-icon-camera{background:#fd7e14;} .aps-icon-hdd{background:#6f42c1;} .aps-icon-code{background:#20c997;} .aps-icon-battery{background:#ffc107; color:#000;}
+    .nav-tabs .nav-link{ font-weight:600; color:#0d6efd; margin:2px; border-radius:12px 12px 0 0;}
+    .nav-tabs .nav-link.active{background:#0d6efd;color:#fff;}
+    .tab-content ul li{border-bottom:1px solid #eee; padding:6px 0;}
+    .modal.fade .modal-dialog{transition:transform .25s ease-out; transform:translateY(-12px);}
+    .modal.show .modal-dialog{transform:translateY(0);}
   </style>
 </head>
 <body>
-<div class="container my-4">
-  <div class="card mb-4 shadow-sm">
-    <div class="card-body">
-      <h5 class="text-center mb-3 fw-bold text-primary">🔍 بحث عن الهواتف</h5>
-      <form id="searchForm" class="text-center">
-        <input type="search" class="search-field form-control mb-3 text-center" id="phoneInput" placeholder="ابحث عن اسم الهاتف..." required />
-        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="card shadow-sm border-0 rounded-4 mb-4">
-    <div class="card-body">
-      <h5 class="text-center mb-4 text-primary fw-bold">📱 نتائج البحث</h5>
-      <div id="resultsInfo" class="mb-3 text-center fw-bold text-primary"></div>
-      <div id="result" class="row g-3 justify-content-start"></div>
-    </div>
-  </div>
-</div>
-
-<!-- مودال المواصفات -->
-<div class="modal fade" id="specsModal" tabindex="-1" aria-labelledby="specsModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content shadow-lg rounded-4">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="modalTitle">تفاصيل الهاتف</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+  <div class="container my-4">
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body text-center">
+        <h5 class="fw-bold text-primary mb-3">🔍 بحث عن الهواتف</h5>
+        <form id="searchForm">
+          <input type="search" id="phoneInput" class="search-field mb-3 text-center" placeholder="ابحث عن اسم الهاتف..." required/>
+          <button type="submit" class="btn btn-primary w-100 fw-bold">بحث</button>
+        </form>
       </div>
-      <div class="modal-body" id="specsModalBody">
-        <div class="text-center py-5">
-          <div class="spinner-border text-primary" role="status"></div>
-          <p class="mt-3 text-muted">جاري التحميل...</p>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+      <div class="card-body">
+        <h5 class="text-center mb-3 fw-bold text-primary">📱 نتائج البحث</h5>
+        <div id="resultsInfo" class="mb-3 text-center fw-bold text-primary"></div>
+        <div id="result" class="row g-3 justify-content-start"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="specsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content shadow-lg rounded-4">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">تفاصيل الهاتف</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-const form = document.getElementById("searchForm");
-const input = document.getElementById("phoneInput");
-const resultDiv = document.getElementById("result");
-const resultsInfoDiv = document.getElementById("resultsInfo");
-
-async function getDetails(url, phoneImg){
-  const modalBody = document.getElementById("specsModalBody");
-  modalBody.innerHTML = `<div class='alert alert-info text-center'>📱 جاري جلب المواصفات...</div>`;
-  try {
-    const res = await fetch(`/api/details?url=${encodeURIComponent(url)}`);
-    const data = await res.json();
-    if(data.error){
-      modalBody.innerHTML = `<div class='alert alert-danger text-center'>❌ ${data.error}</div>`;
-      return;
-    }
-
-    const mainImage = phoneImg || data.img || 'https://via.placeholder.com/400';
-    const infoCards = [
-      { key:'الشاشة', val:data.specs["الشاشة"]||"غير محددة", icon:"aps-icon-mobile" },
-      { key:'المعالج', val:data.specs["المعالج"]||"غير محدد", icon:"aps-icon-cpu" },
-      { key:'الكاميرات', val:data.specs["كاميرا خلفية"]||data.specs["كاميرا الأمامية"]||"غير محددة", icon:"aps-icon-camera" },
-      { key:'الذاكرة + الرام', val:(data.specs["الذاكرة"]||"") + " " + (data.specs["الرام"]||""), icon:"aps-icon-hdd" },
-      { key:'نظام التشغيل', val:data.specs["نظام التشغيل"]||"غير محدد", icon:"aps-icon-code" },
-      { key:'البطارية', val:data.specs["سعة البطارية"]||"غير محددة", icon:"aps-icon-battery" },
-    ];
-
-    const cardsHtml = infoCards.map(c=>`
-      <div class="col-12 col-md-6">
-        <div class="aps-feature-card">
-          <div class="aps-list-icon ${c.icon}"></div>
-          <div class="aps-feature-info text-center mt-2">
-            <strong>${c.key}</strong><br><span>${c.val}</span>
+        <div class="modal-body" id="specsModalBody">
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-3 text-muted">جاري التحميل...</p>
           </div>
         </div>
-      </div>`).join('');
+      </div>
+    </div>
+  </div>
 
-    modalBody.innerHTML = `
-      <div class="d-flex flex-column flex-lg-row align-items-center gap-4">
-        <div class="text-center flex-shrink-0">
-          <img src="${mainImage}" style="width:100%; max-width:400px;" class="rounded shadow-sm mb-2"/>
-          <h4 class="fw-bold">${data.title}</h4>
-        </div>
-        <div class="flex-grow-1 w-100">
-          <div class="row g-3 justify-content-start">${cardsHtml}</div>
-        </div>
-      </div>`;
-  } catch(err){
-    console.error(err);
-    modalBody.innerHTML = `<div class='alert alert-danger text-center'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
-  }
-}
+<script>
+const form=document.getElementById("searchForm");
+const input=document.getElementById("phoneInput");
+const resultDiv=document.getElementById("result");
+const resultsInfoDiv=document.getElementById("resultsInfo");
 
-form.addEventListener("submit", async (e)=>{
+form.addEventListener("submit",async e=>{
   e.preventDefault();
-  const phone = input.value.trim();
+  const phone=input.value.trim();
   if(!phone) return;
-  resultsInfoDiv.innerHTML = "";
-  resultDiv.innerHTML = `<div class='alert alert-info'>🔍 جاري البحث عن "${phone}"...</div>`;
+  resultsInfoDiv.innerHTML="";
+  resultDiv.innerHTML=`<div class='alert alert-info'>🔍 جاري البحث عن "${phone}"...</div>`;
   try{
-    const res = await fetch(`/api/${encodeURIComponent(phone)}`);
-    const data = await res.json();
+    const res=await fetch(`/api/${encodeURIComponent(phone)}`);
+    const data=await res.json();
     if(data.error){
-      resultsInfoDiv.innerHTML = "";
-      resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${data.error}</div>`;
+      resultsInfoDiv.innerHTML="";
+      resultDiv.innerHTML=`<div class='alert alert-danger'>❌ ${data.error}</div>`;
       return;
     }
     if(!data.mode || data.mode==="list"){
-      const totalResults = data.totalResults||data.results.length;
-      resultsInfoDiv.innerHTML = `🔹 عدد النتائج: ${totalResults}`;
-      let cards = "";
+      resultsInfoDiv.innerHTML=`🔹 عدد النتائج: ${data.totalResults || data.results.length}`;
+      let cards="";
       for(const item of data.results){
-        const chipsetText = Array.isArray(item.chipset)? item.chipset.join(", "): item.chipset||"غير محدد";
-        const modelText = Array.isArray(item.model)? item.model.join(", "): item.model||"";
-        cards += `
-          <div class="col-lg-custom d-flex justify-content-center">
-            <div class="card result-item" data-url="${item.link}" data-img="${item.img||''}">
-              <div class="imgBox"><img src="${item.img||'https://via.placeholder.com/150'}" alt="${item.title}"></div>
-              <div class="content">
-                <div class="fw-bold mb-1">${item.title}</div>
-                <div class="subtitle">${chipsetText}</div>
-                <div class="modelsTitle">${modelText}</div>
-              </div>
+        const chipsetText=Array.isArray(item.chipset)?item.chipset.join(", "):item.chipset||"غير محدد";
+        const modelText=Array.isArray(item.model)?item.model.join(", "):item.model||"";
+        cards+=`<div class="col-lg-custom d-flex justify-content-center">
+          <div class="card result-item" data-url="${item.link}" data-img="${item.img||''}">
+            <div class="imgBox"><img src="${item.img||'https://via.placeholder.com/150'}" alt="${item.title}"></div>
+            <div class="content">
+              <div class="fw-bold mb-1">${item.title}</div>
+              <div class="subtitle">${chipsetText}</div>
+              <div class="modelsTitle">${modelText}</div>
             </div>
-          </div>`;
+          </div>
+        </div>`;
       }
-      resultDiv.innerHTML = cards;
+      resultDiv.innerHTML=cards;
+
       document.querySelectorAll(".result-item").forEach(card=>{
-        card.addEventListener("click", ()=>{
-          const phoneUrl = card.getAttribute("data-url");
-          const phoneImg = card.getAttribute("data-img")||"";
+        card.addEventListener("click",()=>{
+          const phoneUrl=card.getAttribute("data-url");
+          const phoneImg=card.getAttribute("data-img")||"";
           new bootstrap.Modal(document.getElementById("specsModal")).show();
-          getDetails(phoneUrl, phoneImg);
+          getDetails(phoneUrl,phoneImg);
         });
       });
     } else if(data.mode==="details"){
-      let specsHtml = "";
-      for(const [k,v] of Object.entries(data.specs)) specsHtml += `<li><strong>${k}:</strong> ${v}</li>`;
-      resultDiv.innerHTML = `
-        <div class="card p-3 shadow-sm">
-          <h5 class="text-center mb-3 fw-bold text-primary">${data.title}</h5>
-          <img src="${data.img}" class="rounded mx-auto d-block mb-3" style="max-width:260px;">
-          <ul class="list-group list-group-flush">${specsHtml}</ul>
-          <button class="btn btn-primary mt-3 w-100" onclick="getDetails('${data.link}','${data.img}')">عرض التفاصيل الكاملة</button>
-        </div>`;
+      let specsHtml="";
+      for(const [key,val] of Object.entries(data.specs)){
+        specsHtml+=`<li><strong>${key}:</strong> ${val}</li>`;
+      }
+      resultDiv.innerHTML=`<div class="card p-3 shadow-sm">
+        <h5 class="text-center mb-3 fw-bold text-primary">${data.title}</h5>
+        <img src="${data.img}" class="rounded mx-auto d-block mb-3" style="max-width:260px;">
+        <ul class="list-group list-group-flush">${specsHtml}</ul>
+        <button class="btn btn-primary mt-3 w-100" onclick="getDetails('${data.link}','${data.img}')">عرض التفاصيل الكاملة</button>
+      </div>`;
     }
-  } catch(err){
-    resultsInfoDiv.innerHTML = "";
-    resultDiv.innerHTML = `<div class='alert alert-danger'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
+  }catch(err){
+    console.error(err);
+    resultDiv.innerHTML=`<div class='alert alert-danger'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
   }
 });
+
+async function getDetails(url, phoneImg){
+  const modalBody=document.getElementById("specsModalBody");
+  modalBody.innerHTML=`<div class='alert alert-info text-center'>📱 جاري جلب المواصفات...</div>`;
+  try{
+    const res=await fetch(`/api/details?url=${encodeURIComponent(url)}`);
+    const data=await res.json();
+    if(data.error){ modalBody.innerHTML=`<div class='alert alert-danger text-center'>❌ ${data.error}</div>`; return; }
+
+    const mainImage=phoneImg||data.img||'https://via.placeholder.com/400';
+    const sections={"نظرة عامة":["الإصدار","الماركة","الاسم","النوع","الخامة"],"الشاشة":["الشاشة","النوع","الدقة","السطوع","معدل التحديث"],"الكاميرا":["الكاميرا","الخلفية","الأمامية","الفيديو"],"الذاكرة":["الذاكرة","التخزين","SD","الرام"],"البطارية":["البطارية","الشحن","السعة"],"النظام":["نظام التشغيل","الواجهة","الإصدار"],"السعر":["السعر","Price","الأسعار"],"أخرى":[]};
+    const icons={"نظرة عامة":"📋","الشاشة":"📱","الكاميرا":"📸","الذاكرة":"💾","البطارية":"🔋","النظام":"⚙️","السعر":"💰","أخرى":"📎"};
+
+    const grouped={};
+    for(const [key,val] of Object.entries(data.specs)){
+      let found=false;
+      for(const [section,keywords] of Object.entries(sections)){
+        if(keywords.some(k=>key.includes(k))){ (grouped[section]??=[]).push({key,val}); found=true; break; }
+      }
+      if(!found) (grouped["أخرى"]??=[]).push({key,val});
+    }
+
+    const tabs=Object.keys(sections);
+    const navTabs=tabs.map((tab,i)=>`<li class="nav-item" role="presentation"><button class="nav-link ${i===0?'active':''}" id="tab-${i}" data-bs-toggle="tab" data-bs-target="#content-${i}" type="button" role="tab">${icons[tab]} ${tab}</button></li>`).join('');
+    const tabContents=tabs.map((tab,i)=>{
+      if(tab==="نظرة عامة"){
+        return `<div class="tab-pane fade show active" id="content-${i}" role="tabpanel">
+          <div class="d-flex flex-column flex-lg-row align-items-center gap-4">
+            <div class="text-center flex-shrink-0">
+              <img src="${mainImage}" style="width:100%; max-width:400px;" class="rounded shadow-sm mb-2"/>
+              <h4 class="fw-bold">${data.title}</h4>
+            </div>
+            <div class="flex-grow-1 w-100">
+              <ul class="list-group list-group-flush">${(grouped[tab]??[]).map(item=>`<li class="list-group-item d-flex justify-content-between"><strong>${item.key}</strong><span>${item.val}</span></li>`).join('')}</ul>
+            </div>
+          </div>
+        </div>`;
+      } else {
+        const sectionItems=(grouped[tab]??[]).length?grouped[tab].map(item=>`<li class="list-group-item d-flex justify-content-between"><strong>${item.key}</strong><span>${item.val}</span></li>`).join(''):`<li class="list-group-item text-center text-muted">❌ لا توجد بيانات متاحة.</li>`;
+        return `<div class="tab-pane fade ${i===0?'show active':''}" id="content-${i}" role="tabpanel"><ul class="list-group list-group-flush">${sectionItems}</ul></div>`;
+      }
+    }).join('');
+    modalBody.innerHTML=`<ul class="nav nav-tabs justify-content-center flex-wrap mb-3" role="tablist">${navTabs}</ul><div class="tab-content">${tabContents}</div>`;
+  }catch(err){ console.error(err); modalBody.innerHTML=`<div class='alert alert-danger text-center'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`; }
+}
 </script>
 </body>
 </html>
