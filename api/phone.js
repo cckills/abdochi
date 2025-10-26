@@ -10,6 +10,7 @@ export default async function handler(req, res) {
     let page = 1;
     let hasNext = true;
 
+    let processedPages = 0;
     while (hasNext && page <= 5) {
       const searchUrl =
         page === 1
@@ -104,7 +105,8 @@ export default async function handler(req, res) {
       }
 
       hasNext = $(".pagination .next, .nav-links .next").length > 0;
-      page++;
+processedPages++;
+page++;
     }
 
     const searchTerm = phone.toLowerCase();
@@ -134,7 +136,12 @@ export default async function handler(req, res) {
 
     // ✅ إرسال النتائج النهائية
     if (uniqueResults.length > 0) {
-      res.status(200).json({ mode: "list", results: uniqueResults });
+res.status(200).json({
+  mode: "list",
+  results: uniqueResults,
+  total: uniqueResults.length,
+  pages: processedPages
+});
       return;
     }
 
