@@ -297,6 +297,7 @@ body {
               name="s"
               placeholder="ابحث عن اسم الهاتف..."  required />
             <!-- القائمة الظاهرة دائمًا -->
+
   <select class="dropdown select form-select" style="flex:1; border-radius:8px;">
   <option value="" selected disabled>اختر علامة تجارية</option>
   <option value="4">Huawei</option>
@@ -310,7 +311,6 @@ body {
   <option value="107">OPPO</option>
   <!-- باقي الماركات -->
 </select>
-
 
              <!-- 🔍 مربع البحث عن الماركة -->
 <div id="brand-search-box" class="my-3 text-center">
@@ -624,6 +624,15 @@ body {
       const form = document.getElementById("searchForm");
       const input = document.getElementById("phoneInput");
       const resultDiv = document.getElementById("result");
+// منع زر Enter في مربع البحث
+const phoneInputField = document.getElementById("phoneInput");
+
+phoneInputField.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    e.preventDefault(); // يمنع الفورم من الإرسال
+    return false;
+  }
+});
 
    form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -1054,8 +1063,6 @@ phoneInput.value = selectedBrand; // الآن سيظهر الاسم بدل ال�
 
   </body>
 </html>
-
-
 
 
 
