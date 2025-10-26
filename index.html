@@ -592,7 +592,7 @@ body {
 
 const form = document.getElementById("searchForm");
 const input = document.getElementById("phoneInput");
-const resultDiv = document.getElementById("results");
+const resultDiv = document.getElementById("result");
 const paginationDiv = document.getElementById("pagination");
       
 let allResults = [];
@@ -860,7 +860,6 @@ function renderPagination() {
 
   paginationDiv.innerHTML = buttons;
 }
-
 function changePage(page) {
   currentPage = page;
   renderPage();
