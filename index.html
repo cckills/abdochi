@@ -302,7 +302,10 @@ body {
       <h5 class="text-center mb-4 text-primary fw-bold">📱 نتائج البحث</h5>
       <!-- ✅ مكان عرض البطاقات -->
 <div id="result" class="row g-3 justify-content-start">
+  <div id="pagination" class="text-center my-3"></div>
+
       </div>
+      
     </div>
   </div>
 </div>
@@ -609,62 +612,116 @@ body {
             resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${data.error}</div>`;
             return;
           }
+if (!data.mode || data.mode === "list") {
+  const itemsPerPage = 20;
+  let currentPage = 1;
 
-          if (!data.mode || data.mode === "list") {
-            let cards = "<div class='row justify-content-start g-3'>";
-            for (const item of data.results) {
-              // ✅ معالجة النصوص (لو فيها أكثر من موديل أو معالج)
-              const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
+  function renderPage(page) {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageItems = data.results.slice(start, end);
 
-              const modelText = Array.isArray(item.model) ? item.model.join(", ") : item.model || "";
+    let cards = "<div class='row justify-content-start g-3'>";
+    for (const item of pageItems) {
+      const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
+      const modelText = Array.isArray(item.model) ? item.model.join(", ") : item.model || "";
 
-cards += `
-  <div class="col-lg-custom d-flex justify-content-center">
-    <div class="card result-item"
-         data-url="${item.link}"
-         data-img="${item.img || ""}"
-         style="position:relative;width:250px;height:320px;box-shadow:0 35px 80px rgba(0,0,0,0.15);background:#fff;border-radius:15px;overflow:visible;cursor:pointer;transition:transform .2s ease;">
-      
-      <div class="imgBox"
-           style="position:absolute;left:50%;top:-41px;transform:translateX(-50%);width:150px;height:174px;background:#fff;border-radius:20px;box-shadow:0 15px 50px rgba(0,0,0,0.35);overflow:hidden;">
-        <img src="${item.img || 'https://via.placeholder.com/150'}" 
-             alt="${item.title}" 
-             style="width:100%;height:100%;object-fit:cover;">
-      </div>
-      
-      <div class="content"
-           style="position:absolute;bottom:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
-        <div class="fw-bold mb-1"
-             style="margin-top:110px;font-size:1.2rem;font-weight:700;color:#222;">
-          ${item.title}
-        </div>
-        <div class="subtitle"
-             style="font-size:1rem;font-weight:500;color:#555;margin-top:5px;">
-          ${item.chipset || 'غير محدد'}
-        </div>
-        <div class="modelsTitle"
-             style="font-size:0.85rem;color:#666;line-height:1.4rem;margin-top:10px;padding:0 10px;">
-          ${Array.isArray(item.model) ? item.model.join(', ') : (item.model || '')}
-        </div>
-      </div>
-    </div>
-  </div>
-`;
+      cards += `
+        <div class="col-lg-custom d-flex justify-content-center">
+          <div class="card result-item"
+               data-url="${item.link}"
+               data-img="${item.img || ""}"
+               style="position:relative;width:250px;height:320px;box-shadow:0 35px 80px rgba(0,0,0,0.15);background:#fff;border-radius:15px;overflow:visible;cursor:pointer;transition:transform .2s ease;">
+            
+            <div class="imgBox"
+                 style="position:absolute;left:50%;top:-41px;transform:translateX(-50%);width:150px;height:174px;background:#fff;border-radius:20px;box-shadow:0 15px 50px rgba(0,0,0,0.35);overflow:hidden;">
+              <img src="${item.img || 'https://via.placeholder.com/150'}" 
+                   alt="${item.title}" 
+                   style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            
+            <div class="content"
+                 style="position:absolute;bottom:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+              <div class="fw-bold mb-1"
+                   style="margin-top:110px;font-size:1.2rem;font-weight:700;color:#222;">
+                ${item.title}
+              </div>
+              <div class="subtitle"
+                   style="font-size:1rem;font-weight:500;color:#555;margin-top:5px;">
+                ${item.chipset || 'غير محدد'}
+              </div>
+              <div class="modelsTitle"
+                   style="font-size:0.85rem;color:#666;line-height:1.4rem;margin-top:10px;padding:0 10px;">
+                ${Array.isArray(item.model) ? item.model.join(', ') : (item.model || '')}
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }
+    cards += "</div>";
+    resultDiv.innerHTML = cards;
 
-            }
+    // تفعيل الضغط على الكروت
+    document.querySelectorAll(".result-item").forEach(card => {
+      card.addEventListener("click", () => {
+        const phoneUrl = card.getAttribute("data-url");
+        const phoneImg = card.getAttribute("data-img") || "";
+        new bootstrap.Modal(document.getElementById("specsModal")).show();
+        getDetails(phoneUrl, phoneImg);
+      });
+    });
+  }
 
-            cards += "</div>";
-            resultDiv.innerHTML = cards;
-// ✅ عند الضغط على الكارت → افتح المودال
-document.querySelectorAll(".result-item").forEach(card => {
-  card.addEventListener("click", () => {
-    const phoneUrl = card.getAttribute("data-url");
-    const phoneImg = card.getAttribute("data-img") || "";
-    // ✅ هنا نفتح المودال ثم نجلب التفاصيل
-    new bootstrap.Modal(document.getElementById("specsModal")).show();
-    getDetails(phoneUrl, phoneImg);
-  });
-});
+
+  function renderPagination() {
+    const totalPages = Math.ceil(data.results.length / itemsPerPage);
+    const pagination = document.getElementById("pagination");
+    if (totalPages <= 1) {
+      pagination.innerHTML = "";
+      return;
+    }
+
+    let html = `<nav><ul class="pagination justify-content-center flex-wrap">`;
+
+    html += `<li class="page-item ${currentPage === 1 ? "disabled" : ""}">
+               <a class="page-link" href="#" data-page="${currentPage - 1}">السابق</a>
+             </li>`;
+
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<li class="page-item ${i === currentPage ? "active" : ""}">
+                 <a class="page-link" href="#" data-page="${i}">${i}</a>
+               </li>`;
+    }
+
+    html += `<li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
+               <a class="page-link" href="#" data-page="${currentPage + 1}">التالي</a>
+             </li>`;
+
+    html += `</ul></nav>`;
+    pagination.innerHTML = html;
+
+    pagination.querySelectorAll("a.page-link").forEach(link => {
+      link.addEventListener("click", e => {
+        e.preventDefault();
+        const page = parseInt(e.target.getAttribute("data-page"));
+        if (page >= 1 && page <= totalPages) {
+          currentPage = page;
+          renderPage(currentPage);
+          renderPagination();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+    });
+  }
+
+  // أول عرض
+  renderPage(currentPage);
+  renderPagination();
+
+
+
+
+
 
             // ✅ تفعيل popover من Bootstrap بعد إدخال الكروت
             const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
@@ -768,3 +825,5 @@ document.querySelectorAll(".result-item").forEach(card => {
 
   </body>
 </html>
+
+
