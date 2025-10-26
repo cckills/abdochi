@@ -845,21 +845,23 @@ if (page >= 1 && page <= totalPages) {
       });
 
 
-// ✅ فلترة النتائج حسب الماركة (client-side)
+// ✅ فلترة النتائج حسب "الموديل أو الطراز"
 document.getElementById("brand-search").addEventListener("input", function () {
   const query = this.value.trim().toLowerCase();
-  const cards = document.querySelectorAll("#result .phone-card");
+  const cards = document.querySelectorAll("#result .result-item");
 
   cards.forEach(card => {
-    const title = card.querySelector(".card-title")?.textContent.toLowerCase() || "";
-    // إذا كان الاسم يحتوي على نص البحث أو كان مربع البحث فارغًا => يظهر
-    if (title.includes(query) || query === "") {
-      card.style.display = "inline-block";
+    const modelText = card.querySelector(".modelsTitle")?.textContent.toLowerCase() || "";
+    const titleText = card.querySelector(".fw-bold")?.textContent.toLowerCase() || "";
+
+    if (query === "" || modelText.includes(query) || titleText.includes(query)) {
+      card.parentElement.style.display = "block";
     } else {
-      card.style.display = "none";
+      card.parentElement.style.display = "none";
     }
   });
 });
+
 
     </script>
 
@@ -876,6 +878,7 @@ document.getElementById("brand-search").addEventListener("input", function () {
 
   </body>
 </html>
+
 
 
 
