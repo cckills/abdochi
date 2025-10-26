@@ -297,14 +297,12 @@ body {
 <div class="container my-4">
   <div class="card shadow-sm border-0 rounded-4">
     <div class="card-body">
+<h5 class="text-center mb-4 text-primary fw-bold">📱 نتائج البحث</h5>
+<h6 id="result-info" class="text-center text-secondary mt-3"></h6>
+<div id="result" class="row g-3 justify-content-start"></div>
+<div id="pagination" class="text-center mt-3"></div>
 
-<h3 class="text-center mt-4">📱 نتائج البحث</h3>
 
-<p id="resultCount"></p>
-
-<div id="results" class="row"></div>
-
-<div id="pagination" class="d-flex justify-content-center mt-4"></div>
 
       </div>
     </div>
@@ -591,13 +589,13 @@ body {
     </script>
 
     <script>
+
 const form = document.getElementById("searchForm");
 const input = document.getElementById("phoneInput");
 const resultDiv = document.getElementById("results");
 const paginationDiv = document.getElementById("pagination");
       
-
-      let allResults = [];
+let allResults = [];
 let currentPage = 1;
 const perPage = 20;
 
@@ -634,21 +632,6 @@ function renderPage(page) {
   });
 }
 
-function renderPagination() {
-  const totalPages = Math.ceil(allResults.length / perPage);
-  if (totalPages <= 1) return document.getElementById("pagination").innerHTML = "";
-
-  let buttons = "";
-  for (let i = 1; i <= totalPages; i++) {
-    buttons += `
-      <button class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'} m-1"
-              onclick="renderPage(${i}); renderPagination();">
-        ${i}
-      </button>`;
-  }
-  document.getElementById("pagination").innerHTML = buttons;
-}
-
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const phone = input.value.trim();
@@ -680,6 +663,10 @@ if (!data.mode || data.mode === "list") {
   renderPage(currentPage); // ✅ عرض الصفحة الأولى مباشرة
   renderPagination(); // ✅ عرض أرقام الصفحات
             {
+
+
+
+              
               // ✅ معالجة النصوص (لو فيها أكثر من موديل أو معالج)
               const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
 
@@ -850,6 +837,7 @@ function renderPage() {
 
   renderPagination();
 }
+
 
 function renderPagination() {
   const totalPages = Math.ceil(allResults.length / perPage);
