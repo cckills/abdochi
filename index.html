@@ -9,6 +9,29 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <style>
+.dropdown.select {
+  cursor: pointer;
+  user-select: none;
+}
+.dropdown.select .value {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  min-width: 180px;
+}
+.dropdown.select .value:hover {
+  background: #f7f7f7;
+}
+.dropdown.select .dropdown-wrap ul li {
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+.dropdown.select .dropdown-wrap ul li:hover {
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+}
 
 /* 🎨 إعدادات الكارت الافتراضي (Bootstrap) */
 /* تم تعطيله لتجنّب التعارض مع تصميم vivo Y91C */
@@ -311,9 +334,45 @@ body {
       <h5 class="text-center mb-4 text-primary fw-bold">📱 نتائج البحث</h5>
       <!-- ✅ مكان عرض البطاقات -->
  <p id="result-info" style="text-align:center;margin-top:10px;font-weight:bold;color:#222;"></p>
-
 <div id="result" class="row g-3 justify-content-start"></div>
 <div id="pagination" class="text-center my-3"></div>
+
+<!-- ✅ قائمة الماركات مع مربع بحث داخلي -->
+<div id="brand-section" class="my-3 text-center">
+  <div class="d-inline-block mx-2" name="brand_id">
+    <div class="dropdown select" style="display:inline-block; position:relative;">
+      <div class="value">🔽 اختر الماركة</div>
+      <div class="dropdown-wrap" style="display:none; position:absolute; z-index:1000; background:#fff; border:1px solid #ccc; max-height:300px; overflow-y:auto; width:220px; border-radius:6px;">
+        <!-- مربع البحث داخل القائمة -->
+        <div style="padding:8px;">
+          <input type="text" id="brand-search" placeholder="🔍 ابحث عن ماركة..."
+                 class="form-control" style="width:100%; text-align:center;">
+        </div>
+        <ul class="dropdown-menu list-unstyled m-0 p-2 text-start">
+          <li value="143">Samsung</li>
+          <li value="4">Huawei</li>
+          <li value="98">Xiaomi</li>
+          <li value="107">OPPO</li>
+          <li value="145">Realme</li>
+          <li value="113">Infinix</li>
+          <li value="141">Vivo</li>
+          <li value="108">Nokia</li>
+          <li value="25">LG</li>
+          <li value="109">ASUS</li>
+          <li value="52">Tecno</li>
+          <li value="5">ZTE</li>
+          <li value="6">Vodafone</li>
+          <li value="2">Acer</li>
+          <li value="105">MEO</li>
+          <li value="125">STF</li>
+          <li value="154">Ulefone</li>
+          <li value="149">BQ Mobile</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
 
       
     </div>
@@ -846,28 +905,47 @@ if (page >= 1 && page <= totalPages) {
         document.addEventListener("click", closeTooltip);
       });
 
- // ✅ فلترة النتائج فور الكتابة في مربع البحث
-document.getElementById("brand-search").addEventListener("input", function () {
-  const query = this.value.trim().toLowerCase();
-  const cards = document.querySelectorAll("#result .result-item");
 
-  cards.forEach(card => {
-    const title = card.querySelector(".fw-bold")?.textContent.toLowerCase() || "";
-    const chipset = card.querySelector(".subtitle")?.textContent.toLowerCase() || "";
-    const model = card.querySelector(".modelsTitle")?.textContent.toLowerCase() || "";
+// ✅ منطق القائمة المنسدلة للماركات + البحث داخلها
+const dropdown = document.querySelector(".dropdown.select");
+const valueBox = dropdown.querySelector(".value");
+const menuWrap = dropdown.querySelector(".dropdown-wrap");
+const brandSearch = document.getElementById("brand-search");
 
-    if (
-      query === "" ||
-      title.includes(query) ||
-      chipset.includes(query) ||
-      model.includes(query)
-    ) {
-      card.parentElement.style.display = "block"; // عرض الكارت
-    } else {
-      card.parentElement.style.display = "none"; // إخفاء الكارت
-    }
+// فتح/إغلاق القائمة
+valueBox.addEventListener("click", () => {
+  menuWrap.style.display = menuWrap.style.display === "block" ? "none" : "block";
+  brandSearch.focus(); // تركيز تلقائي على مربع البحث
+});
+
+// عند اختيار ماركة
+menuWrap.querySelectorAll("li").forEach(li => {
+  li.addEventListener("click", () => {
+    const brand = li.textContent.trim();
+    valueBox.textContent = brand;
+    menuWrap.style.display = "none";
+    // البحث مباشرة باسم الماركة
+    const searchInput = document.getElementById("search-input");
+    searchInput.value = brand;
+    document.getElementById("search-form").dispatchEvent(new Event("submit"));
   });
 });
+
+// ✅ تصفية الماركات أثناء الكتابة
+brandSearch.addEventListener("input", () => {
+  const term = brandSearch.value.toLowerCase();
+  menuWrap.querySelectorAll("li").forEach(li => {
+    li.style.display = li.textContent.toLowerCase().includes(term) ? "block" : "none";
+  });
+});
+
+// إغلاق القائمة عند النقر خارجها
+document.addEventListener("click", (e) => {
+  if (!dropdown.contains(e.target)) {
+    menuWrap.style.display = "none";
+  }
+});
+
 
 
 
@@ -886,6 +964,7 @@ document.getElementById("brand-search").addEventListener("input", function () {
 
   </body>
 </html>
+
 
 
 
