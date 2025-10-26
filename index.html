@@ -290,11 +290,7 @@ body {
               required
             />
             <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>
-
-          </form>
-        </div>
-      </div>
-<!-- 🔍 مربع البحث عن الماركة فقط -->
+<!-- 🔍 مربع البحث عن الماركة -->
 <div id="brand-search-box" class="my-3 text-center">
   <div style="padding:8px; display:inline-block; width:260px;">
     <input type="text" id="brand-search" 
@@ -303,6 +299,10 @@ body {
            style="width:100%; border-radius:8px;">
   </div>
 </div>
+
+          </form>
+        </div>
+      </div>
 
 <!-- 📦 نتائج البحث داخل بطاقة -->
 <div class="container my-4">
@@ -846,7 +846,30 @@ if (page >= 1 && page <= totalPages) {
         document.addEventListener("click", closeTooltip);
       });
 
- 
+ // ✅ فلترة النتائج حسب الماركة أو الموديل أو الطراز (client-side)
+document.getElementById("brand-search").addEventListener("input", function () {
+  const query = this.value.trim().toLowerCase();
+  const cards = document.querySelectorAll("#result .phone-card");
+
+  cards.forEach(card => {
+    const title = card.querySelector(".card-title")?.textContent.toLowerCase() || "";
+    const model = card.querySelector(".card-model")?.textContent.toLowerCase() || "";
+    const chipset = card.querySelector(".card-chipset")?.textContent.toLowerCase() || "";
+
+    // 🔍 إذا كان أي من هذه الحقول يحتوي على النص أو كان مربع البحث فارغًا → يعرض الكارت
+    if (
+      query === "" ||
+      title.includes(query) ||
+      model.includes(query) ||
+      chipset.includes(query)
+    ) {
+      card.style.display = "inline-block";
+    } else {
+      card.style.display = "none";
+    }
+  });
+});
+
 
 
     </script>
