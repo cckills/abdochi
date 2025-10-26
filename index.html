@@ -587,13 +587,66 @@ body {
     </script>
 
     <script>
-      const form = document.getElementById("searchForm");
-      const input = document.getElementById("phoneInput");
-      const resultDiv = document.getElementById("result");
+const form = document.getElementById("searchForm");
+const input = document.getElementById("phoneInput");
+const resultDiv = document.getElementById("results");
+const paginationDiv = document.getElementById("pagination");
+      
 
       let allResults = [];
 let currentPage = 1;
 const perPage = 20;
+
+function renderPage(page) {
+  currentPage = page;
+  const start = (page - 1) * perPage;
+  const end = start + perPage;
+  const items = allResults.slice(start, end);
+
+  let cards = "";
+  items.forEach((item) => {
+    const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
+    const modelText = Array.isArray(item.model) ? item.model.join(", ") : item.model || "";
+
+    cards += `
+      <div class="result-item" data-url="${item.link}" data-img="${item.img || ""}">
+        <div class="imgBox"><img src="${item.img || ""}" alt=""></div>
+        <div class="content">
+           <div class="fw-bold">${item.title}</div>
+           <div class="subtitle">${chipsetText}</div>
+           <div class="modelsTitle">${modelText}</div>
+        </div>
+      </div>
+    `;
+  });
+
+  resultDiv.innerHTML = cards;
+
+  // ✅ عند الضغط على الكارت يفتح المودال
+  document.querySelectorAll(".result-item").forEach((el) => {
+    el.addEventListener("click", () => {
+      getDetails(el.dataset.url, el.dataset.img);
+    });
+  });
+}
+
+function renderPagination() {
+  const totalPages = Math.ceil(allResults.length / perPage);
+  if (totalPages <= 1) return document.getElementById("pagination").innerHTML = "";
+
+  let buttons = "";
+  for (let i = 1; i <= totalPages; i++) {
+    buttons += `
+      <button class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'} m-1"
+              onclick="renderPage(${i}); renderPagination();">
+        ${i}
+      </button>`;
+  }
+  document.getElementById("pagination").innerHTML = buttons;
+}
+
+
+
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -823,7 +876,10 @@ function changePage(page) {
   currentPage = page;
   renderPage();
 }
+
+
     </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <style>
 .modal.fade .modal-dialog {
@@ -834,5 +890,7 @@ function changePage(page) {
   transform: translateY(0);
 }
 </style>
+
   </body>
 </html>
+
