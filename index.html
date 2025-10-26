@@ -846,26 +846,25 @@ if (page >= 1 && page <= totalPages) {
         document.addEventListener("click", closeTooltip);
       });
 
- // ✅ فلترة النتائج حسب الماركة أو الموديل أو الطراز (client-side)
+ // ✅ فلترة النتائج فور الكتابة في مربع البحث
 document.getElementById("brand-search").addEventListener("input", function () {
   const query = this.value.trim().toLowerCase();
-  const cards = document.querySelectorAll("#result .phone-card");
+  const cards = document.querySelectorAll("#result .result-item");
 
   cards.forEach(card => {
-    const title = card.querySelector(".card-title")?.textContent.toLowerCase() || "";
-    const model = card.querySelector(".card-model")?.textContent.toLowerCase() || "";
-    const chipset = card.querySelector(".card-chipset")?.textContent.toLowerCase() || "";
+    const title = card.querySelector(".fw-bold")?.textContent.toLowerCase() || "";
+    const chipset = card.querySelector(".subtitle")?.textContent.toLowerCase() || "";
+    const model = card.querySelector(".modelsTitle")?.textContent.toLowerCase() || "";
 
-    // 🔍 إذا كان أي من هذه الحقول يحتوي على النص أو كان مربع البحث فارغًا → يعرض الكارت
     if (
       query === "" ||
       title.includes(query) ||
-      model.includes(query) ||
-      chipset.includes(query)
+      chipset.includes(query) ||
+      model.includes(query)
     ) {
-      card.style.display = "inline-block";
+      card.parentElement.style.display = "block"; // عرض الكارت
     } else {
-      card.style.display = "none";
+      card.parentElement.style.display = "none"; // إخفاء الكارت
     }
   });
 });
