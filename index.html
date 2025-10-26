@@ -1002,35 +1002,6 @@ document.getElementById("brand-search").addEventListener("input", function () {
   renderFilteredResults(filtered, filtered.length, query);
 });
 
-// ✅ تفعيل زر البحث والفلترة مع Enter
-const brandSearch = document.getElementById("brand-search");
-
-// عند الضغط على Enter في أي من الحقلين
-[phoneInput, brandSearch].forEach(inputEl => {
-  inputEl.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      form.requestSubmit(); // كأن المستخدم ضغط زر البحث
-    }
-  });
-});
-
-// ✅ فلترة الماركات بعد تحميل النتائج
-brandSearch.addEventListener("input", () => {
-  const query = brandSearch.value.trim().toLowerCase();
-  if (!query) {
-    renderFilteredResults(allResults);
-    return;
-  }
-
-  const filtered = allResults.filter(item =>
-    (item.title && item.title.toLowerCase().includes(query)) ||
-    (item.chipset && item.chipset.toLowerCase().includes(query)) ||
-    (Array.isArray(item.model) && item.model.some(m => m.toLowerCase().includes(query)))
-  );
-
-  renderFilteredResults(filtered, filtered.length, query);
-});
 
     </script>
 
