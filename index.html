@@ -614,11 +614,10 @@ const perPage = 20;
             return;
           }
 
-          if (!data.mode || data.mode === "list") {
-
-allResults = data.results;
-currentPage = 1;
-renderPage();
+if (!data.mode || data.mode === "list") {
+  allResults = data.results;
+  currentPage = 1;
+  renderPage();
             {
               // ✅ معالجة النصوص (لو فيها أكثر من موديل أو معالج)
               const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
@@ -759,54 +758,64 @@ document.querySelectorAll(".result-item").forEach(card => {
         document.addEventListener("click", closeTooltip);
       });
 
-
-
 function renderPage() {
-  resultDiv.innerHTML = "";
   const start = (currentPage - 1) * perPage;
   const end = start + perPage;
-  const pageItems = allResults.slice(start, end);
+  const items = allResults.slice(start, end);
 
-  let cards = "";
-  pageItems.forEach(item => {
-    cards += `
-  <div class="col-lg-custom d-flex justify-content-center">
-    <div class="result-item" data-url="${item.link}" data-img="${item.img || ''}">
-      <div class="imgBox">
-        <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${item.title}">
-      </div>
-      <div class="content">
-        <div class="fw-bold">${item.title}</div>
-        <div class="modelsTitle">${item.model || ""}</div>
-      </div>
-    </div>
-  </div>`;
+  resultDiv.innerHTML = ""; // تفريغ النتائج
+
+  if (items.length === 0) {
+    resultDiv.innerHTML = `<div class='alert alert-warning text-center'>❌ لا توجد نتائج.</div>`;
+    return;
+  }
+
+  items.forEach(item => {
+    const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
+    const modelText = Array.isArray(item.model) ? item.model.join(", ") : item.model || "";
+
+    resultDiv.innerHTML += `
+      <div class="card result-item" data-url="${item.link}" data-img="${item.img || ''}">
+        <div class="imgBox">
+          <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${item.title}">
+        </div>
+        <div class="content">
+          <div class="fw-bold">${item.title}</div>
+          <div class="subtitle">${chipsetText}</div>
+          <div class="modelsTitle">${modelText}</div>
+        </div>
+      </div>`;
   });
 
-  resultDiv.innerHTML = cards;
   renderPagination();
 }
 
 function renderPagination() {
   const totalPages = Math.ceil(allResults.length / perPage);
-  const pagination = document.getElementById("pagination");
-  pagination.innerHTML = "";
+  const paginationDiv = document.getElementById("pagination");
 
-  if (totalPages <= 1) return;
+  if (totalPages <= 1) {
+    paginationDiv.innerHTML = "";
+    return;
+  }
+
+  let buttons = "";
+
+  buttons += `<button class="btn btn-outline-primary mx-1" ${currentPage === 1 ? "disabled" : ""} onclick="changePage(currentPage - 1)">السابق</button>`;
 
   for (let i = 1; i <= totalPages; i++) {
-    pagination.innerHTML += `
-      <button class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'} m-1"
-        onclick="goToPage(${i})">${i}</button>`;
+    buttons += `<button class="btn ${i === currentPage ? "btn-primary" : "btn-outline-primary"} mx-1" onclick="changePage(${i})">${i}</button>`;
   }
+
+  buttons += `<button class="btn btn-outline-primary mx-1" ${currentPage === totalPages ? "disabled" : ""} onclick="changePage(currentPage + 1)">التالي</button>`;
+
+  paginationDiv.innerHTML = buttons;
 }
 
-function goToPage(page) {
+function changePage(page) {
   currentPage = page;
   renderPage();
 }
-
-
 
 
     </script>
