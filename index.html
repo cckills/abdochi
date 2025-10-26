@@ -289,8 +289,7 @@ body {
               required
             />
             <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>
-            <p id="result-info" style="text-align:center;margin-top:10px;font-weight:bold;color:#222;"></p>
-
+            
           </form>
         </div>
       </div>
@@ -591,6 +590,10 @@ body {
       const input = document.getElementById("phoneInput");
       const resultDiv = document.getElementById("result");
 
+      let allResults = [];
+let currentPage = 1;
+const perPage = 20;
+
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const phone = input.value.trim();
@@ -611,8 +614,11 @@ body {
           }
 
           if (!data.mode || data.mode === "list") {
-            let cards = "<div class='row justify-content-start g-3'>";
-            for (const item of data.results) {
+
+allResults = data.results;
+currentPage = 1;
+renderPage();
+            {
               // ✅ معالجة النصوص (لو فيها أكثر من موديل أو معالج)
               const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
 
@@ -705,6 +711,10 @@ document.querySelectorAll(".result-item").forEach(card => {
     </div>
   `;
 
+<div class="text-center my-4">
+  <button id="prevBtn" class="btn btn-secondary me-2">السابق</button>
+  <button id="nextBtn" class="btn btn-primary">التالي</button>
+</div>
 
                         }
                        } catch (err) {
@@ -752,7 +762,57 @@ document.querySelectorAll(".result-item").forEach(card => {
         document.addEventListener("click", closeTooltip);
       });
 
-      
+      function renderPage() {
+  const start = (currentPage - 1) * perPage;
+  const end = start + perPage;
+  const pageItems = allResults.slice(start, end);
+
+  resultDiv.innerHTML = "";
+
+  let cards = "<div class='row justify-content-start g-3'>";
+  for (const item of pageItems) {
+    const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
+    const modelText = Array.isArray(item.model) ? item.model.join(", ") : item.model || "";
+
+    cards += `
+      <div class="col-lg-custom d-flex justify-content-center">
+        <div class="card result-item" data-url="${item.link}" data-img="${item.img || ''}">
+          <div class="imgBox">
+            <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${item.title}">
+          </div>
+          <div class="content">
+            <h5 class="fw-bold">${item.title}</h5>
+            <div class="modelsTitle">${modelText}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+  cards += "</div>";
+  resultDiv.innerHTML = cards;
+
+  renderPagination();
+}
+
+function renderPagination() {
+  document.getElementById("prevBtn").disabled = currentPage === 1;
+  document.getElementById("nextBtn").disabled = currentPage * perPage >= allResults.length;
+}
+
+document.getElementById("prevBtn").onclick = () => {
+  if (currentPage > 1) {
+    currentPage--;
+    renderPage();
+  }
+};
+
+document.getElementById("nextBtn").onclick = () => {
+  if (currentPage * perPage < allResults.length) {
+    currentPage++;
+    renderPage();
+  }
+};
+
+
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -768,5 +828,4 @@ document.querySelectorAll(".result-item").forEach(card => {
 
   </body>
 </html>
-
 
