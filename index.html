@@ -1029,15 +1029,14 @@ document.getElementById("brand-search").addEventListener("input", function () {
 
 // ربط قائمة الماركات (<select>) بمربع البحث
 const brandDropdown = document.querySelector(".dropdown.select");
-
 brandDropdown.addEventListener("change", () => {
-  const selectedBrand = brandDropdown.value; // استخدم value بدل text
-  phoneInput.value = selectedBrand;        // ضع الاسم أو الرقم في مربع البحث
-  // لا حاجة للتركيز المتكرر
-  // phoneInput.focus();
+  const selectedBrand = brandDropdown.options[brandDropdown.selectedIndex].text;
+phoneInput.value = selectedBrand; // الآن سيظهر الاسم بدل الرقم
 
-  // تنفيذ البحث مباشرة بعد اختيار الماركة (اختياري)
-  form.requestSubmit();
+  phoneInput.value = selectedBrand; // وضع الاسم في مربع البحث
+  phoneInput.focus();
+        // (اختياري) إذا كنت تريد تنفيذ البحث فور الاختيار:
+    document.getElementById("searchForm").requestSubmit();
 });
 
     </script>
@@ -1055,7 +1054,6 @@ brandDropdown.addEventListener("change", () => {
 
   </body>
 </html>
-
 
 
 
