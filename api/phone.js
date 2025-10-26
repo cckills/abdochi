@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 
 export default async function handler(req, res) {
-  const { phone } = req.query;
+  const { phone, page: queryPage } = req.query;
   if (!phone)
     return res.status(400).json({ error: "يرجى إدخال اسم الهاتف أو الموديل." });
 
@@ -10,16 +10,14 @@ export default async function handler(req, res) {
     let page = 1;
     let hasNext = true;
 
-    let processedPages = 0;
-   // while (hasNext && page <= 5) {
-   while (hasNext) {
+    // 🔹 تحميل كل الصفحات من الموقع حتى تنتهي النتائج
+    while (hasNext) {
       const searchUrl =
         page === 1
           ? `https://telfonak.com/?s=${encodeURIComponent(phone)}`
           : `https://telfonak.com/page/${page}/?s=${encodeURIComponent(phone)}`;
 
       console.log("⏳ Fetching:", searchUrl);
-
       const response = await fetch(searchUrl, {
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -79,14 +77,12 @@ export default async function handler(req, res) {
                 shortChipset = match ? match[0].trim() : fullChipset;
               }
 
-              // 🔹 جلب الموديل / الطراز
               const modelRow =
                 $$("tr:contains('الموديل / الطراز') td.aps-attr-value span").text().trim() ||
                 $$("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
                 $$("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
                 "";
 
-              // إذا كان هناك أكثر من موديل مفصول بفاصلة، نحوله لمصفوفة للبحث
               const modelArray = modelRow ? modelRow.split(",").map(m => m.trim()) : [];
 
               results.push({
@@ -94,8 +90,8 @@ export default async function handler(req, res) {
                 link,
                 img,
                 chipset: shortChipset || "غير محدد",
-                model: modelArray.join(", "), // الاحتفاظ بنفس طريقة العرض
-                modelArray, // مصفوفة للبحث
+                model: modelArray.join(", "),
+                modelArray,
                 source: "telfonak.com",
               });
             }
@@ -105,23 +101,20 @@ export default async function handler(req, res) {
         }
       }
 
-      //hasNext = $(".pagination .next, .nav-links .next").length > 0;
       hasNext = $(".pagination .next, .nav-links .next, a.next, .page-numbers .next").length > 0;
-
-processedPages++;
-page++;
+      page++;
     }
 
     const searchTerm = phone.toLowerCase();
 
-    // 🔹 فلترة النتائج لتطابق الاسم أو أي موديل
+    // 🔹 فلترة النتائج
     let filteredResults = results.filter(item =>
       item.title.toLowerCase().includes(searchTerm) ||
       item.modelArray.some(m => m.toLowerCase() === searchTerm)
     );
 
-    // 🔹 ترتيب النتائج بحيث تبدأ الأجهزة الأقرب لاسم البحث أولاً
-    filteredResults.sort((a,b)=>{
+    // 🔹 ترتيب النتائج الأقرب أولاً
+    filteredResults.sort((a, b) => {
       const titleA = a.title.toLowerCase();
       const titleB = b.title.toLowerCase();
       const startA = titleA.startsWith(searchTerm) || a.modelArray.some(m => m.toLowerCase().startsWith(searchTerm)) ? 0 : 1;
@@ -129,7 +122,7 @@ page++;
       return startA - startB;
     });
 
-    // 🔹 إزالة النتائج المكررة حسب العنوان والموديل
+    // 🔹 إزالة المكرر
     const uniqueResultsMap = new Map();
     for (const item of filteredResults) {
       const key = `${item.title.toLowerCase().trim()}|${item.model.toLowerCase().trim()}`;
@@ -137,20 +130,25 @@ page++;
     }
     const uniqueResults = Array.from(uniqueResultsMap.values());
 
-    // ✅ إرسال النتائج النهائية
-    if (uniqueResults.length > 0) {
-res.status(200).json({
-  mode: "list",
-  results: uniqueResults,
-  total: uniqueResults.length,
-  pages: processedPages
-});
-      return;
-    }
+    // 🔹 تقسيم النتائج إلى صفحات
+    const perPage = 20;
+    const totalResults = uniqueResults.length;
+    const totalPages = Math.ceil(totalResults / perPage);
+    const currentPage = Math.max(1, parseInt(queryPage) || 1);
+    const start = (currentPage - 1) * perPage;
+    const end = start + perPage;
+    const paginatedResults = uniqueResults.slice(start, end);
 
-    res.status(404).json({
-      error: "❌ ❌ لم يتم العثور على أي نتائج لهذا الاسم أو الموديل في الموقع.",
+    // ✅ إرسال النتائج
+    res.status(200).json({
+      mode: "list",
+      page: currentPage,
+      totalPages,
+      totalResults,
+      perPage,
+      results: paginatedResults,
     });
+
   } catch (err) {
     console.error("⚠️ خطأ أثناء الجلب:", err);
     res.status(500).json({ error: "حدث خطأ أثناء جلب البيانات." });
