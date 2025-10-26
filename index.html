@@ -616,8 +616,15 @@ const perPage = 20;
 
 if (!data.mode || data.mode === "list") {
   allResults = data.results;
-  currentPage = 1;
-  renderPage();
+
+  itemsPerPage = 20; // ✅ عدد الكروت في كل صفحة
+  currentPage = 1;   // ✅ أول صفحة
+
+  document.querySelector("#result-info").textContent =
+    `📱 نتائج البحث — عدد النتائج: ${allResults.length}`;
+
+  renderPage(currentPage); // ✅ عرض الصفحة الأولى مباشرة
+  renderPagination(); // ✅ عرض أرقام الصفحات
             {
               // ✅ معالجة النصوص (لو فيها أكثر من موديل أو معالج)
               const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
@@ -816,10 +823,7 @@ function changePage(page) {
   currentPage = page;
   renderPage();
 }
-
-
     </script>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <style>
 .modal.fade .modal-dialog {
@@ -830,7 +834,5 @@ function changePage(page) {
   transform: translateY(0);
 }
 </style>
-
   </body>
 </html>
-
