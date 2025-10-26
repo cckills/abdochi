@@ -289,7 +289,6 @@ body {
               required
             />
             <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>
-            
           </form>
         </div>
       </div>
@@ -298,9 +297,11 @@ body {
 <div class="container my-4">
   <div class="card shadow-sm border-0 rounded-4">
     <div class="card-body">
-      <h5 class="text-center mb-4 text-primary fw-bold">📱 نتائج البحث</h5>
-      <!-- ✅ مكان عرض البطاقات -->
-<div id="result" class="row g-3 justify-content-start">
+<h5 class="text-center mb-4 text-primary fw-bold">📱 نتائج البحث</h5>
+<h6 id="result-info" class="text-center text-secondary mt-3"></h6>
+<div id="result" class="row g-3 justify-content-start"></div>
+<div id="pagination" class="text-center mt-3"></div>
+
       </div>
     </div>
   </div>
@@ -711,10 +712,6 @@ document.querySelectorAll(".result-item").forEach(card => {
     </div>
   `;
 
-<div class="text-center my-4">
-  <button id="prevBtn" class="btn btn-secondary me-2">السابق</button>
-  <button id="nextBtn" class="btn btn-primary">التالي</button>
-</div>
 
                         }
                        } catch (err) {
@@ -762,55 +759,54 @@ document.querySelectorAll(".result-item").forEach(card => {
         document.addEventListener("click", closeTooltip);
       });
 
-      function renderPage() {
+
+
+function renderPage() {
+  resultDiv.innerHTML = "";
   const start = (currentPage - 1) * perPage;
   const end = start + perPage;
   const pageItems = allResults.slice(start, end);
 
-  resultDiv.innerHTML = "";
-
-  let cards = "<div class='row justify-content-start g-3'>";
-  for (const item of pageItems) {
-    const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
-    const modelText = Array.isArray(item.model) ? item.model.join(", ") : item.model || "";
-
+  let cards = "";
+  pageItems.forEach(item => {
     cards += `
-      <div class="col-lg-custom d-flex justify-content-center">
-        <div class="card result-item" data-url="${item.link}" data-img="${item.img || ''}">
-          <div class="imgBox">
-            <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${item.title}">
-          </div>
-          <div class="content">
-            <h5 class="fw-bold">${item.title}</h5>
-            <div class="modelsTitle">${modelText}</div>
-          </div>
-        </div>
-      </div>`;
-  }
-  cards += "</div>";
-  resultDiv.innerHTML = cards;
+  <div class="col-lg-custom d-flex justify-content-center">
+    <div class="result-item" data-url="${item.link}" data-img="${item.img || ''}">
+      <div class="imgBox">
+        <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${item.title}">
+      </div>
+      <div class="content">
+        <div class="fw-bold">${item.title}</div>
+        <div class="modelsTitle">${item.model || ""}</div>
+      </div>
+    </div>
+  </div>`;
+  });
 
+  resultDiv.innerHTML = cards;
   renderPagination();
 }
 
 function renderPagination() {
-  document.getElementById("prevBtn").disabled = currentPage === 1;
-  document.getElementById("nextBtn").disabled = currentPage * perPage >= allResults.length;
+  const totalPages = Math.ceil(allResults.length / perPage);
+  const pagination = document.getElementById("pagination");
+  pagination.innerHTML = "";
+
+  if (totalPages <= 1) return;
+
+  for (let i = 1; i <= totalPages; i++) {
+    pagination.innerHTML += `
+      <button class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'} m-1"
+        onclick="goToPage(${i})">${i}</button>`;
+  }
 }
 
-document.getElementById("prevBtn").onclick = () => {
-  if (currentPage > 1) {
-    currentPage--;
-    renderPage();
-  }
-};
+function goToPage(page) {
+  currentPage = page;
+  renderPage();
+}
 
-document.getElementById("nextBtn").onclick = () => {
-  if (currentPage * perPage < allResults.length) {
-    currentPage++;
-    renderPage();
-  }
-};
+
 
 
     </script>
