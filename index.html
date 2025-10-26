@@ -845,33 +845,146 @@ if (page >= 1 && page <= totalPages) {
       });
 
 
-// ✅ فلترة النتائج حسب الموديل أو الطراز داخل الكروت
+// 🧩 متغير لتخزين جميع النتائج الأصلية
+let allResults = [];
+
+// عند البحث الرئيسي
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const phone = input.value.trim();
+  if (!phone) return;
+
+  resultDiv.innerHTML = `<div class="text-center p-5">🔍 جاري البحث...</div>`;
+
+  try {
+    const res = await fetch(`/api/${encodeURIComponent(phone)}`);
+    const data = await res.json();
+
+    if (data.error) {
+      resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${data.error}</div>`;
+      return;
+    }
+
+    allResults = data.results; // ✅ حفظ النتائج كاملة
+    renderFilteredResults(allResults); // عرض أول مرة
+  } catch (err) {
+    resultDiv.innerHTML = `<div class='alert alert-danger'>⚠️ خطأ في الاتصال.</div>`;
+  }
+});
+
+
+// ✅ دالة لإعادة رسم النتائج (تستخدمها الفلترة أيضًا)
+function renderFilteredResults(results) {
+  const resultInfo = document.getElementById("result-info");
+  const result = document.getElementById("result");
+  const pagination = document.getElementById("pagination");
+
+  result.innerHTML = "";
+  pagination.innerHTML = "";
+
+  if (results.length === 0) {
+    result.innerHTML = `<div class="text-center text-muted p-4">❌ لا توجد نتائج مطابقة.</div>`;
+    resultInfo.textContent = "عدد النتائج: 0";
+    return;
+  }
+
+  const itemsPerPage = 20;
+  let currentPage = 1;
+  const totalPages = Math.ceil(results.length / itemsPerPage);
+
+  function renderPage(page) {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageItems = results.slice(start, end);
+
+    let html = "<div class='row justify-content-start g-3'>";
+    for (const item of pageItems) {
+      html += `
+        <div class="col-lg-custom d-flex justify-content-center">
+          <div class="card result-item" data-url="${item.link}" data-img="${item.img || ''}">
+            <div class="imgBox">
+              <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${item.title}">
+            </div>
+            <div class="content">
+              <div class="fw-bold">${item.title}</div>
+              <div class="subtitle">${item.chipset || 'غير محدد'}</div>
+              <div class="modelsTitle">${Array.isArray(item.model) ? item.model.join(', ') : (item.model || '')}</div>
+            </div>
+          </div>
+        </div>`;
+    }
+    html += "</div>";
+    result.innerHTML = html;
+
+    // تفعيل الضغط على الكروت
+    document.querySelectorAll(".result-item").forEach(card => {
+      card.addEventListener("click", () => {
+        getDetails(card.dataset.url, card.dataset.img);
+      });
+    });
+
+    resultInfo.textContent = `عدد النتائج: ${results.length} | الصفحة ${page} من ${totalPages}`;
+  }
+
+  function renderPagination() {
+    if (totalPages <= 1) return;
+
+    let html = `<nav><ul class="pagination justify-content-center flex-wrap">`;
+    html += `<li class="page-item ${currentPage === 1 ? "disabled" : ""}">
+               <a class="page-link" href="#" data-page="${currentPage - 1}">السابق</a></li>`;
+
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<li class="page-item ${i === currentPage ? "active" : ""}">
+                 <a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+    }
+
+    html += `<li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
+               <a class="page-link" href="#" data-page="${currentPage + 1}">التالي</a></li>`;
+    html += "</ul></nav>";
+
+    pagination.innerHTML = html;
+
+    pagination.querySelectorAll("a.page-link").forEach(link => {
+      link.addEventListener("click", e => {
+        e.preventDefault();
+        const p = parseInt(e.target.dataset.page);
+        if (p >= 1 && p <= totalPages) {
+          currentPage = p;
+          renderPage(currentPage);
+          renderPagination();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+    });
+  }
+
+  renderPage(currentPage);
+  renderPagination();
+}
+
+
+// ✅ فلترة النتائج في جميع الصفحات (بناءً على الموديل أو الطراز)
 document.getElementById("brand-search").addEventListener("input", function () {
   const query = this.value.trim().toLowerCase();
-  const allCards = document.querySelectorAll("#result .result-item"); // كل البطاقات
 
-  let visibleCount = 0;
+  if (!allResults.length) return;
 
-  allCards.forEach(card => {
-    const title = (card.querySelector(".fw-bold")?.textContent || "").toLowerCase();
-    const model = (card.querySelector(".modelsTitle")?.textContent || "").toLowerCase();
-    const chipset = (card.querySelector(".subtitle")?.textContent || "").toLowerCase();
+  const filtered = allResults.filter(item => {
+    const title = (item.title || "").toLowerCase();
+    const chipset = (item.chipset || "").toLowerCase();
+    const models = Array.isArray(item.model)
+      ? item.model.join(", ").toLowerCase()
+      : (item.model || "").toLowerCase();
 
-    // ✅ إذا كان النص مكتوب في أي من الحقول (الاسم أو الموديل أو المعالج)
-    const match = title.includes(query) || model.includes(query) || chipset.includes(query) || query === "";
-
-    // إظهار/إخفاء البطاقة بالكامل
-    card.style.display = match ? "flex" : "none";
-
-    if (match) visibleCount++;
+    return (
+      query === "" ||
+      title.includes(query) ||
+      chipset.includes(query) ||
+      models.includes(query)
+    );
   });
 
-  // تحديث العداد في الأعلى
-  const info = document.getElementById("result-info");
-  const total = document.querySelectorAll("#result .result-item").length;
-  const pageMatch = (info.textContent || "").match(/الصفحة\s*\d+\s*من\s*\d+/);
-  const pageText = pageMatch ? pageMatch[0] : "";
-  info.textContent = `عدد النتائج: ${total} | ${pageText} | عرض متطابق: ${visibleCount}`;
+  renderFilteredResults(filtered);
 });
 
 
