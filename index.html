@@ -845,22 +845,48 @@ if (page >= 1 && page <= totalPages) {
       });
 
 
-// ✅ فلترة النتائج حسب "الموديل أو الطراز"
-document.getElementById("brand-search").addEventListener("input", function () {
-  const query = this.value.trim().toLowerCase();
-  const cards = document.querySelectorAll("#result .result-item");
+// فلترة حية داخل النتائج حسب الموديل أو الطراز
+(function () {
+  const input = document.getElementById("brand-search");
+  const resultInfo = document.getElementById("result-info");
+  if (!input) return;
 
-  cards.forEach(card => {
-    const modelText = card.querySelector(".modelsTitle")?.textContent.toLowerCase() || "";
-    const titleText = card.querySelector(".fw-bold")?.textContent.toLowerCase() || "";
+  input.addEventListener("input", function () {
+    const q = this.value.trim().toLowerCase();
+    const cards = Array.from(document.querySelectorAll("#result .result-item"));
+    let visibleCount = 0;
 
-    if (query === "" || modelText.includes(query) || titleText.includes(query)) {
-      card.parentElement.style.display = "block";
+    cards.forEach(card => {
+      const modelText = (card.querySelector(".modelsTitle")?.textContent || "").toLowerCase();
+      const titleText = (card.querySelector(".fw-bold")?.textContent || "").toLowerCase();
+      const chipsetText = (card.querySelector(".subtitle")?.textContent || "").toLowerCase();
+
+      const matches = q === "" || modelText.includes(q) || titleText.includes(q) || chipsetText.includes(q);
+      const wrapper = card.closest(".col-lg-custom") || card.parentElement || card;
+
+      if (matches) {
+        wrapper.style.display = "";
+        visibleCount++;
+      } else {
+        wrapper.style.display = "none";
+      }
+    });
+
+    const totalShown = visibleCount;
+    const totalAll = (() => {
+      const txt = resultInfo?.textContent || "";
+      const m = txt.match(/عدد النتائج:\s*(\d+)/);
+      return m ? parseInt(m[1], 10) : null;
+    })();
+
+    if (totalAll) {
+      resultInfo.textContent = `عدد النتائج: ${totalAll} | عرض متطابق: ${totalShown}`;
     } else {
-      card.parentElement.style.display = "none";
+      resultInfo.textContent = `النتائج المعروضة: ${totalShown}`;
     }
   });
-});
+})();
+
 
 
     </script>
@@ -878,6 +904,7 @@ document.getElementById("brand-search").addEventListener("input", function () {
 
   </body>
 </html>
+
 
 
 
