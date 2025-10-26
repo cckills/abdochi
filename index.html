@@ -845,79 +845,35 @@ if (page >= 1 && page <= totalPages) {
       });
 
 
-// ====== فلترة حية داخل النتائج حسب الموديل/الطراز (ضع هذا بعد كود عرض النتائج) ======
-(function () {
-  const input = document.getElementById("brand-search");
-  const resultInfo = document.getElementById("result-info");
-  if (!input) {
-    console.warn("عنصر brand-search غير موجود في الصفحة.");
-    return;
-  }
+// ✅ فلترة النتائج حسب الموديل أو الطراز داخل الكروت
+document.getElementById("brand-search").addEventListener("input", function () {
+  const query = this.value.trim().toLowerCase();
+  const allCards = document.querySelectorAll("#result .result-item"); // كل البطاقات
 
-  function updateResultInfo(totalAll, visibleCount, currentPageText) {
-    if (typeof totalAll === "number" && currentPageText) {
-      resultInfo.textContent = `عدد النتائج: ${totalAll} | ${currentPageText} | عرض متطابق: ${visibleCount}`;
-    } else if (typeof totalAll === "number") {
-      resultInfo.textContent = `عدد النتائج: ${totalAll} | عرض متطابق: ${visibleCount}`;
-    } else {
-      resultInfo.textContent = `النتائج المعروضة: ${visibleCount}`;
-    }
-  }
+  let visibleCount = 0;
 
-  // نحاول قراءة العدد الكلي من نص result-info الذي سبق كتابته عند عرض النتائج
-  function getTotalFromInfo() {
-    try {
-      const txt = resultInfo?.textContent || "";
-      const match = txt.match(/عدد النتائج:\s*(\d+)/);
-      return match ? parseInt(match[1], 10) : null;
-    } catch (e) {
-      return null;
-    }
-  }
+  allCards.forEach(card => {
+    const title = (card.querySelector(".fw-bold")?.textContent || "").toLowerCase();
+    const model = (card.querySelector(".modelsTitle")?.textContent || "").toLowerCase();
+    const chipset = (card.querySelector(".subtitle")?.textContent || "").toLowerCase();
 
-  input.addEventListener("input", function () {
-    try {
-      const q = this.value.trim().toLowerCase();
-      // نختار العناصر الحاوية (col-lg-custom) لأن كل بطاقة داخل هذا العمود
-      const wrappers = Array.from(document.querySelectorAll("#result .col-lg-custom"));
-      let visibleCount = 0;
+    // ✅ إذا كان النص مكتوب في أي من الحقول (الاسم أو الموديل أو المعالج)
+    const match = title.includes(query) || model.includes(query) || chipset.includes(query) || query === "";
 
-      wrappers.forEach(wrapper => {
-        // داخل الحاوية نجد البطاقة نفسها (.result-item)
-        const card = wrapper.querySelector(".result-item");
-        if (!card) {
-          // اذا الشكل مختلف، جرب البحث عن البطاقة مباشرة داخل wrapper
-          wrapper.style.display = "";
-          return;
-        }
+    // إظهار/إخفاء البطاقة بالكامل
+    card.style.display = match ? "flex" : "none";
 
-        const modelText = (card.querySelector(".modelsTitle")?.textContent || "").toLowerCase();
-        const titleText = (card.querySelector(".fw-bold")?.textContent || "").toLowerCase();
-        const chipsetText = (card.querySelector(".subtitle")?.textContent || "").toLowerCase();
-
-        const matches = q === "" || modelText.includes(q) || titleText.includes(q) || chipsetText.includes(q);
-
-        if (matches) {
-          wrapper.style.display = ""; // إظهار الحاوية كما هي
-          visibleCount++;
-        } else {
-          wrapper.style.display = "none"; // إخفاء الحاوية كلها لتبقى الشبكة سليمة
-        }
-      });
-
-      // إذا كان لديك معلومات الصفحة (مثلاً "الصفحة 1 من 7") محفوظة في result-info من قبل، نعرضها أيضاً
-      const totalAll = getTotalFromInfo();
-      // نحاول استخراج نص الصفحة الحالي/الإجمالي إن وُجد
-      const pageMatch = (resultInfo?.textContent || "").match(/الصفحة\s*([0-9]+)\s*من\s*([0-9]+)/);
-      const pageText = pageMatch ? `الصفحة ${pageMatch[1]} من ${pageMatch[2]}` : "";
-
-      updateResultInfo(totalAll, visibleCount, pageText);
-      console.log(`Filter: "${q}" → matched ${visibleCount} of ${totalAll ?? '??'}`);
-    } catch (err) {
-      console.error("خطأ في فلترة الماركة:", err);
-    }
+    if (match) visibleCount++;
   });
-})();
+
+  // تحديث العداد في الأعلى
+  const info = document.getElementById("result-info");
+  const total = document.querySelectorAll("#result .result-item").length;
+  const pageMatch = (info.textContent || "").match(/الصفحة\s*\d+\s*من\s*\d+/);
+  const pageText = pageMatch ? pageMatch[0] : "";
+  info.textContent = `عدد النتائج: ${total} | ${pageText} | عرض متطابق: ${visibleCount}`;
+});
+
 
     </script>
 
@@ -934,9 +890,6 @@ if (page >= 1 && page <= totalPages) {
 
   </body>
 </html>
-
-
-
 
 
 
