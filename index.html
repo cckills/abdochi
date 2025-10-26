@@ -289,6 +289,8 @@ body {
               required
             />
             <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>
+            <p id="result-info" style="text-align:center;margin-top:10px;font-weight:bold;color:#222;"></p>
+
           </form>
         </div>
       </div>
@@ -297,13 +299,9 @@ body {
 <div class="container my-4">
   <div class="card shadow-sm border-0 rounded-4">
     <div class="card-body">
-<h5 class="text-center mb-4 text-primary fw-bold">📱 نتائج البحث</h5>
-<h6 id="result-info" class="text-center text-secondary mt-3"></h6>
-<div id="result" class="row g-3 justify-content-start"></div>
-<div id="pagination" class="text-center mt-3"></div>
-
-
-
+      <h5 class="text-center mb-4 text-primary fw-bold">📱 نتائج البحث</h5>
+      <!-- ✅ مكان عرض البطاقات -->
+<div id="result" class="row g-3 justify-content-start">
       </div>
     </div>
   </div>
@@ -589,48 +587,9 @@ body {
     </script>
 
     <script>
-const form = document.getElementById("searchForm");
-const input = document.getElementById("phoneInput");
-const resultDiv = document.getElementById("results");
-const paginationDiv = document.getElementById("pagination");
-      
-let allResults = [];
-let currentPage = 1;
-const perPage = 20;
-
-function renderPage(page) {
-  currentPage = page;
-  const start = (page - 1) * perPage;
-  const end = start + perPage;
-  const items = allResults.slice(start, end);
-
-  let cards = "";
-  items.forEach((item) => {
-    const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
-    const modelText = Array.isArray(item.model) ? item.model.join(", ") : item.model || "";
-
-    cards += `
-      <div class="result-item" data-url="${item.link}" data-img="${item.img || ""}">
-        <div class="imgBox"><img src="${item.img || ""}" alt=""></div>
-        <div class="content">
-           <div class="fw-bold">${item.title}</div>
-           <div class="subtitle">${chipsetText}</div>
-           <div class="modelsTitle">${modelText}</div>
-        </div>
-      </div>
-    `;
-  });
-
-  resultDiv.innerHTML = cards;
-
-  // ✅ عند الضغط على الكارت يفتح المودال
-  document.querySelectorAll(".result-item").forEach((el) => {
-    el.addEventListener("click", () => {
-      getDetails(el.dataset.url, el.dataset.img);
-    });
-  });
-}
-
+      const form = document.getElementById("searchForm");
+      const input = document.getElementById("phoneInput");
+      const resultDiv = document.getElementById("result");
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -651,18 +610,9 @@ function renderPage(page) {
             return;
           }
 
-if (!data.mode || data.mode === "list") {
-  allResults = data.results;
-
-  itemsPerPage = 20; // ✅ عدد الكروت في كل صفحة
-  currentPage = 1;   // ✅ أول صفحة
-
-  document.querySelector("#result-info").textContent =
-    `📱 نتائج البحث — عدد النتائج: ${allResults.length}`;
-
-  renderPage(currentPage); // ✅ عرض الصفحة الأولى مباشرة
-  renderPagination(); // ✅ عرض أرقام الصفحات
-            {
+          if (!data.mode || data.mode === "list") {
+            let cards = "<div class='row justify-content-start g-3'>";
+            for (const item of data.results) {
               // ✅ معالجة النصوص (لو فيها أكثر من موديل أو معالج)
               const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
 
@@ -802,66 +752,7 @@ document.querySelectorAll(".result-item").forEach(card => {
         document.addEventListener("click", closeTooltip);
       });
 
-function renderPage() {
-  const start = (currentPage - 1) * perPage;
-  const end = start + perPage;
-  const items = allResults.slice(start, end);
-
-  resultDiv.innerHTML = ""; // تفريغ النتائج
-
-  if (items.length === 0) {
-    resultDiv.innerHTML = `<div class='alert alert-warning text-center'>❌ لا توجد نتائج.</div>`;
-    return;
-  }
-
-  items.forEach(item => {
-    const chipsetText = Array.isArray(item.chipset) ? item.chipset.join(", ") : item.chipset || "غير محدد";
-    const modelText = Array.isArray(item.model) ? item.model.join(", ") : item.model || "";
-
-    resultDiv.innerHTML += `
-      <div class="card result-item" data-url="${item.link}" data-img="${item.img || ''}">
-        <div class="imgBox">
-          <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${item.title}">
-        </div>
-        <div class="content">
-          <div class="fw-bold">${item.title}</div>
-          <div class="subtitle">${chipsetText}</div>
-          <div class="modelsTitle">${modelText}</div>
-        </div>
-      </div>`;
-  });
-
-  renderPagination();
-}
-
-function renderPagination() {
-  const totalPages = Math.ceil(allResults.length / perPage);
-  const paginationDiv = document.getElementById("pagination");
-
-  if (totalPages <= 1) {
-    paginationDiv.innerHTML = "";
-    return;
-  }
-
-  let buttons = "";
-
-  buttons += `<button class="btn btn-outline-primary mx-1" ${currentPage === 1 ? "disabled" : ""} onclick="changePage(currentPage - 1)">السابق</button>`;
-
-  for (let i = 1; i <= totalPages; i++) {
-    buttons += `<button class="btn ${i === currentPage ? "btn-primary" : "btn-outline-primary"} mx-1" onclick="changePage(${i})">${i}</button>`;
-  }
-
-  buttons += `<button class="btn btn-outline-primary mx-1" ${currentPage === totalPages ? "disabled" : ""} onclick="changePage(currentPage + 1)">التالي</button>`;
-
-  paginationDiv.innerHTML = buttons;
-}
-
-function changePage(page) {
-  currentPage = page;
-  renderPage();
-}
-
-
+      
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -877,4 +768,5 @@ function changePage(page) {
 
   </body>
 </html>
+
 
