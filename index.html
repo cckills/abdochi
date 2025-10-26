@@ -845,49 +845,79 @@ if (page >= 1 && page <= totalPages) {
       });
 
 
-// فلترة حية داخل النتائج حسب الموديل أو الطراز
+// ====== فلترة حية داخل النتائج حسب الموديل/الطراز (ضع هذا بعد كود عرض النتائج) ======
 (function () {
   const input = document.getElementById("brand-search");
   const resultInfo = document.getElementById("result-info");
-  if (!input) return;
+  if (!input) {
+    console.warn("عنصر brand-search غير موجود في الصفحة.");
+    return;
+  }
+
+  function updateResultInfo(totalAll, visibleCount, currentPageText) {
+    if (typeof totalAll === "number" && currentPageText) {
+      resultInfo.textContent = `عدد النتائج: ${totalAll} | ${currentPageText} | عرض متطابق: ${visibleCount}`;
+    } else if (typeof totalAll === "number") {
+      resultInfo.textContent = `عدد النتائج: ${totalAll} | عرض متطابق: ${visibleCount}`;
+    } else {
+      resultInfo.textContent = `النتائج المعروضة: ${visibleCount}`;
+    }
+  }
+
+  // نحاول قراءة العدد الكلي من نص result-info الذي سبق كتابته عند عرض النتائج
+  function getTotalFromInfo() {
+    try {
+      const txt = resultInfo?.textContent || "";
+      const match = txt.match(/عدد النتائج:\s*(\d+)/);
+      return match ? parseInt(match[1], 10) : null;
+    } catch (e) {
+      return null;
+    }
+  }
 
   input.addEventListener("input", function () {
-    const q = this.value.trim().toLowerCase();
-    const cards = Array.from(document.querySelectorAll("#result .result-item"));
-    let visibleCount = 0;
+    try {
+      const q = this.value.trim().toLowerCase();
+      // نختار العناصر الحاوية (col-lg-custom) لأن كل بطاقة داخل هذا العمود
+      const wrappers = Array.from(document.querySelectorAll("#result .col-lg-custom"));
+      let visibleCount = 0;
 
-    cards.forEach(card => {
-      const modelText = (card.querySelector(".modelsTitle")?.textContent || "").toLowerCase();
-      const titleText = (card.querySelector(".fw-bold")?.textContent || "").toLowerCase();
-      const chipsetText = (card.querySelector(".subtitle")?.textContent || "").toLowerCase();
+      wrappers.forEach(wrapper => {
+        // داخل الحاوية نجد البطاقة نفسها (.result-item)
+        const card = wrapper.querySelector(".result-item");
+        if (!card) {
+          // اذا الشكل مختلف، جرب البحث عن البطاقة مباشرة داخل wrapper
+          wrapper.style.display = "";
+          return;
+        }
 
-      const matches = q === "" || modelText.includes(q) || titleText.includes(q) || chipsetText.includes(q);
-      const wrapper = card.closest(".col-lg-custom") || card.parentElement || card;
+        const modelText = (card.querySelector(".modelsTitle")?.textContent || "").toLowerCase();
+        const titleText = (card.querySelector(".fw-bold")?.textContent || "").toLowerCase();
+        const chipsetText = (card.querySelector(".subtitle")?.textContent || "").toLowerCase();
 
-      if (matches) {
-        wrapper.style.display = "";
-        visibleCount++;
-      } else {
-        wrapper.style.display = "none";
-      }
-    });
+        const matches = q === "" || modelText.includes(q) || titleText.includes(q) || chipsetText.includes(q);
 
-    const totalShown = visibleCount;
-    const totalAll = (() => {
-      const txt = resultInfo?.textContent || "";
-      const m = txt.match(/عدد النتائج:\s*(\d+)/);
-      return m ? parseInt(m[1], 10) : null;
-    })();
+        if (matches) {
+          wrapper.style.display = ""; // إظهار الحاوية كما هي
+          visibleCount++;
+        } else {
+          wrapper.style.display = "none"; // إخفاء الحاوية كلها لتبقى الشبكة سليمة
+        }
+      });
 
-    if (totalAll) {
-      resultInfo.textContent = `عدد النتائج: ${totalAll} | عرض متطابق: ${totalShown}`;
-    } else {
-      resultInfo.textContent = `النتائج المعروضة: ${totalShown}`;
+      // إذا كان لديك معلومات الصفحة (مثلاً "الصفحة 1 من 7") محفوظة في result-info من قبل، نعرضها أيضاً
+      const totalAll = getTotalFromInfo();
+      // نحاول استخراج نص الصفحة الحالي/الإجمالي إن وُجد
+      const pageMatch = (resultInfo?.textContent || "").match(/الصفحة\s*([0-9]+)\s*من\s*([0-9]+)/);
+      const pageText = pageMatch ? `الصفحة ${pageMatch[1]} من ${pageMatch[2]}` : "";
+
+      updateResultInfo(totalAll, visibleCount, pageText);
+      console.log(`Filter: "${q}" → matched ${visibleCount} of ${totalAll ?? '??'}`);
+    } catch (err) {
+      console.error("خطأ في فلترة الماركة:", err);
     }
   });
 })();
-
-
 
     </script>
 
@@ -904,6 +934,7 @@ if (page >= 1 && page <= totalPages) {
 
   </body>
 </html>
+
 
 
 
