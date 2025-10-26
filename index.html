@@ -594,11 +594,18 @@ body {
       const input = document.getElementById("phoneInput");
       const resultDiv = document.getElementById("result");
 
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const phone = input.value.trim();
-        if (!phone) return;
-        resultDiv.innerHTML = `<div class='alert alert-info'>🔍 جاري البحث عن "${phone}"...</div>`;
+   form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const phone = input.value.trim();
+  if (!phone) return;
+
+  // 🧹 تنظيف النتائج القديمة قبل البحث الجديد
+  document.getElementById("result-info").textContent = "";
+  document.getElementById("pagination").innerHTML = "";
+  resultDiv.innerHTML = "";
+
+  // 💬 عرض رسالة البحث الجديدة
+  resultDiv.innerHTML = `<div class='alert alert-info'>🔍 جاري البحث عن "${phone}"...</div>`;
 
         try {
           const res = await fetch(`/api/${encodeURIComponent(phone)}`);
