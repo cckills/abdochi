@@ -866,7 +866,7 @@ form.addEventListener("submit", async (e) => {
     }
 
     allResults = data.results; // ✅ حفظ النتائج كاملة
-    renderFilteredResults(allResults); // عرض أول مرة
+    renderFilteredResults(allResults, allResults.length); // عرض أول مرة
   } catch (err) {
     resultDiv.innerHTML = `<div class='alert alert-danger'>⚠️ خطأ في الاتصال.</div>`;
   }
@@ -874,7 +874,7 @@ form.addEventListener("submit", async (e) => {
 
 
 // ✅ دالة لإعادة رسم النتائج (تستخدمها الفلترة أيضًا)
-function renderFilteredResults(results) {
+function renderFilteredResults(results, totalMatched = results.length) {
   const resultInfo = document.getElementById("result-info");
   const result = document.getElementById("result");
   const pagination = document.getElementById("pagination");
@@ -888,6 +888,7 @@ function renderFilteredResults(results) {
     return;
   }
 
+  const totalAll = allResults.length;
   const itemsPerPage = 20;
   let currentPage = 1;
   const totalPages = Math.ceil(results.length / itemsPerPage);
@@ -923,7 +924,7 @@ function renderFilteredResults(results) {
       });
     });
 
-    resultInfo.textContent = `عدد النتائج: ${results.length} | الصفحة ${page} من ${totalPages}`;
+    resultInfo.textContent = `عدد النتائج: ${totalAll} | الصفحة ${page} من ${totalPages} | عرض متطابق: ${totalMatched}`;
   }
 
   function renderPagination() {
@@ -984,7 +985,7 @@ document.getElementById("brand-search").addEventListener("input", function () {
     );
   });
 
-  renderFilteredResults(filtered);
+  renderFilteredResults(filtered, filtered.length);
 });
 
 
