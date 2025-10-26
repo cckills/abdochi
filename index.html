@@ -297,10 +297,14 @@ body {
 <div class="container my-4">
   <div class="card shadow-sm border-0 rounded-4">
     <div class="card-body">
-<h5 class="text-center mb-4 text-primary fw-bold">📱 نتائج البحث</h5>
-<h6 id="result-info" class="text-center text-secondary mt-3"></h6>
-<div id="result" class="row g-3 justify-content-start"></div>
-<div id="pagination" class="text-center mt-3"></div>
+
+<h3 class="text-center mt-4">📱 نتائج البحث</h3>
+
+<p id="resultCount"></p>
+
+<div id="results" class="row"></div>
+
+<div id="pagination" class="d-flex justify-content-center mt-4"></div>
 
       </div>
     </div>
@@ -644,9 +648,6 @@ function renderPagination() {
   }
   document.getElementById("pagination").innerHTML = buttons;
 }
-
-
-
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
