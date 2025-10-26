@@ -286,22 +286,20 @@ body {
               class="search-field form-control mb-3 text-center"
               id="phoneInput"
               name="s"
-              placeholder="ابحث عن اسم الهاتف..."
-              required
-            />
-            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>
-          </form>
-        </div>
-      </div>
- <!-- 🔍 مربع البحث عن الماركة -->
+              placeholder="ابحث عن اسم الهاتف..."  required />
+             <!-- 🔍 مربع البحث عن الماركة -->
 <div id="brand-search-box" class="my-3 text-center">
-  <div style="padding:8px; display:inline-block; width:260px;">
+ <!-- <div style="padding:8px; display:inline-block; width:260px;">-->
     <input type="text" id="brand-search" 
            placeholder="🔍 ابحث عن ماركة..."
            class="form-control text-center"
            style="width:100%; border-radius:8px;">
-  </div>
 </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>
+          </form>
+        </div>
+      </div>
+
 <!-- 📦 نتائج البحث داخل بطاقة -->
 <div class="container my-4">
   <div class="card shadow-sm border-0 rounded-4">
@@ -1004,6 +1002,35 @@ document.getElementById("brand-search").addEventListener("input", function () {
   renderFilteredResults(filtered, filtered.length, query);
 });
 
+// ✅ تفعيل زر البحث والفلترة مع Enter
+const brandSearch = document.getElementById("brand-search");
+
+// عند الضغط على Enter في أي من الحقلين
+[phoneInput, brandSearch].forEach(inputEl => {
+  inputEl.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      form.requestSubmit(); // كأن المستخدم ضغط زر البحث
+    }
+  });
+});
+
+// ✅ فلترة الماركات بعد تحميل النتائج
+brandSearch.addEventListener("input", () => {
+  const query = brandSearch.value.trim().toLowerCase();
+  if (!query) {
+    renderFilteredResults(allResults);
+    return;
+  }
+
+  const filtered = allResults.filter(item =>
+    (item.title && item.title.toLowerCase().includes(query)) ||
+    (item.chipset && item.chipset.toLowerCase().includes(query)) ||
+    (Array.isArray(item.model) && item.model.some(m => m.toLowerCase().includes(query)))
+  );
+
+  renderFilteredResults(filtered, filtered.length, query);
+});
 
     </script>
 
@@ -1020,7 +1047,6 @@ document.getElementById("brand-search").addEventListener("input", function () {
 
   </body>
 </html>
-
 
 
 
