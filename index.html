@@ -602,10 +602,15 @@ body {
         try {
           const res = await fetch(`/api/${encodeURIComponent(phone)}`);
           const data = await res.json();
-          
-    // ✅ عرض عدد النتائج هنا
+          console.log("📄 Pagination Info:", data.total, data.totalPages, data.currentPage);
+
+// ✅ عرض عدد النتائج والصفحة
+const totalResults = data.results.length;
+const totalPages = Math.ceil(totalResults / 20);
+const currentPage = 1;
+
 document.getElementById("result-info").textContent =
-  `عدد النتائج: ${data.total} | الصفحة ${data.currentPage} من ${data.totalPages}`;
+  `عدد النتائج: ${totalResults} | الصفحة ${currentPage} من ${totalPages}`;
 
           if (data.error) {
             resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${data.error}</div>`;
@@ -703,12 +708,18 @@ if (!data.mode || data.mode === "list") {
       link.addEventListener("click", e => {
         e.preventDefault();
         const page = parseInt(e.target.getAttribute("data-page"));
-        if (page >= 1 && page <= totalPages) {
-          currentPage = page;
-          renderPage(currentPage);
-          renderPagination();
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
+if (page >= 1 && page <= totalPages) {
+  currentPage = page;
+  renderPage(currentPage);
+  renderPagination();
+
+  // ✅ تحديث النص عند التبديل بين الصفحات
+  document.getElementById("result-info").textContent =
+    `عدد النتائج: ${data.results.length} | الصفحة ${currentPage} من ${totalPages}`;
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
       });
     });
   }
@@ -824,6 +835,5 @@ if (!data.mode || data.mode === "list") {
 
   </body>
 </html>
-
 
 
