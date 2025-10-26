@@ -865,16 +865,16 @@ form.addEventListener("submit", async (e) => {
       return;
     }
 
-    allResults = data.results; // ✅ حفظ النتائج كاملة
-    renderFilteredResults(allResults, allResults.length); // عرض أول مرة
+    allResults = data.results;
+    renderFilteredResults(allResults, allResults.length);
   } catch (err) {
     resultDiv.innerHTML = `<div class='alert alert-danger'>⚠️ خطأ في الاتصال.</div>`;
   }
 });
 
 
-// ✅ دالة لإعادة رسم النتائج (تستخدمها الفلترة أيضًا)
-function renderFilteredResults(results, totalMatched = results.length) {
+// ✅ دالة إعادة الرسم + التظليل
+function renderFilteredResults(results, totalMatched = results.length, highlightQuery = "") {
   const resultInfo = document.getElementById("result-info");
   const result = document.getElementById("result");
   const pagination = document.getElementById("pagination");
@@ -893,6 +893,13 @@ function renderFilteredResults(results, totalMatched = results.length) {
   let currentPage = 1;
   const totalPages = Math.ceil(results.length / itemsPerPage);
 
+  // ✅ دالة لتظليل النصوص المتطابقة
+  function highlight(text, query) {
+    if (!query) return text;
+    const regex = new RegExp(`(${query})`, "gi");
+    return text.replace(regex, `<mark style="background-color:#cce5ff;">$1</mark>`);
+  }
+
   function renderPage(page) {
     const start = (page - 1) * itemsPerPage;
     const end = start + itemsPerPage;
@@ -900,16 +907,26 @@ function renderFilteredResults(results, totalMatched = results.length) {
 
     let html = "<div class='row justify-content-start g-3'>";
     for (const item of pageItems) {
+      const title = highlight(item.title || "", highlightQuery);
+      const chipset = highlight(item.chipset || "غير محدد", highlightQuery);
+      const model = highlight(
+        Array.isArray(item.model) ? item.model.join(", ") : (item.model || ""),
+        highlightQuery
+      );
+
       html += `
         <div class="col-lg-custom d-flex justify-content-center">
-          <div class="card result-item" data-url="${item.link}" data-img="${item.img || ''}">
-            <div class="imgBox">
-              <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${item.title}">
+          <div class="card result-item" data-url="${item.link}" data-img="${item.img || ''}"
+               style="position:relative;width:250px;height:320px;box-shadow:0 35px 80px rgba(0,0,0,0.15);background:#fff;border-radius:15px;overflow:visible;cursor:pointer;">
+            
+            <div class="imgBox" style="position:absolute;left:50%;top:-41px;transform:translateX(-50%);width:150px;height:174px;background:#fff;border-radius:20px;box-shadow:0 15px 50px rgba(0,0,0,0.35);overflow:hidden;">
+              <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;">
             </div>
-            <div class="content">
-              <div class="fw-bold">${item.title}</div>
-              <div class="subtitle">${item.chipset || 'غير محدد'}</div>
-              <div class="modelsTitle">${Array.isArray(item.model) ? item.model.join(', ') : (item.model || '')}</div>
+
+            <div class="content text-center" style="position:absolute;bottom:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+              <div class="fw-bold" style="margin-top:110px;font-size:1.2rem;color:#222;">${title}</div>
+              <div class="subtitle" style="font-size:1rem;color:#555;margin-top:5px;">${chipset}</div>
+              <div class="modelsTitle" style="font-size:0.85rem;color:#666;margin-top:10px;">${model}</div>
             </div>
           </div>
         </div>`;
@@ -917,7 +934,7 @@ function renderFilteredResults(results, totalMatched = results.length) {
     html += "</div>";
     result.innerHTML = html;
 
-    // تفعيل الضغط على الكروت
+    // عند الضغط على الكارت
     document.querySelectorAll(".result-item").forEach(card => {
       card.addEventListener("click", () => {
         getDetails(card.dataset.url, card.dataset.img);
@@ -964,10 +981,9 @@ function renderFilteredResults(results, totalMatched = results.length) {
 }
 
 
-// ✅ فلترة النتائج في جميع الصفحات (بناءً على الموديل أو الطراز)
+// ✅ فلترة النتائج وتلوين المتطابق بالأزرق الفاتح
 document.getElementById("brand-search").addEventListener("input", function () {
   const query = this.value.trim().toLowerCase();
-
   if (!allResults.length) return;
 
   const filtered = allResults.filter(item => {
@@ -985,7 +1001,7 @@ document.getElementById("brand-search").addEventListener("input", function () {
     );
   });
 
-  renderFilteredResults(filtered, filtered.length);
+  renderFilteredResults(filtered, filtered.length, query);
 });
 
 
