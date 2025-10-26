@@ -298,19 +298,20 @@ body {
               placeholder="ابحث عن اسم الهاتف..."  required />
             <!-- القائمة الظاهرة دائمًا -->
 
-  <select class="dropdown select form-select" style="flex:1; border-radius:8px;">
-    <option value="4">Huawei</option>
-    <option value="143">Samsung</option>
-    <option value="1">Alcatel</option>
-    <option value="13">Blu</option>
-    <option value="7">Lenovo</option>
-    <option value="3">Motorola</option>
-    <option value="141">Vivo</option>
-    <option value="98">Xiaomi</option>
-    <option value="107">OPPO</option>
-    <!-- باقي الماركات -->
-  </select>
-</div>
+<select class="form-select" style="flex:1; border-radius:8px;">
+  <option value="" selected disabled>اختر علامة تجارية</option>
+  <option value="4">Huawei</option>
+  <option value="143">Samsung</option>
+  <option value="1">Alcatel</option>
+  <option value="13">Blu</option>
+  <option value="7">Lenovo</option>
+  <option value="3">Motorola</option>
+  <option value="141">Vivo</option>
+  <option value="98">Xiaomi</option>
+  <option value="107">OPPO</option>
+  <!-- باقي الماركات -->
+</select>
+
 
              <!-- 🔍 مربع البحث عن الماركة -->
 <div id="brand-search-box" class="my-3 text-center">
@@ -1054,6 +1055,7 @@ phoneInput.value = selectedBrand; // الآن سيظهر الاسم بدل ال�
 
   </body>
 </html>
+
 
 
 
