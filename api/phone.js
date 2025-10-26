@@ -11,7 +11,8 @@ export default async function handler(req, res) {
     let hasNext = true;
 
     let processedPages = 0;
-    while (hasNext && page <= 5) {
+   // while (hasNext && page <= 5) {
+    while (hasNext) {
       const searchUrl =
         page === 1
           ? `https://telfonak.com/?s=${encodeURIComponent(phone)}`
