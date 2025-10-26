@@ -290,17 +290,18 @@ body {
               required
             />
             <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>
-  <!-- مربع التصفية الداخلي -->
-  <input type="text" id="model-filter" class="form-control d-inline-block mx-2"
-         placeholder="🔍 تصفية النتائج حسب الموديل أو الطراز..."
-         style="width:250px; display:inline-block; text-align:center;">
-</div>
-
-
           </form>
         </div>
       </div>
-
+ <!-- 🔍 مربع البحث عن الماركة -->
+<div id="brand-search-box" class="my-3 text-center">
+  <div style="padding:8px; display:inline-block; width:260px;">
+    <input type="text" id="brand-search" 
+           placeholder="🔍 ابحث عن ماركة..."
+           class="form-control text-center"
+           style="width:100%; border-radius:8px;">
+  </div>
+</div>
 <!-- 📦 نتائج البحث داخل بطاقة -->
 <div class="container my-4">
   <div class="card shadow-sm border-0 rounded-4">
@@ -844,50 +845,21 @@ if (page >= 1 && page <= totalPages) {
       });
 
 
+// ✅ فلترة النتائج حسب الماركة (client-side)
+document.getElementById("brand-search").addEventListener("input", function () {
+  const query = this.value.trim().toLowerCase();
+  const cards = document.querySelectorAll("#result .phone-card");
 
-      
-      // ✅ منطق القائمة المنسدلة للماركات
-const dropdown = document.querySelector(".dropdown.select");
-const valueBox = dropdown.querySelector(".value");
-const menu = dropdown.querySelector(".dropdown-wrap");
-
-valueBox.addEventListener("click", () => {
-  menu.style.display = menu.style.display === "block" ? "none" : "block";
-});
-
-// عند اختيار ماركة
-menu.querySelectorAll("li").forEach(li => {
-  li.addEventListener("click", () => {
-    const brand = li.textContent.trim();
-    valueBox.textContent = brand;
-    menu.style.display = "none";
-    // ضع الماركة داخل حقل البحث الرئيسي وابدأ البحث مباشرة
-    const searchInput = document.getElementById("search-input");
-    searchInput.value = brand;
-    document.getElementById("search-form").dispatchEvent(new Event("submit"));
-  });
-});
-
-// ✅ تصفية النتائج داخل الصفحة
-document.getElementById("model-filter").addEventListener("input", function () {
-  const term = this.value.trim().toLowerCase();
-  const cards = document.querySelectorAll(".result-item");
   cards.forEach(card => {
-    const modelText = card.querySelector(".modelsTitle")?.textContent.toLowerCase() || "";
-    const titleText = card.querySelector(".fw-bold")?.textContent.toLowerCase() || "";
-    card.style.display =
-      modelText.includes(term) || titleText.includes(term) ? "block" : "none";
+    const title = card.querySelector(".card-title")?.textContent.toLowerCase() || "";
+    // إذا كان الاسم يحتوي على نص البحث أو كان مربع البحث فارغًا => يظهر
+    if (title.includes(query) || query === "") {
+      card.style.display = "inline-block";
+    } else {
+      card.style.display = "none";
+    }
   });
 });
-
-// إغلاق القائمة عند النقر خارجها
-document.addEventListener("click", e => {
-  if (!dropdown.contains(e.target)) {
-    menu.style.display = "none";
-  }
-});
-
-
 
     </script>
 
