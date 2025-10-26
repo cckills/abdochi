@@ -9,14 +9,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <style>
-.brand-list li {
+select.dropdown.select {
+  appearance: none; /* إزالة أي تصميم افتراضي */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid #ddd;
   padding: 6px 12px;
   cursor: pointer;
-  transition: background 0.2s;
 }
-.brand-list li:hover {
-  background-color: #e6f0ff;
-}
+
 
 /* 🎨 إعدادات الكارت الافتراضي (Bootstrap) */
 /* تم تعطيله لتجنّب التعارض مع تصميم vivo Y91C */
@@ -289,27 +290,28 @@ body {
           <h5 class="text-center mb-3 fw-bold text-primary">🔍 بحث عن الهواتف</h5>
           <form id="searchForm" class="text-center">
             <p class="message mb-3">اكتب كلمة البحث ثم اضغط زر البحث أو <em>Enter</em></p>
-            <!-- القائمة الظاهرة دائمًا -->
-  <ul class="brand-list" style="flex:1; max-height:300px; overflow-y:auto; list-style:none; padding:0; margin:0; border:1px solid #ddd; border-radius:8px; background:#fff;">
-    <li>Huawei</li>
-    <li>Samsung</li>
-    <li>Alcatel</li>
-    <li>Blu</li>
-    <li>Lenovo</li>
-    <li>Motorola</li>
-    <li>Vivo</li>
-    <li>Xiaomi</li>
-    <li>Oppo</li>
-    <!-- باقي الماركات هنا -->
-  </ul>
-</div>
             <input
               type="search"
               class="search-field form-control mb-3 text-center"
               id="phoneInput"
               name="s"
               placeholder="ابحث عن اسم الهاتف..."  required />
-              
+            <!-- القائمة الظاهرة دائمًا -->
+
+  <select class="dropdown select form-select" style="flex:1; border-radius:8px;">
+    <option value="4">Huawei</option>
+    <option value="143">Samsung</option>
+    <option value="1">Alcatel</option>
+    <option value="13">Blu</option>
+    <option value="7">Lenovo</option>
+    <option value="3">Motorola</option>
+    <option value="141">Vivo</option>
+    <option value="98">Xiaomi</option>
+    <option value="107">OPPO</option>
+    <!-- باقي الماركات -->
+  </select>
+</div>
+
              <!-- 🔍 مربع البحث عن الماركة -->
 <div id="brand-search-box" class="my-3 text-center">
  <!-- <div style="padding:8px; display:inline-block; width:260px;">-->
@@ -1025,30 +1027,16 @@ document.getElementById("brand-search").addEventListener("input", function () {
   renderFilteredResults(filtered, filtered.length, query);
 });
 
-// 🔹 ربط قائمة الماركات بمربع البحث الرئيسي
-document.querySelectorAll(".dropdown-menu li").forEach(item => {
-  item.addEventListener("click", () => {
-    const selectedBrand = item.textContent.trim();
+// ربط قائمة الماركات (<select>) بمربع البحث
+const brandDropdown = document.querySelector(".dropdown.select");
+brandDropdown.addEventListener("change", () => {
+  const selectedBrand = brandDropdown.options[brandDropdown.selectedIndex].text;
+phoneInput.value = selectedBrand; // الآن سيظهر الاسم بدل الرقم
 
-    // ضع اسم الماركة في مربع البحث الرئيسي
-    const phoneInput = document.getElementById("phoneInput");
-    phoneInput.value = selectedBrand;
-
-    // يمكنك هنا جعل المؤشر ينتقل تلقائيًا داخل مربع البحث
-    phoneInput.focus();
-
-    // (اختياري) إذا كنت تريد تنفيذ البحث فور الاختيار:
+  phoneInput.value = selectedBrand; // وضع الاسم في مربع البحث
+  phoneInput.focus();
+        // (اختياري) إذا كنت تريد تنفيذ البحث فور الاختيار:
     // document.getElementById("searchForm").requestSubmit();
-  });
-});
-
-
-document.querySelectorAll(".brand-list li").forEach(item => {
-  item.addEventListener("click", () => {
-    const phoneInput = document.getElementById("phoneInput");
-    phoneInput.value = item.textContent.trim();
-    phoneInput.focus();
-  });
 });
 
     </script>
