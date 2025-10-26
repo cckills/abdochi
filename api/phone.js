@@ -11,8 +11,8 @@ export default async function handler(req, res) {
     let hasNext = true;
 
     let processedPages = 0;
-  while (hasNext && page <= 100) {
-     // while (hasNext) {
+   // while (hasNext && page <= 5) {
+   while (hasNext) {
       const searchUrl =
         page === 1
           ? `https://telfonak.com/?s=${encodeURIComponent(phone)}`
@@ -105,7 +105,9 @@ export default async function handler(req, res) {
         }
       }
 
-      hasNext = $(".pagination .next, .nav-links .next").length > 0;
+      //hasNext = $(".pagination .next, .nav-links .next").length > 0;
+      hasNext = $(".pagination .next, .nav-links .next, a.next, .page-numbers .next").length > 0;
+
 processedPages++;
 page++;
     }
@@ -154,4 +156,3 @@ res.status(200).json({
     res.status(500).json({ error: "حدث خطأ أثناء جلب البيانات." });
   }
 }
-
