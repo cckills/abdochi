@@ -604,8 +604,8 @@ body {
           const data = await res.json();
           
     // ✅ عرض عدد النتائج هنا
-    document.getElementById("result-info").textContent =
-      `عدد النتائج: ${data.results.length}`;
+document.getElementById("result-info").textContent =
+  `عدد النتائج: ${data.total} | الصفحة ${data.currentPage} من ${data.totalPages}`;
 
           if (data.error) {
             resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${data.error}</div>`;
@@ -824,5 +824,6 @@ if (!data.mode || data.mode === "list") {
 
   </body>
 </html>
+
 
 
