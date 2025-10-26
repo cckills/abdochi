@@ -599,13 +599,22 @@ body {
   const phone = input.value.trim();
   if (!phone) return;
 
-  // 🧹 تنظيف النتائج القديمة قبل البحث الجديد
+  // 🧹 تنظيف النتائج القديمة قبل أي بحث جديد
   document.getElementById("result-info").textContent = "";
   document.getElementById("pagination").innerHTML = "";
   resultDiv.innerHTML = "";
 
-  // 💬 عرض رسالة البحث الجديدة
-  resultDiv.innerHTML = `<div class='alert alert-info'>🔍 جاري البحث عن "${phone}"...</div>`;
+  // 🎨 عرض رسالة أنيقة في منتصف المنطقة أثناء البحث
+  resultDiv.innerHTML = `
+    <div class="d-flex flex-column justify-content-center align-items-center py-5" style="min-height: 300px;">
+      <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">جاري البحث...</span>
+      </div>
+      <div class="text-center text-secondary fs-5">
+        🔍 جاري البحث عن <strong>${phone}</strong>...
+      </div>
+    </div>
+  `;
 
         try {
           const res = await fetch(`/api/${encodeURIComponent(phone)}`);
@@ -843,5 +852,3 @@ if (page >= 1 && page <= totalPages) {
 
   </body>
 </html>
-
-
