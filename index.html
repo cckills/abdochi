@@ -1039,22 +1039,19 @@ document.addEventListener("keydown", function (e) {
 
 function filterResults(query) {
   const cards = document.querySelectorAll(".result-item");
+  const q = query.trim().toLowerCase();
 
   if (cards.length > 0) {
-    // 🔹 فلترة مباشرة في الصفحة (أسرع)
-    query = query.toLowerCase();
+    // 🔹 فلترة مباشرة في الصفحة (الكروت الجاهزة)
     cards.forEach(card => {
       const title = card.querySelector(".fw-bold")?.textContent.toLowerCase() || "";
+      const models = card.querySelector(".modelsTitle")?.textContent.toLowerCase() || "";
       const chipset = card.querySelector(".subtitle")?.textContent.toLowerCase() || "";
-      if (title.includes(query) || chipset.includes(query)) {
-        card.style.display = "block";
-      } else {
-        card.style.display = "none";
-      }
+      const match = title.includes(q) || models.includes(q) || chipset.includes(q);
+      card.style.display = match ? "block" : "none";
     });
   } else if (Array.isArray(allResults) && allResults.length > 0) {
-    // 🔹 فلترة عبر البيانات (عندما لا توجد كروت جاهزة)
-    const q = query.trim().toLowerCase();
+    // 🔹 فلترة احتياطية عبر البيانات (لو لم تُعرض بعد)
     const filtered = allResults.filter(item => {
       const title = (item.title || "").toLowerCase();
       const chipset = (item.chipset || "").toLowerCase();
@@ -1071,6 +1068,15 @@ function filterResults(query) {
     renderFilteredResults(filtered, filtered.length, q);
   }
 }
+let debounceTimer;
+document.getElementById("brand-search").addEventListener("input", (e) => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    const query = e.target.value.trim();
+    filterResults(query);
+  }, 200); // ← يمكنك تغييرها إلى 100 لتصبح فورية تقريبًا
+});
+
 // 🧩 دالة عرض النتائج تدريجيًا لتقليل البطء
 function renderResultsGradually(results) {
   const chunkSize = 50; // عدد الكروت في كل دفعة
@@ -1097,15 +1103,6 @@ function renderResultsGradually(results) {
   renderChunk();
 }
 
-// 🟢 تشغيل الفلترة أثناء الكتابة مع تأخير بسيط (debounce)
-let debounceTimer;
-document.getElementById("brand-search").addEventListener("input", (e) => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    const query = e.target.value.trim();
-    filterResults(query);
-  }, 300); // ← يمكنك تعديلها إلى 200ms لجعلها أسرع
-});
 
 
   // 🟢 فلترة فورية عند الكتابة (بدون تأخير)
