@@ -1034,26 +1034,28 @@ function setResults(results) {
   allResults = results;
 }
 
+
+
 // 🧩 متغير لتخزين جميع النتائج من السيرفر
-let allResults = [];
+let allResults2 = [];
 let resultsReady = false; // ← مؤشر جاهزية النتائج
 
 // 🟢 تُستدعى بعد اكتمال جلب البيانات من السيرفر (كل الصفحات)
 function setResults(results) {
-  allResults = results;
+  allResults2 = results;
   resultsReady = true; // ← الآن يمكن للفلترة أن تعمل فوراً
   console.log("✅ تم تحميل جميع النتائج، جاهز للفلترة");
 }
 
 // 🟦 دالة الفلترة
 function filterResults(query) {
-  if (!resultsReady || !Array.isArray(allResults) || allResults.length === 0) {
+  if (!resultsReady || !Array.isArray(allResults2) || allResults2.length === 0) {
     console.log("⏳ لم تكتمل عملية تحميل النتائج بعد...");
     return;
   }
 
   const q = query.trim().toLowerCase();
-  const filtered = allResults.filter(item => {
+  const filtered = allResults2.filter(item => {
     const title = (item.title || "").toLowerCase();
     const chipset = (item.chipset || "").toLowerCase();
     const models = Array.isArray(item.model)
@@ -1094,6 +1096,7 @@ document.getElementById("brand-clear-btn").addEventListener("click", function() 
   brandSearch.value = "";
   filterResults("");
 });
+
 
 
   // 🚫 منع زر Enter من إعادة تحميل الصفحة
