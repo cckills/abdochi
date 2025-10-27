@@ -296,8 +296,8 @@ body {
               id="phoneInput"
               name="s"
               placeholder="ابحث عن اسم الهاتف..."  required />
+    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>
             <!-- القائمة الظاهرة دائمًا -->
-
   <select class="dropdown select form-select" style="flex:1; border-radius:8px;">
   <option value="" selected disabled>اختر علامة تجارية</option>
   <option value="4">Huawei</option>
@@ -320,7 +320,6 @@ body {
            class="form-control text-center"
            style="width:100%; border-radius:8px;">
 </div>
-            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>
           </form>
         </div>
       </div>
@@ -626,19 +625,16 @@ body {
       const resultDiv = document.getElementById("result");
 // منع زر Enter في مربع البحث
 const phoneInputField = document.getElementById("phoneInput");
-
 phoneInputField.addEventListener("keydown", function(e) {
   if (e.key === "Enter") {
     e.preventDefault(); // يمنع الفورم من الإرسال
     return false;
   }
 });
-
    form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const phone = input.value.trim();
   if (!phone) return;
-
   // 🧹 تنظيف النتائج القديمة قبل أي بحث جديد
   document.getElementById("result-info").textContent = "";
   document.getElementById("pagination").innerHTML = "";
@@ -1063,6 +1059,3 @@ phoneInput.value = selectedBrand; // الآن سيظهر الاسم بدل ال�
 
   </body>
 </html>
-
-
-
