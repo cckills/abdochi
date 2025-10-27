@@ -781,7 +781,7 @@ setTimeout(() => {
   if (infoEl) {
     infoEl.textContent += ` | عرض متطابق: ${matchedCount}`;
   }
-}, 250); // ← يمكنك تعديل الوقت هنا (0 = فوري، 250 = طبيعي، 800 = بطيء قليلًا)
+}, 0); // ← يمكنك تعديل الوقت هنا (0 = فوري، 250 = طبيعي، 800 = بطيء قليلًا)
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1121,3 +1121,4 @@ document.getElementById("brand-search").addEventListener("input", (e) => {
 
   </body>
 </html>
+
