@@ -1038,64 +1038,95 @@ document.addEventListener("keydown", function (e) {
     });
   });
 
- 
-  // هذه الدالة تُستخدم عادة بعد جلب البيانات من السيرفر
-  function setResults(results) {
-    allResults = results;
-  }
+    </script>
+<script>
+// 🧩 متغير عام لتخزين جميع النتائج من السيرفر (لكل الصفحات)
+window.allResults = window.allResults || [];
+window.resultsReady = false;
 
-  // 🟦 الدالة التي تنفّذ الفلترة فعلياً
-  function filterResults(query) {
-    if (!Array.isArray(allResults) || allResults.length === 0) return;
+// 🟢 دالة تُستخدم بعد جلب البيانات من السيرفر
+function setResults(results) {
+  window.allResults = results;
+  window.resultsReady = true; // ✅ النتائج أصبحت جاهزة
+  const currentQuery = document.getElementById("brand-search").value.trim();
+  filterResults(currentQuery); // ✅ تفعيل الفلترة فور الجلب
+}
 
-    const q = query.trim().toLowerCase();
+// 🟦 الدالة التي تنفّذ الفلترة فعلياً
+function filterResults(query) {
+  // ✅ لا تعمل الفلترة قبل الجاهزية
+  if (!window.resultsReady || !Array.isArray(window.allResults) || window.allResults.length === 0) return;
 
-    const filtered = allResults.filter(item => {
-      const title = (item.title || "").toLowerCase();
-      const chipset = (item.chipset || "").toLowerCase();
-      const models = Array.isArray(item.model)
-        ? item.model.join(", ").toLowerCase()
-        : (item.model || "").toLowerCase();
-      return (
-        q === "" ||
-        title.includes(q) ||
-        chipset.includes(q) ||
-        models.includes(q)
-      );
-    });
+  const q = query.trim().toLowerCase();
 
-    renderFilteredResults(filtered, filtered.length, q);
-  }
-// 🟢 فلترة فورية عند الكتابة (بدون تأخير ملحوظ)
-let debounceTimer;
+  const filtered = window.allResults.filter(item => {
+    const title = (item.title || "").toLowerCase();
+    const chipset = (item.chipset || "").toLowerCase();
+    const models = Array.isArray(item.model)
+      ? item.model.join(", ").toLowerCase()
+      : (item.model || "").toLowerCase();
+    return (
+      q === "" ||
+      title.includes(q) ||
+      chipset.includes(q) ||
+      models.includes(q)
+    );
+  });
+
+  renderFilteredResults(filtered, filtered.length, q);
+}
+
+// 🟢 فلترة فورية عند الكتابة (بدون أي تأخير)
 document.getElementById("brand-search").addEventListener("input", (e) => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    const query = e.target.value.trim();
-    filterResults(query);
-  }, 50); // يمكنك جعلها 100 لتصبح فورية تقريبًا
+  const query = e.target.value.trim();
+  filterResults(query);
 });
 
-  // 🟢 فلترة فورية عند الكتابة (بدون تأخير)
- // document.getElementById("brand-search").addEventListener("input", function() {
- //   filterResults(this.value);
- // });
+// 🟢 عند الضغط على زر "بحث"
+document.getElementById("brand-search-btn").addEventListener("click", function() {
+  const query = document.getElementById("brand-search").value;
+  filterResults(query);
+});
 
-  // 🟢 عند الضغط على زر "بحث"
-  document.getElementById("brand-search-btn").addEventListener("click", function() {
-    const query = document.getElementById("brand-search").value;
-    filterResults(query);
-  });
+// 🟠 زر "إزالة الفلترة"
+document.getElementById("brand-clear-btn").addEventListener("click", function() {
+  document.getElementById("brand-search").value = "";
+  filterResults("");
+});
 
-  // 🟠 زر "إزالة الفلترة"
-  document.getElementById("brand-clear-btn").addEventListener("click", function() {
-    document.getElementById("brand-search").value = "";
-    filterResults("");
-  });
+// 🧩 عرض النتائج تدريجيًا لتفادي البطء عند الفلترة
+function renderFilteredResults(results, total, query) {
+  const container = document.getElementById("results");
+  container.innerHTML = "";
 
+  if (results.length === 0) {
+    container.innerHTML = `<div class="text-center text-danger p-3">لا توجد نتائج مطابقة.</div>`;
+    return;
+  }
 
-  
-    </script>
+  const chunkSize = 50;
+  let index = 0;
+
+  function renderChunk() {
+    const slice = results.slice(index, index + chunkSize);
+    slice.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "result-item card mb-2 p-2 shadow-sm";
+      card.innerHTML = `
+        <h5 class="fw-bold">${item.title}</h5>
+        <p class="modelsTitle">${item.model}</p>
+        <p class="subtitle">${item.chipset}</p>
+      `;
+      container.appendChild(card);
+    });
+
+    index += chunkSize;
+    if (index < results.length) requestAnimationFrame(renderChunk);
+  }
+
+  renderChunk();
+}
+</script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <style>
