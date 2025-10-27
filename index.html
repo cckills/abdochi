@@ -1066,13 +1066,13 @@ document.getElementById("brand-search").addEventListener("input", (e) => {
   debounceTimer = setTimeout(() => {
     const query = e.target.value.trim();
     filterResults(query);
-  }, 150); // يمكنك جعلها 100 لتصبح فورية تقريبًا
+  }, 50); // يمكنك جعلها 100 لتصبح فورية تقريبًا
 });
 
   // 🟢 فلترة فورية عند الكتابة (بدون تأخير)
-  document.getElementById("brand-search").addEventListener("input", function() {
-    filterResults(this.value);
-  });
+ // document.getElementById("brand-search").addEventListener("input", function() {
+ //   filterResults(this.value);
+ // });
 
   // 🟢 عند الضغط على زر "بحث"
   document.getElementById("brand-search-btn").addEventListener("click", function() {
