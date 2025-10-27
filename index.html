@@ -18,6 +18,9 @@ select.dropdown.select {
   cursor: pointer;
 }
 
+#result-info {
+  transition: all 0.3s ease;
+}
 
 /* 🎨 إعدادات الكارت الافتراضي (Bootstrap) */
 /* تم تعطيله لتجنّب التعارض مع تصميم vivo Y91C */
@@ -767,15 +770,18 @@ if (page >= 1 && page <= totalPages) {
   renderPagination();
 
   // ✅ تحديث النص عند التبديل بين الصفحات
-// ✅ تحديث النص عند التبديل بين الصفحات
-document.getElementById("result-info").textContent =
-  `عدد النتائج: ${data.results.length} | الصفحة ${currentPage} من ${totalPages}`;
+// ✅ تحديث النص عند التبديل بين الصفحات (عرض فوري للنتائج والصفحة)
+const infoEl = document.getElementById("result-info");
+infoEl.textContent = `عدد النتائج: ${data.results.length} | الصفحة ${currentPage} من ${totalPages}`;
 
-// 🕒 تأخير ظهور "عرض متطابق"
+// ✨ إظهار "عرض متطابق" بعد تأخير بسيط (قابل للتعديل)
+const matchedCount = data.results.length;
 setTimeout(() => {
-  document.getElementById("result-info").textContent +=
-    ` | عرض متطابق: ${data.results.length}`;
-}, 300); // ← يمكنك تعديل 300 إلى 100 أو 1000 حسب رغبتك
+  // تأكد أن العنصر ما زال موجودًا في الصفحة
+  if (infoEl) {
+    infoEl.textContent += ` | عرض متطابق: ${matchedCount}`;
+  }
+}, 250); // ← يمكنك تعديل الوقت هنا (0 = فوري، 250 = طبيعي، 800 = بطيء قليلًا)
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
