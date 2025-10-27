@@ -1092,23 +1092,7 @@ document.getElementById("brand-search").addEventListener("input", (e) => {
   });
 
 
-  // ✅ مراقبة ظهور عبارة "عرض متطابق" لتفعيل الفلترة فور اكتمال التحميل
-const resultInfo = document.getElementById("result-info");
-if (resultInfo) {
-  const observer = new MutationObserver(() => {
-    const text = resultInfo.textContent || "";
-    if (text.includes("عرض متطابق")) {
-      observer.disconnect(); // ✅ توقف عن المراقبة بعد أن تصبح البيانات جاهزة
-      window.resultsReady = true; // البيانات أصبحت جاهزة للفلترة
-
-      // في حال كان المستخدم كتب شيئًا بالفعل، نفّذ الفلترة فورًا
-      const currentQuery = document.getElementById("brand-search").value.trim();
-      if (currentQuery !== "") filterResults(currentQuery);
-    }
-  });
-
-  observer.observe(resultInfo, { childList: true, subtree: true, characterData: true });
-}
+  
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
