@@ -1029,74 +1029,6 @@ document.addEventListener("keydown", function (e) {
     return false;
   }
 });
- // 🟢 دالة تُستخدم بعد جلب البيانات من السيرفر
-function setResults(results) {
-  allResults = results;
-}
-
-
-
-// 🧩 متغير لتخزين جميع النتائج من السيرفر
-let allResults2 = [];
-let resultsReady = false; // ← مؤشر جاهزية النتائج
-
-// 🟢 تُستدعى بعد اكتمال جلب البيانات من السيرفر (كل الصفحات)
-function setResults(results) {
-  allResults2 = results;
-  resultsReady = true; // ← الآن يمكن للفلترة أن تعمل فوراً
-  console.log("✅ تم تحميل جميع النتائج، جاهز للفلترة");
-}
-
-// 🟦 دالة الفلترة
-function filterResults(query) {
-  if (!resultsReady || !Array.isArray(allResults2) || allResults2.length === 0) {
-    console.log("⏳ لم تكتمل عملية تحميل النتائج بعد...");
-    return;
-  }
-
-  const q = query.trim().toLowerCase();
-  const filtered = allResults2.filter(item => {
-    const title = (item.title || "").toLowerCase();
-    const chipset = (item.chipset || "").toLowerCase();
-    const models = Array.isArray(item.model)
-      ? item.model.join(", ").toLowerCase()
-      : (item.model || "").toLowerCase();
-
-    return (
-      q === "" ||
-      title.includes(q) ||
-      chipset.includes(q) ||
-      models.includes(q)
-    );
-  });
-
-  renderFilteredResults(filtered, filtered.length, q);
-}
-
-// 🟢 فلترة شبه فورية عند الكتابة
-let typingTimer;
-const brandSearch = document.getElementById("brand-search");
-
-brandSearch.addEventListener("input", (e) => {
-  clearTimeout(typingTimer);
-  typingTimer = setTimeout(() => {
-    const query = e.target.value.trim();
-    filterResults(query);
-  }, 50);
-});
-
-// 🟢 زر "بحث"
-document.getElementById("brand-search-btn").addEventListener("click", function() {
-  const query = brandSearch.value.trim();
-  filterResults(query);
-});
-
-// 🟠 زر "إزالة الفلترة"
-document.getElementById("brand-clear-btn").addEventListener("click", function() {
-  brandSearch.value = "";
-  filterResults("");
-});
-
 
 
   // 🚫 منع زر Enter من إعادة تحميل الصفحة
@@ -1104,6 +1036,61 @@ document.getElementById("brand-clear-btn").addEventListener("click", function() 
     document.getElementById(id).addEventListener("keydown", function(e) {
       if (e.key === "Enter") e.preventDefault();
     });
+  });
+
+ 
+  // هذه الدالة تُستخدم عادة بعد جلب البيانات من السيرفر
+  function setResults(results) {
+    allResults = results;
+  }
+
+  // 🟦 الدالة التي تنفّذ الفلترة فعلياً
+  function filterResults(query) {
+    if (!Array.isArray(allResults) || allResults.length === 0) return;
+
+    const q = query.trim().toLowerCase();
+
+    const filtered = allResults.filter(item => {
+      const title = (item.title || "").toLowerCase();
+      const chipset = (item.chipset || "").toLowerCase();
+      const models = Array.isArray(item.model)
+        ? item.model.join(", ").toLowerCase()
+        : (item.model || "").toLowerCase();
+      return (
+        q === "" ||
+        title.includes(q) ||
+        chipset.includes(q) ||
+        models.includes(q)
+      );
+    });
+
+    renderFilteredResults(filtered, filtered.length, q);
+  }
+// 🟢 فلترة فورية عند الكتابة (بدون تأخير ملحوظ)
+let debounceTimer;
+document.getElementById("brand-search").addEventListener("input", (e) => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    const query = e.target.value.trim();
+    filterResults(query);
+  }, 50); // يمكنك جعلها 100 لتصبح فورية تقريبًا
+});
+
+  // 🟢 فلترة فورية عند الكتابة (بدون تأخير)
+ // document.getElementById("brand-search").addEventListener("input", function() {
+ //   filterResults(this.value);
+ // });
+
+  // 🟢 عند الضغط على زر "بحث"
+  document.getElementById("brand-search-btn").addEventListener("click", function() {
+    const query = document.getElementById("brand-search").value;
+    filterResults(query);
+  });
+
+  // 🟠 زر "إزالة الفلترة"
+  document.getElementById("brand-clear-btn").addEventListener("click", function() {
+    document.getElementById("brand-search").value = "";
+    filterResults("");
   });
 
 
@@ -1123,5 +1110,3 @@ document.getElementById("brand-clear-btn").addEventListener("click", function() 
 
   </body>
 </html>
-
-
