@@ -767,8 +767,15 @@ if (page >= 1 && page <= totalPages) {
   renderPagination();
 
   // ✅ تحديث النص عند التبديل بين الصفحات
-  document.getElementById("result-info").textContent =
-    `عدد النتائج: ${data.results.length} | الصفحة ${currentPage} من ${totalPages}`;
+// ✅ تحديث النص عند التبديل بين الصفحات
+document.getElementById("result-info").textContent =
+  `عدد النتائج: ${data.results.length} | الصفحة ${currentPage} من ${totalPages}`;
+
+// 🕒 تأخير ظهور "عرض متطابق"
+setTimeout(() => {
+  document.getElementById("result-info").textContent +=
+    ` | عرض متطابق: ${data.results.length}`;
+}, 300); // ← يمكنك تعديل 300 إلى 100 أو 1000 حسب رغبتك
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
