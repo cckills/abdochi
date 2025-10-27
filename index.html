@@ -296,7 +296,7 @@ body {
               id="phoneInput"
               name="s"
               placeholder="ابحث عن اسم الهاتف..."  required />
-    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>
+   <!--  <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>-->
             <!-- القائمة الظاهرة دائمًا -->
   <select class="dropdown select form-select" style="flex:1; border-radius:8px;">
   <option value="" selected disabled>اختر علامة تجارية</option>
@@ -311,9 +311,6 @@ body {
   <option value="107">OPPO</option>
   <!-- باقي الماركات -->
 </select>
-         </form>
-        </div>
-      </div>
 <!-- ✅ مربّع البحث عن الماركة -->
 <div id="brand-search-box" class="my-3 text-center">
   <div style="padding:8px; display:inline-block; width:260px;">
@@ -330,6 +327,9 @@ body {
     <button id="brand-clear-btn" class="btn btn-secondary btn-sm mx-1">إزالة الفلترة</button>
   </div>
 </div>
+         </form>
+        </div>
+      </div>
 
 <!-- 📦 نتائج البحث داخل بطاقة -->
 <div class="container my-4">
@@ -1029,8 +1029,6 @@ document.addEventListener("keydown", function (e) {
     return false;
   }
 });
-
-
   // 🚫 منع زر Enter من إعادة تحميل الصفحة
   ["brand-search"].forEach(id => {
     document.getElementById(id).addEventListener("keydown", function(e) {
@@ -1094,7 +1092,23 @@ document.getElementById("brand-search").addEventListener("input", (e) => {
   });
 
 
-  
+  // ✅ مراقبة ظهور عبارة "عرض متطابق" لتفعيل الفلترة فور اكتمال التحميل
+const resultInfo = document.getElementById("result-info");
+if (resultInfo) {
+  const observer = new MutationObserver(() => {
+    const text = resultInfo.textContent || "";
+    if (text.includes("عرض متطابق")) {
+      observer.disconnect(); // ✅ توقف عن المراقبة بعد أن تصبح البيانات جاهزة
+      window.resultsReady = true; // البيانات أصبحت جاهزة للفلترة
+
+      // في حال كان المستخدم كتب شيئًا بالفعل، نفّذ الفلترة فورًا
+      const currentQuery = document.getElementById("brand-search").value.trim();
+      if (currentQuery !== "") filterResults(currentQuery);
+    }
+  });
+
+  observer.observe(resultInfo, { childList: true, subtree: true, characterData: true });
+}
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
