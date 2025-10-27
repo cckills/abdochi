@@ -311,22 +311,33 @@ body {
   <option value="107">OPPO</option>
   <!-- باقي الماركات -->
 </select>
-
-<div id="brand-search-box" class="my-3 text-center">
-  <div style="padding:8px; display:inline-block; width:260px;">
-    <!-- مربع البحث عن الماركة -->
-    <input type="text" id="brand-search" placeholder="🔍 ابحث عن ماركة..." 
-           class="form-control text-center" style="width:100%; border-radius:8px;">
-
-    <!-- زر البحث -->
-    <button id="brand-search-btn" class="btn btn-primary mt-2 w-100" style="border-radius:8px;">
-      بحث
-    </button>
-  </div>
-</div>
-          </form>
+         </form>
         </div>
       </div>
+<div id="brand-search-box" class="my-3 text-center">
+  <div style="padding:8px; display:inline-block; width:260px;">
+    <input type="text" id="brand-search" 
+           placeholder="🔍 ابحث داخل النتائج..." 
+           class="form-control text-center" 
+           style="width:100%; border-radius:8px;">
+
+    <div class="d-flex mt-2 gap-2">
+      <!-- زر الفلترة -->
+      <button id="brand-search-btn" 
+              class="btn btn-primary flex-fill" 
+              style="border-radius:8px;">
+        🔍 فلترة
+      </button>
+
+      <!-- زر إزالة الفلترة -->
+      <button id="brand-clear-btn" 
+              class="btn btn-secondary flex-fill" 
+              style="border-radius:8px;">
+        ❌ إزالة
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- 📦 نتائج البحث داخل بطاقة -->
 <div class="container my-4">
@@ -1005,45 +1016,6 @@ function renderFilteredResults(results, totalMatched = results.length, highlight
   renderPagination();
 }
 
-
- // ✅ فلترة النتائج وتلوين المتطابق بالأزرق الفاتح
-  function runBrandFilter() {
-    const input = document.getElementById("brand-search");
-    const query = input.value.trim().toLowerCase();
-    if (!allResults.length) return;
-
-    const filtered = allResults.filter(item => {
-      const title = (item.title || "").toLowerCase();
-      const chipset = (item.chipset || "").toLowerCase();
-      const models = Array.isArray(item.model)
-        ? item.model.join(", ").toLowerCase()
-        : (item.model || "").toLowerCase();
-
-      return (
-        query === "" ||
-        title.includes(query) ||
-        chipset.includes(query) ||
-        models.includes(query)
-      );
-    });
-
-    renderFilteredResults(filtered, filtered.length, query);
-  }
-
-  // 📌 الفلترة أثناء الكتابة
-  document.getElementById("brand-search").addEventListener("input", runBrandFilter);
-
-  // 📌 الفلترة عند الضغط على الزر
-  document.getElementById("brand-search-btn").addEventListener("click", runBrandFilter);
-
-  // 🚫 منع Enter من إعادة تحميل الصفحة وتشغيل الفلترة بدلًا من ذلك
-  document.getElementById("brand-search").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      runBrandFilter();
-    }
-  });
-
 // ربط قائمة الماركات (<select>) بمربع البحث
 const brandDropdown = document.querySelector(".dropdown.select");
 brandDropdown.addEventListener("change", () => {
@@ -1066,6 +1038,54 @@ document.addEventListener("keydown", function (e) {
     return false;
   }
 });
+
+ let filteredResults = []; // لتخزين نتائج الفلترة الحالية
+
+  // ✅ تنفيذ الفلترة على النتائج المعروضة حاليًا فقط
+  function runBrandFilter() {
+    const input = document.getElementById("brand-search");
+    const query = input.value.trim().toLowerCase();
+
+    // إذا كانت النتائج المعروضة حالياً محدودة، نستخدمها
+    const currentResults = filteredResults.length ? filteredResults : allResults;
+    if (!currentResults.length) return;
+
+    const filtered = currentResults.filter(item => {
+      const title = (item.title || "").toLowerCase();
+      const chipset = (item.chipset || "").toLowerCase();
+      const models = Array.isArray(item.model)
+        ? item.model.join(", ").toLowerCase()
+        : (item.model || "").toLowerCase();
+
+      return (
+        query === "" ||
+        title.includes(query) ||
+        chipset.includes(query) ||
+        models.includes(query)
+      );
+    });
+
+    filteredResults = filtered; // نخزن نتائج الفلترة
+    renderFilteredResults(filtered, filtered.length, query);
+  }
+
+  // ✅ زر "بحث / فلترة"
+  document.getElementById("brand-search-btn").addEventListener("click", runBrandFilter);
+
+  // ✅ تشغيل بالـ Enter أيضًا
+  document.getElementById("brand-search").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      runBrandFilter();
+    }
+  });
+
+  // ✅ زر "إزالة الفلترة" لإعادة كل النتائج
+  document.getElementById("brand-clear-btn").addEventListener("click", function() {
+    document.getElementById("brand-search").value = "";
+    filteredResults = [];
+    renderFilteredResults(allResults, allResults.length, ""); // نعيد كل النتائج الأصلية
+  });
 
     </script>
 
