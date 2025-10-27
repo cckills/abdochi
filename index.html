@@ -1037,12 +1037,24 @@ document.addEventListener("keydown", function (e) {
     allResults = results;
   }
 
-  // 🟦 الدالة التي تنفّذ الفلترة فعلياً
-  function filterResults(query) {
-    if (!Array.isArray(allResults) || allResults.length === 0) return;
+function filterResults(query) {
+  const cards = document.querySelectorAll(".result-item");
 
+  if (cards.length > 0) {
+    // 🔹 فلترة مباشرة في الصفحة (أسرع)
+    query = query.toLowerCase();
+    cards.forEach(card => {
+      const title = card.querySelector(".fw-bold")?.textContent.toLowerCase() || "";
+      const chipset = card.querySelector(".subtitle")?.textContent.toLowerCase() || "";
+      if (title.includes(query) || chipset.includes(query)) {
+        card.style.display = "block";
+      } else {
+        card.style.display = "none";
+      }
+    });
+  } else if (Array.isArray(allResults) && allResults.length > 0) {
+    // 🔹 فلترة عبر البيانات (عندما لا توجد كروت جاهزة)
     const q = query.trim().toLowerCase();
-
     const filtered = allResults.filter(item => {
       const title = (item.title || "").toLowerCase();
       const chipset = (item.chipset || "").toLowerCase();
@@ -1056,9 +1068,45 @@ document.addEventListener("keydown", function (e) {
         models.includes(q)
       );
     });
-
     renderFilteredResults(filtered, filtered.length, q);
   }
+}
+// 🧩 دالة عرض النتائج تدريجيًا لتقليل البطء
+function renderResultsGradually(results) {
+  const chunkSize = 50; // عدد الكروت في كل دفعة
+  let index = 0;
+
+  function renderChunk() {
+    const slice = results.slice(index, index + chunkSize);
+    slice.forEach(item => {
+      // 🔹 أضف هنا نفس كود إنشاء كارت الهاتف (كما في renderFilteredResults)
+      // مثال:
+      const card = document.createElement("div");
+      card.className = "result-item";
+      card.innerHTML = `
+        <h5 class="fw-bold">${item.title}</h5>
+        <p class="subtitle">${item.chipset}</p>
+      `;
+      document.getElementById("results").appendChild(card);
+    });
+
+    index += chunkSize;
+    if (index < results.length) requestAnimationFrame(renderChunk);
+  }
+
+  renderChunk();
+}
+
+// 🟢 تشغيل الفلترة أثناء الكتابة مع تأخير بسيط (debounce)
+let debounceTimer;
+document.getElementById("brand-search").addEventListener("input", (e) => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    const query = e.target.value.trim();
+    filterResults(query);
+  }, 300); // ← يمكنك تعديلها إلى 200ms لجعلها أسرع
+});
+
 
   // 🟢 فلترة فورية عند الكتابة (بدون تأخير)
   document.getElementById("brand-search").addEventListener("input", function() {
