@@ -875,7 +875,6 @@ if (page >= 1 && page <= totalPages) {
 
 // 🧩 متغير لتخزين جميع النتائج الأصلية
 let allResults = [];
-
 // عند البحث الرئيسي
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -1032,9 +1031,7 @@ document.addEventListener("keydown", function (e) {
 });
 
 
- // 🟢 التأكد من تحميل كل النتائج قبل استخدام الفلترة
-  let allResults = [];
-
+ 
   // هذه الدالة تُستخدم عادة بعد جلب البيانات من السيرفر
   function setResults(results) {
     allResults = results;
@@ -1086,6 +1083,9 @@ document.addEventListener("keydown", function (e) {
       if (e.key === "Enter") e.preventDefault();
     });
   });
+
+
+  
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
