@@ -623,18 +623,7 @@ body {
       const form = document.getElementById("searchForm");
       const input = document.getElementById("phoneInput");
       const resultDiv = document.getElementById("result");
-
-// منع الضغط على Enter في جميع حقول النص بالصفحة
-document.addEventListener("keydown", function (e) {
-  const isTextInput = e.target.tagName === "INPUT" && e.target.type === "text";
-  if (isTextInput && e.key === "Enter") {
-    e.preventDefault();
-    return false;
-  }
-});
-
-
-
+    
    form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const phone = input.value.trim();
@@ -1046,6 +1035,17 @@ phoneInput.value = selectedBrand; // الآن سيظهر الاسم بدل ال�
   phoneInput.focus();
         // (اختياري) إذا كنت تريد تنفيذ البحث فور الاختيار:
     document.getElementById("searchForm").requestSubmit();
+});
+
+// منع زر Enter في حقلي البحث الرئيسى والبحث عن الماركة
+document.addEventListener("keydown", function (e) {
+  if (
+    (e.target.id === "phoneInput" || e.target.id === "brand-search") &&
+    e.key === "Enter"
+  ) {
+    e.preventDefault(); // يمنع الإرسال أو إعادة التحميل
+    return false;
+  }
 });
 
     </script>
