@@ -143,8 +143,11 @@ res.status(200).json({
   mode: "list",
   results: uniqueResults,
   total: uniqueResults.length,
+  currentPage: 1, // دائماً 1 لأن البحث يعيد كل النتائج
+  totalPages: Math.ceil(uniqueResults.length / 20), // إذا كنت تعرض 20 كارت في الصفحة
   pages: processedPages
 });
+
       return;
     }
 
