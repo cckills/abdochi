@@ -1059,6 +1059,15 @@ document.addEventListener("keydown", function (e) {
 
     renderFilteredResults(filtered, filtered.length, q);
   }
+// 🟢 فلترة فورية عند الكتابة (بدون تأخير ملحوظ)
+let debounceTimer;
+document.getElementById("brand-search").addEventListener("input", (e) => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    const query = e.target.value.trim();
+    filterResults(query);
+  }, 150); // يمكنك جعلها 100 لتصبح فورية تقريبًا
+});
 
   // 🟢 فلترة فورية عند الكتابة (بدون تأخير)
   document.getElementById("brand-search").addEventListener("input", function() {
