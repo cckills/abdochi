@@ -623,14 +623,18 @@ body {
       const form = document.getElementById("searchForm");
       const input = document.getElementById("phoneInput");
       const resultDiv = document.getElementById("result");
-// منع زر Enter في مربع البحث
-const phoneInputField = document.getElementById("phoneInput");
-phoneInputField.addEventListener("keydown", function(e) {
-  if (e.key === "Enter") {
-    e.preventDefault(); // يمنع الفورم من الإرسال
+
+// منع الضغط على Enter في جميع حقول النص بالصفحة
+document.addEventListener("keydown", function (e) {
+  const isTextInput = e.target.tagName === "INPUT" && e.target.type === "text";
+  if (isTextInput && e.key === "Enter") {
+    e.preventDefault();
     return false;
   }
 });
+
+
+
    form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const phone = input.value.trim();
