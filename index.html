@@ -1038,9 +1038,8 @@ document.addEventListener("keydown", function (e) {
     });
   });
 
- 
-// 🧩 متغير لتخزين جميع النتائج من السيرفر (كل الصفحات)
-let allResults = [];
+ // 🧩 متغير لتخزين جميع النتائج من السيرفر (كل الصفحات)
+//let allResults = []; // 👈 لا تضعها داخل () لأنها تحتاج أن تُرى من بقية الدوال
 
 // 🟢 دالة تُستخدم بعد جلب البيانات من السيرفر
 function setResults(results) {
@@ -1051,7 +1050,7 @@ function setResults(results) {
 function filterResults(query) {
   const q = query.trim().toLowerCase();
 
-  // 🧠 إذا لدينا بيانات من جميع الصفحات، استخدمها دائمًا (حتى لو الكروت ظاهرة)
+  // 🧠 إذا لدينا بيانات من جميع الصفحات، استخدمها دائمًا
   if (Array.isArray(allResults) && allResults.length > 0) {
     const filtered = allResults.filter(item => {
       const title = (item.title || "").toLowerCase();
@@ -1059,6 +1058,7 @@ function filterResults(query) {
       const models = Array.isArray(item.model)
         ? item.model.join(", ").toLowerCase()
         : (item.model || "").toLowerCase();
+
       return (
         q === "" ||
         title.includes(q) ||
