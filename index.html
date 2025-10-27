@@ -1029,62 +1029,57 @@ document.addEventListener("keydown", function (e) {
     return false;
   }
 });
+ // 🟢 دالة تُستخدم بعد جلب البيانات من السيرفر
+function setResults(results) {
+  allResults = results;
+}
 
+// 🟦 الدالة التي تنفّذ الفلترة فعلياً (تشمل جميع الصفحات)
+function filterResults(query) {
+  if (!Array.isArray(allResults) || allResults.length === 0) return;
 
- 
-  // هذه الدالة تُستخدم عادة بعد جلب البيانات من السيرفر
-  function setResults(results) {
-    allResults = results;
-  }
+  const q = query.trim().toLowerCase();
 
-  // 🟦 الدالة التي تنفّذ الفلترة فعلياً
-  function filterResults(query) {
-    if (!Array.isArray(allResults) || allResults.length === 0) return;
+  const filtered = allResults.filter(item => {
+    const title = (item.title || "").toLowerCase();
+    const chipset = (item.chipset || "").toLowerCase();
+    const models = Array.isArray(item.model)
+      ? item.model.join(", ").toLowerCase()
+      : (item.model || "").toLowerCase();
 
-    const q = query.trim().toLowerCase();
+    return (
+      q === "" ||
+      title.includes(q) ||
+      chipset.includes(q) ||
+      models.includes(q)
+    );
+  });
 
-    const filtered = allResults.filter(item => {
-      const title = (item.title || "").toLowerCase();
-      const chipset = (item.chipset || "").toLowerCase();
-      const models = Array.isArray(item.model)
-        ? item.model.join(", ").toLowerCase()
-        : (item.model || "").toLowerCase();
-      return (
-        q === "" ||
-        title.includes(q) ||
-        chipset.includes(q) ||
-        models.includes(q)
-      );
-    });
+  renderFilteredResults(filtered, filtered.length, q);
+}
 
-    renderFilteredResults(filtered, filtered.length, q);
-  }
-// 🟢 فلترة فورية عند الكتابة (بدون تأخير ملحوظ)
-let debounceTimer;
+// 🟢 فلترة سلسة شبه فورية عند الكتابة
+let typingTimer;
 document.getElementById("brand-search").addEventListener("input", (e) => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(() => {
     const query = e.target.value.trim();
     filterResults(query);
-  }, 50); // يمكنك جعلها 100 لتصبح فورية تقريبًا
+  }, 50); // تأخير صغير فقط لتجنب التقطيع أثناء الكتابة
 });
 
-  // 🟢 فلترة فورية عند الكتابة (بدون تأخير)
- // document.getElementById("brand-search").addEventListener("input", function() {
- //   filterResults(this.value);
- // });
+// 🟢 عند الضغط على زر "بحث"
+document.getElementById("brand-search-btn").addEventListener("click", function() {
+  const query = document.getElementById("brand-search").value.trim();
+  filterResults(query);
+});
 
-  // 🟢 عند الضغط على زر "بحث"
-  document.getElementById("brand-search-btn").addEventListener("click", function() {
-    const query = document.getElementById("brand-search").value;
-    filterResults(query);
-  });
+// 🟠 زر "إزالة الفلترة"
+document.getElementById("brand-clear-btn").addEventListener("click", function() {
+  document.getElementById("brand-search").value = "";
+  filterResults("");
+});
 
-  // 🟠 زر "إزالة الفلترة"
-  document.getElementById("brand-clear-btn").addEventListener("click", function() {
-    document.getElementById("brand-search").value = "";
-    filterResults("");
-  });
 
   // 🚫 منع زر Enter من إعادة تحميل الصفحة
   ["brand-search"].forEach(id => {
@@ -1110,3 +1105,4 @@ document.getElementById("brand-search").addEventListener("input", (e) => {
 
   </body>
 </html>
+
