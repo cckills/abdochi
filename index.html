@@ -1031,69 +1031,72 @@ document.addEventListener("keydown", function (e) {
 });
 
 
- 
-  // هذه الدالة تُستخدم عادة بعد جلب البيانات من السيرفر
-  function setResults(results) {
-    allResults = results;
-  }
+  // 🚫 منع زر Enter من إعادة تحميل الصفحة
+  ["brand-search"].forEach(id => {
+    document.getElementById(id).addEventListener("keydown", function(e) {
+      if (e.key === "Enter") e.preventDefault();
+    });
+  });
 
+ // 🧩 متغير لتخزين جميع نتائج البحث من كل الصفحات
+//let allResults = [];
+
+// 🟢 دالة تُخزن النتائج بعد جلبها من السيرفر (كل الصفحات)
+function setResults(results) {
+  allResults = results;
+}
+
+// 🟦 الدالة التي تنفّذ الفلترة فعليًا
 function filterResults(query) {
-  const cards = document.querySelectorAll(".result-item");
   const q = query.trim().toLowerCase();
 
-  if (cards.length > 0) {
-    // 🔹 فلترة مباشرة في الصفحة (الكروت الجاهزة)
-    cards.forEach(card => {
-      const title = card.querySelector(".fw-bold")?.textContent.toLowerCase() || "";
-      const models = card.querySelector(".modelsTitle")?.textContent.toLowerCase() || "";
-      const chipset = card.querySelector(".subtitle")?.textContent.toLowerCase() || "";
-      const match = title.includes(q) || models.includes(q) || chipset.includes(q);
-      card.style.display = match ? "block" : "none";
-    });
-  } else if (Array.isArray(allResults) && allResults.length > 0) {
-    // 🔹 فلترة احتياطية عبر البيانات (لو لم تُعرض بعد)
-    const filtered = allResults.filter(item => {
-      const title = (item.title || "").toLowerCase();
-      const chipset = (item.chipset || "").toLowerCase();
-      const models = Array.isArray(item.model)
-        ? item.model.join(", ").toLowerCase()
-        : (item.model || "").toLowerCase();
-      return (
-        q === "" ||
-        title.includes(q) ||
-        chipset.includes(q) ||
-        models.includes(q)
-      );
-    });
-    renderFilteredResults(filtered, filtered.length, q);
-  }
-}
-let debounceTimer;
-document.getElementById("brand-search").addEventListener("input", (e) => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    const query = e.target.value.trim();
-    filterResults(query);
-  }, 200); // ← يمكنك تغييرها إلى 100 لتصبح فورية تقريبًا
-});
+  // إذا لم يتم تحميل النتائج بعد
+  if (!Array.isArray(allResults) || allResults.length === 0) return;
 
-// 🧩 دالة عرض النتائج تدريجيًا لتقليل البطء
-function renderResultsGradually(results) {
-  const chunkSize = 50; // عدد الكروت في كل دفعة
+  // 🔹 فلترة جميع النتائج (من كل الصفحات)
+  const filtered = allResults.filter(item => {
+    const title = (item.title || "").toLowerCase();
+    const chipset = (item.chipset || "").toLowerCase();
+    const models = Array.isArray(item.model)
+      ? item.model.join(", ").toLowerCase()
+      : (item.model || "").toLowerCase();
+
+    return (
+      q === "" ||
+      title.includes(q) ||
+      chipset.includes(q) ||
+      models.includes(q)
+    );
+  });
+
+  // 🔹 إعادة عرض النتائج بعد الفلترة
+  renderFilteredResults(filtered, filtered.length, q);
+}
+
+// 🟩 وظيفة عرض النتائج (بشكل تدريجي لتفادي البطء)
+function renderFilteredResults(results, total, query) {
+  const container = document.getElementById("results");
+  container.innerHTML = "";
+
+  if (!results.length) {
+    container.innerHTML = `<div class="text-center p-3 text-danger">لا توجد نتائج مطابقة.</div>`;
+    return;
+  }
+
   let index = 0;
+  const chunkSize = 40;
 
   function renderChunk() {
     const slice = results.slice(index, index + chunkSize);
     slice.forEach(item => {
-      // 🔹 أضف هنا نفس كود إنشاء كارت الهاتف (كما في renderFilteredResults)
-      // مثال:
       const card = document.createElement("div");
-      card.className = "result-item";
+      card.className = "result-item card mb-2 p-2 shadow-sm";
       card.innerHTML = `
         <h5 class="fw-bold">${item.title}</h5>
-        <p class="subtitle">${item.chipset}</p>
+        <p class="modelsTitle">${item.model}</p>
+        <p class="subtitle text-muted">${item.chipset}</p>
       `;
-      document.getElementById("results").appendChild(card);
+      container.appendChild(card);
     });
 
     index += chunkSize;
@@ -1103,32 +1106,26 @@ function renderResultsGradually(results) {
   renderChunk();
 }
 
+// 🕓 تقليل عدد مرات الفلترة أثناء الكتابة (debounce)
+let debounceTimer;
+document.getElementById("brand-search").addEventListener("input", (e) => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    filterResults(e.target.value);
+  }, 200);
+});
 
+// 🟢 زر "بحث" يدوي
+document.getElementById("brand-search-btn").addEventListener("click", () => {
+  const query = document.getElementById("brand-search").value;
+  filterResults(query);
+});
 
-  // 🟢 فلترة فورية عند الكتابة (بدون تأخير)
-  document.getElementById("brand-search").addEventListener("input", function() {
-    filterResults(this.value);
-  });
-
-  // 🟢 عند الضغط على زر "بحث"
-  document.getElementById("brand-search-btn").addEventListener("click", function() {
-    const query = document.getElementById("brand-search").value;
-    filterResults(query);
-  });
-
-  // 🟠 زر "إزالة الفلترة"
-  document.getElementById("brand-clear-btn").addEventListener("click", function() {
-    document.getElementById("brand-search").value = "";
-    filterResults("");
-  });
-
-  // 🚫 منع زر Enter من إعادة تحميل الصفحة
-  ["brand-search"].forEach(id => {
-    document.getElementById(id).addEventListener("keydown", function(e) {
-      if (e.key === "Enter") e.preventDefault();
-    });
-  });
-
+// 🟠 زر "إزالة الفلترة"
+document.getElementById("brand-clear-btn").addEventListener("click", () => {
+  document.getElementById("brand-search").value = "";
+  filterResults("");
+});
 
   
     </script>
