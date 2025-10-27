@@ -1034,12 +1034,25 @@ function setResults(results) {
   allResults = results;
 }
 
-// 🟦 الدالة التي تنفّذ الفلترة فعلياً (تشمل جميع الصفحات)
+// 🧩 متغير لتخزين جميع النتائج من السيرفر
+let allResults = [];
+let resultsReady = false; // ← مؤشر جاهزية النتائج
+
+// 🟢 تُستدعى بعد اكتمال جلب البيانات من السيرفر (كل الصفحات)
+function setResults(results) {
+  allResults = results;
+  resultsReady = true; // ← الآن يمكن للفلترة أن تعمل فوراً
+  console.log("✅ تم تحميل جميع النتائج، جاهز للفلترة");
+}
+
+// 🟦 دالة الفلترة
 function filterResults(query) {
-  if (!Array.isArray(allResults) || allResults.length === 0) return;
+  if (!resultsReady || !Array.isArray(allResults) || allResults.length === 0) {
+    console.log("⏳ لم تكتمل عملية تحميل النتائج بعد...");
+    return;
+  }
 
   const q = query.trim().toLowerCase();
-
   const filtered = allResults.filter(item => {
     const title = (item.title || "").toLowerCase();
     const chipset = (item.chipset || "").toLowerCase();
@@ -1058,25 +1071,27 @@ function filterResults(query) {
   renderFilteredResults(filtered, filtered.length, q);
 }
 
-// 🟢 فلترة سلسة شبه فورية عند الكتابة
+// 🟢 فلترة شبه فورية عند الكتابة
 let typingTimer;
-document.getElementById("brand-search").addEventListener("input", (e) => {
+const brandSearch = document.getElementById("brand-search");
+
+brandSearch.addEventListener("input", (e) => {
   clearTimeout(typingTimer);
   typingTimer = setTimeout(() => {
     const query = e.target.value.trim();
     filterResults(query);
-  }, 50); // تأخير صغير فقط لتجنب التقطيع أثناء الكتابة
+  }, 50);
 });
 
-// 🟢 عند الضغط على زر "بحث"
+// 🟢 زر "بحث"
 document.getElementById("brand-search-btn").addEventListener("click", function() {
-  const query = document.getElementById("brand-search").value.trim();
+  const query = brandSearch.value.trim();
   filterResults(query);
 });
 
 // 🟠 زر "إزالة الفلترة"
 document.getElementById("brand-clear-btn").addEventListener("click", function() {
-  document.getElementById("brand-search").value = "";
+  brandSearch.value = "";
   filterResults("");
 });
 
@@ -1105,4 +1120,5 @@ document.getElementById("brand-clear-btn").addEventListener("click", function() 
 
   </body>
 </html>
+
 
