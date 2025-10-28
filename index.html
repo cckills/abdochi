@@ -904,15 +904,14 @@ function convertUsingMap(text, map) {
   return text.split('').map(ch => map[ch] || ch).join('');
 }
 
-// 🔹 دالة ذكية: تفصل عند وجود علامة (مثل - أو _ أو .)
 function smartConvert(txt, map) {
-  // تقسيم النص إلى جزئين: قبل العلامة وبعدها (مثلاً "سفن-" → ["سفن", "-"])
-  const match = txt.match(/^([^\-\_\.\،\s]+)([\-\_\.\،\s]?.*)$/);
-  if (!match) return convertUsingMap(txt, map);
-  const before = convertUsingMap(match[1], map);
-  const after = match[2] || "";
-  return before + after; // نُعيد الجزء المحوّل + باقي النص كما هو
+  // نحول كل الأحرف العربية فقط حسب الخريطة، ونترك الأرقام والرموز كما هي
+  return txt.split('').map(ch => {
+    const isArabic = /[\u0600-\u06FF]/.test(ch);
+    return isArabic ? (map[ch] || ch) : ch;
+  }).join('');
 }
+
 
 function showConversions(txt, c1, c2, c3) {
   origEl.textContent = txt;
@@ -998,3 +997,4 @@ function escapeJsArg(s) {
 
   </body>
 </html>
+
