@@ -936,7 +936,7 @@ form.addEventListener("submit", async (e) => {
 
 
 // ✅ دالة إعادة الرسم + التظليل
-function renderFilteredResults(results, totalMatched = results.length, highlightQuery = "") {
+function renderFilteredResults(results = results.length, highlightQuery = "") {
   const resultInfo = document.getElementById("result-info");
   const result = document.getElementById("result");
   const pagination = document.getElementById("pagination");
@@ -1003,7 +1003,7 @@ function renderFilteredResults(results, totalMatched = results.length, highlight
       });
     });
 
-resultInfo.textContent = `عدد النتائج: ${totalAll} | الصفحة ${page} من ${totalPages}`;
+    resultInfo.textContent = `عدد النتائج: ${totalAll} | الصفحة ${page} من ${totalPages} | عرض متطابق: ${totalMatched}`;
   }
 
   function renderPagination() {
