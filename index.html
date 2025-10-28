@@ -900,17 +900,18 @@ const phoneticMap = {
   'ق':'q','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y','ء':"'",'ة':'h','ى':'a'
 };
 
-/* تنظيف الإدخال */
-function normalizeArabicInput(text) {
-  return text
-    .replace(/[\s\-\_\.\(\)\[\]0-9]+/g, "")
-    .replace(/[أإآا]/g, "ا")
-    .replace(/ة/g, "ه")
-    .replace(/ى/g, "ي");
-}
-
 function convertUsingMap(text, map) {
   return text.split('').map(ch => map[ch] || ch).join('');
+}
+
+// 🔹 دالة ذكية: تفصل عند وجود علامة (مثل - أو _ أو .)
+function smartConvert(txt, map) {
+  // تقسيم النص إلى جزئين: قبل العلامة وبعدها (مثلاً "سفن-" → ["سفن", "-"])
+  const match = txt.match(/^([^\-\_\.\،\s]+)([\-\_\.\،\s]?.*)$/);
+  if (!match) return convertUsingMap(txt, map);
+  const before = convertUsingMap(match[1], map);
+  const after = match[2] || "";
+  return before + after; // نُعيد الجزء المحوّل + باقي النص كما هو
 }
 
 function showConversions(txt, c1, c2, c3) {
@@ -926,13 +927,13 @@ function hideConversions() {
   setTimeout(() => { convBox.style.display = "none"; }, 400);
 }
 
-/* الفلترة */
+/* فلترة فورية مع التحويلات */
 let debounceTimer;
 if (brandSearchInput) {
   brandSearchInput.addEventListener("input", (e) => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      let txt = e.target.value.trim().toLowerCase();
+      const txt = e.target.value.trim().toLowerCase();
 
       if (!txt) {
         hideConversions();
@@ -940,19 +941,15 @@ if (brandSearchInput) {
         return;
       }
 
-      const cleaned = normalizeArabicInput(txt);
-      const conv1 = convertUsingMap(cleaned, keyboardMap1).toLowerCase();
-      const conv2 = convertUsingMap(cleaned, keyboardMap2).toLowerCase();
-      const conv3 = convertUsingMap(cleaned, phoneticMap).toLowerCase();
+      // 🔹 استخدام smartConvert بدلاً من convertUsingMap
+      const conv1 = smartConvert(txt, keyboardMap1).toLowerCase();
+      const conv2 = smartConvert(txt, keyboardMap2).toLowerCase();
+      const conv3 = smartConvert(txt, phoneticMap).toLowerCase();
 
       convBox.style.display = "block";
-      requestAnimationFrame(() => showConversions(cleaned, conv1, conv2, conv3));
+      requestAnimationFrame(() => showConversions(txt, conv1, conv2, conv3));
 
-      // 🔍 إذا النص عربي → استخدم conv1 في البحث
-      const arabicPattern = /[\u0600-\u06FF]/;
-      const queryToUse = arabicPattern.test(txt) ? conv1 : txt;
-
-      const candidates = [queryToUse, conv2, conv3].filter(Boolean);
+      const candidates = [txt, conv1, conv2, conv3].filter(Boolean);
 
       if (typeof filterResults === "function" && Array.isArray(allResults)) {
         const merged = candidates.flatMap(q =>
@@ -967,13 +964,13 @@ if (brandSearchInput) {
         );
         const unique = Array.from(new Set(merged.map(r => r.title)))
           .map(title => merged.find(r => r.title === title));
-        renderFilteredResults(unique, unique.length, queryToUse);
+        renderFilteredResults(unique, unique.length, txt);
       }
     }, 100);
   });
 }
 
-/* الأزرار */
+/* زر الفلترة */
 if (brandSearchBtn) {
   brandSearchBtn.addEventListener("click", function() {
     const query = brandSearchInput ? brandSearchInput.value.trim() : "";
@@ -981,6 +978,7 @@ if (brandSearchBtn) {
   });
 }
 
+/* زر المسح */
 if (brandClearBtn) {
   brandClearBtn.addEventListener("click", function() {
     if (brandSearchInput) brandSearchInput.value = "";
