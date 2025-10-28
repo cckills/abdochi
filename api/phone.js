@@ -1,10 +1,10 @@
 import * as cheerio from "cheerio";
 
 const cache = new Map();
-const CACHE_TTL = 1000 * 60 * 60; // ساعة واحدة
-const CONCURRENCY_LIMIT = 15; // عدد الطلبات المتوازية (يمكن زيادته لـ 20 لو السيرفر يتحمل)
+const CACHE_TTL = 1000 * 60 * 60; // ساعة
+const CONCURRENCY_LIMIT = 20; // عدد الطلبات المتوازية (يمكن تعديله)
+const baseUrl = "https://telfonak.com";
 
-// أداة انتظار بسيطة بين الدُفعات
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default async function handler(req, res) {
@@ -12,119 +12,127 @@ export default async function handler(req, res) {
   if (!phone)
     return res.status(400).json({ error: "يرجى إدخال اسم الهاتف أو الموديل." });
 
-  const startTime = Date.now();
   const searchKey = phone.toLowerCase().trim();
-  const baseUrl = "https://telfonak.com";
+  const startTime = Date.now();
 
-  // ✅ الكاش أولاً
+  // ✅ التحقق من الكاش أولاً
   const cached = cache.get(searchKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    console.log(`⚡ تم جلب النتائج من الكاش: ${searchKey}`);
+    console.log(`⚡ من الكاش: ${searchKey}`);
     return res.status(200).json({
-      mode: "cached",
-      results: cached.data,
-      total: cached.data.length,
       cached: true,
+      total: cached.data.length,
+      results: cached.data,
     });
   }
 
-  console.log("🚀 بدء البحث عن:", searchKey);
+  console.log(`🚀 بدء البحث عن "${searchKey}" في telfonak.com`);
 
-  // 🧠 جلب أول صفحة لاكتشاف عدد الصفحات المتاحة
-  const firstPageUrl = `${baseUrl}/?s=${encodeURIComponent(searchKey)}`;
-  const firstResp = await fetch(firstPageUrl, {
-    headers: { "User-Agent": "Mozilla/5.0", "Accept-Language": "ar,en;q=0.9" },
+  // 🧠 جلب أول صفحة لتحديد عدد الصفحات الكلي
+  const firstUrl = `${baseUrl}/?s=${encodeURIComponent(searchKey)}`;
+  const firstRes = await fetch(firstUrl, {
+    headers: { "User-Agent": "Mozilla/5.0" },
   });
 
-  if (!firstResp.ok)
-    return res.status(500).json({ error: "فشل في تحميل الصفحة الأولى." });
+  if (!firstRes.ok)
+    return res.status(500).json({ error: "فشل تحميل الصفحة الأولى." });
 
-  const firstHtml = await firstResp.text();
+  const firstHtml = await firstRes.text();
   const $ = cheerio.load(firstHtml);
 
-  // تحديد عدد الصفحات (إذا وُجد pagination)
-  let totalPages = 1;
-  const pagination = $(".page-numbers li a")
-    .map((_, el) => parseInt($(el).text()))
-    .get();
-  const maxPage = Math.max(...pagination.filter((n) => !isNaN(n)));
-  if (maxPage > 1) totalPages = maxPage;
+  // 🔢 تحديد عدد الصفحات (إن وُجد ترقيم)
+  const pagination = $(".page-numbers, .nav-links a.page-numbers")
+    .map((_, el) => parseInt($(el).text().trim()))
+    .get()
+    .filter((n) => !isNaN(n));
+  const totalPages = pagination.length ? Math.max(...pagination) : 1;
 
-  console.log(`📄 عدد الصفحات المتوقع: ${totalPages}`);
+  console.log(`📄 عدد الصفحات الكلي: ${totalPages}`);
 
-  // 🌀 تحميل جميع الصفحات بالتوازي
-  const pageUrls = Array.from({ length: totalPages }, (_, i) =>
+  // 🌀 إنشاء روابط كل الصفحات
+  const allPageUrls = Array.from({ length: totalPages }, (_, i) =>
     i === 0
-      ? firstPageUrl
+      ? firstUrl
       : `${baseUrl}/page/${i + 1}/?s=${encodeURIComponent(searchKey)}`
   );
 
-  const pageResults = await Promise.allSettled(
-    pageUrls.map(async (url, i) => {
-      try {
-        const resp = await fetch(url, {
-          headers: {
-            "User-Agent": "Mozilla/5.0",
-            "Accept-Language": "ar,en;q=0.9",
-          },
-        });
-        if (!resp.ok) return [];
+  // 🧩 جلب كل الصفحات بالتوازي
+  const allPhones = [];
+  const pageChunks = [];
+  for (let i = 0; i < allPageUrls.length; i += CONCURRENCY_LIMIT) {
+    pageChunks.push(allPageUrls.slice(i, i + CONCURRENCY_LIMIT));
+  }
 
-        const html = await resp.text();
-        const $ = cheerio.load(html);
-        const posts = $(".media, .post, article");
+  for (const chunk of pageChunks) {
+    const chunkResults = await Promise.allSettled(
+      chunk.map(async (url) => {
+        try {
+          const resPage = await fetch(url, {
+            headers: { "User-Agent": "Mozilla/5.0" },
+          });
+          if (!resPage.ok) return [];
 
-        const phones = [];
-        posts.each((_, el) => {
-          const link = $(el).find("a.image-link").attr("href");
-          const title = $(el).find("a.image-link").attr("title");
-          const img =
-            $(el).find("span.img").attr("data-bgsrc") ||
-            $(el).find("img").attr("src");
-          if (link && title) phones.push({ link, title, img });
-        });
+          const html = await resPage.text();
+          const $ = cheerio.load(html);
 
-        console.log(`✅ الصفحة ${i + 1}: ${phones.length} هاتف`);
-        return phones;
-      } catch {
-        console.log(`⚠️ فشل الصفحة ${i + 1}`);
-        return [];
+          const results = [];
+          $(".media, .post, article").each((_, el) => {
+            const link = $(el).find("a.image-link").attr("href");
+            const title = $(el).find("a.image-link").attr("title");
+            const img =
+              $(el).find("span.img").attr("data-bgsrc") ||
+              $(el).find("img").attr("src");
+            if (link && title) results.push({ link, title, img });
+          });
+
+          console.log(`📃 صفحة: ${url} ➜ ${results.length} نتيجة`);
+          return results;
+        } catch {
+          return [];
+        }
+      })
+    );
+
+    for (const result of chunkResults) {
+      if (result.status === "fulfilled" && Array.isArray(result.value)) {
+        allPhones.push(...result.value);
       }
-    })
-  );
+    }
 
-  const allPhones = pageResults.flatMap((r) =>
-    r.status === "fulfilled" ? r.value : []
-  );
+    await delay(200); // تأخير بسيط بين الدُفعات لتجنب الحظر
+  }
 
-  // إزالة التكرارات بسرعة باستخدام Set
+  console.log(`📱 إجمالي النتائج الأولية: ${allPhones.length}`);
+
+  // 🧹 إزالة التكرارات بسرعة
   const uniquePhones = Array.from(
     new Map(allPhones.map((p) => [p.link, p])).values()
   );
-  console.log(`📱 إجمالي الهواتف الفريدة: ${uniquePhones.length}`);
 
-  if (uniquePhones.length === 0)
-    return res.status(404).json({
-      error: "❌ لم يتم العثور على نتائج.",
-      total: 0,
-      results: [],
-    });
+  console.log(`🧩 بعد إزالة التكرار: ${uniquePhones.length}`);
 
-  // 🔁 تحميل تفاصيل الهواتف بسرعة بدُفعات متوازية
-  const fullResults = [];
+  // 🔍 جلب تفاصيل الهواتف بالتوازي
+  const details = [];
+  const detailChunks = [];
   for (let i = 0; i < uniquePhones.length; i += CONCURRENCY_LIMIT) {
-    const batch = uniquePhones.slice(i, i + CONCURRENCY_LIMIT);
-    const results = await Promise.allSettled(
+    detailChunks.push(uniquePhones.slice(i, i + CONCURRENCY_LIMIT));
+  }
+
+  let processed = 0;
+
+  for (const batch of detailChunks) {
+    const batchResults = await Promise.allSettled(
       batch.map(async ({ link, title, img }) => {
         try {
-          const phonePage = await fetch(link, {
+          const phoneRes = await fetch(link, {
             headers: { "User-Agent": "Mozilla/5.0" },
           });
-          if (!phonePage.ok) return null;
-          const html = await phonePage.text();
+          if (!phoneRes.ok) return null;
+
+          const html = await phoneRes.text();
           const $ = cheerio.load(html);
 
-          // استخراج المعالج
+          // 🔹 استخراج المعالج
           let fullChipset =
             $("tr:contains('المعالج') td.aps-attr-value span").text().trim() ||
             $("tr:contains('المعالج') td.aps-attr-value").text().trim() ||
@@ -144,13 +152,16 @@ export default async function handler(req, res) {
             shortChipset = match ? match[0].trim() : fullChipset;
           }
 
-          // استخراج الموديل
+          // 🔹 استخراج الموديل / الإصدار
           const modelRow =
             $("tr:contains('الموديل / الطراز') td.aps-attr-value span").text().trim() ||
             $("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
             $("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
             "";
           const modelArray = modelRow ? modelRow.split(",").map((m) => m.trim()) : [];
+
+          processed++;
+          console.log(`📦 (${processed}/${uniquePhones.length}) ${title}`);
 
           return {
             title,
@@ -167,41 +178,36 @@ export default async function handler(req, res) {
       })
     );
 
-    fullResults.push(
-      ...results
-        .filter((r) => r.status === "fulfilled" && r.value)
-        .map((r) => r.value)
-    );
+    for (const result of batchResults) {
+      if (result.status === "fulfilled" && result.value)
+        details.push(result.value);
+    }
 
-    console.log(`📦 معالجة ${fullResults.length}/${uniquePhones.length}`);
-    await delay(200); // تأخير بسيط لتجنب حظر السيرفر
+    await delay(200);
   }
 
-  // فلترة النتيجة النهائية
-  const searchTermLower = searchKey.toLowerCase();
-  const filtered = fullResults.filter(
+  // 🔎 فلترة النتائج وتنظيفها
+  const term = searchKey.toLowerCase();
+  const filtered = details.filter(
     (item) =>
-      item.title.toLowerCase().includes(searchTermLower) ||
-      item.modelArray.some((m) => m.toLowerCase().includes(searchTermLower))
+      item.title.toLowerCase().includes(term) ||
+      item.modelArray.some((m) => m.toLowerCase().includes(term))
   );
 
   // إزالة التكرارات النهائية
-  const finalMap = new Map();
-  for (const item of filtered) {
-    const key = `${item.title.toLowerCase()}|${item.model.toLowerCase()}`;
-    if (!finalMap.has(key)) finalMap.set(key, item);
-  }
+  const uniqueResults = Array.from(
+    new Map(
+      filtered.map((r) => [`${r.title.toLowerCase()}|${r.model.toLowerCase()}`, r])
+    ).values()
+  );
 
-  const uniqueResults = Array.from(finalMap.values());
-
-  // حفظ الكاش
+  // 🧠 تخزين في الكاش
   cache.set(searchKey, { data: uniqueResults, timestamp: Date.now() });
 
   const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
   console.log(`✅ اكتمل البحث في ${timeTaken} ثانية — ${uniqueResults.length} نتيجة`);
 
   return res.status(200).json({
-    mode: "list",
     total: uniqueResults.length,
     totalPages,
     timeTaken,
