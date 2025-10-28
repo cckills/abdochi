@@ -936,7 +936,7 @@ form.addEventListener("submit", async (e) => {
 
 
 // ✅ دالة إعادة الرسم + التظليل
-function renderFilteredResults(results = results.length, highlightQuery = "") {
+function renderFilteredResults(results, totalMatched = results.length, highlightQuery = "") {
   const resultInfo = document.getElementById("result-info");
   const result = document.getElementById("result");
   const pagination = document.getElementById("pagination");
@@ -1100,13 +1100,15 @@ document.addEventListener("keydown", function (e) {
     renderFilteredResults(filtered, filtered.length, q);
   }
 // 🟢 فلترة فورية عند الكتابة (بدون تأخير ملحوظ)
-let debounceTimer;
-document.getElementById("brand-search").addEventListener("input", (e) => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    const query = e.target.value.trim();
-    filterResults(query);
-  }, 50); // يمكنك جعلها 100 لتصبح فورية تقريبًا
+let filterTimer;
+document.getElementById("brand-search").addEventListener("input", function (e) {
+  clearTimeout(filterTimer);
+  const query = e.target.value.trim();
+
+  // تأخير صغير فقط 150ms
+  filterTimer = setTimeout(() => {
+    applyFiltering(query); // ← الدالة الحالية التي تنفذ الفلترة
+  }, 0);
 });
 
   // 🟢 فلترة فورية عند الكتابة (بدون تأخير)
