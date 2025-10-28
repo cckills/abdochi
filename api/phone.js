@@ -6,66 +6,95 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "يرجى إدخال اسم الهاتف أو الموديل." });
 
   try {
-    const results = [];
-    let page = 1;
-    let hasNext = true;
-    let processedPages = 0;
+    const baseUrl = "https://telfonak.com";
+    const allResults = [];
 
-    while (hasNext) {
-      const searchUrl =
-        page === 1
-          ? `https://telfonak.com/?s=${encodeURIComponent(phone)}`
-          : `https://telfonak.com/page/${page}/?s=${encodeURIComponent(phone)}`;
+    console.log("🚀 بدء البحث السريع عن:", phone);
 
-      console.log("⏳ Fetching:", searchUrl);
+    // 🟢 الخطوة 1: جلب الصفحة الأولى لمعرفة عدد الصفحات
+    const firstUrl = `${baseUrl}/?s=${encodeURIComponent(phone)}`;
+    const firstResponse = await fetch(firstUrl, {
+      headers: { "User-Agent": "Mozilla/5.0", "Accept-Language": "ar,en;q=0.9" },
+    });
+    if (!firstResponse.ok) throw new Error("تعذر تحميل الصفحة الأولى");
+    const firstHtml = await firstResponse.text();
+    const $first = cheerio.load(firstHtml);
 
-      const response = await fetch(searchUrl, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-          "Accept-Language": "ar,en;q=0.9",
-        },
-      });
+    // 🔹 استخراج عدد الصفحات من الترقيم إن وُجد
+    const lastPage =
+      parseInt(
+        $first(".pagination a.page-numbers, .nav-links a.page-numbers")
+          .last()
+          .text()
+          .trim()
+      ) || 1;
 
-      if (!response.ok) break;
-      const html = await response.text();
-      const $ = cheerio.load(html);
-      const items = $(".media, .post, article");
+    console.log(`📄 عدد الصفحات المكتشفة: ${lastPage}`);
 
-      if (items.length === 0) {
-        hasNext = false;
-        break;
-      }
+    // 🟢 الخطوة 2: توليد جميع روابط الصفحات
+    const pageUrls = Array.from({ length: lastPage }, (_, i) =>
+      i === 0
+        ? firstUrl
+        : `${baseUrl}/page/${i + 1}/?s=${encodeURIComponent(phone)}`
+    );
 
-      // ✅ معالجة جميع عناصر الصفحة بالتوازي
-      const pageResults = await Promise.all(
-        items.toArray().map(async (el) => {
+    // 🟢 الخطوة 3: جلب جميع الصفحات بالتوازي
+    const pageHtmls = await Promise.allSettled(
+      pageUrls.map(async (url) => {
+        const resPage = await fetch(url, {
+          headers: { "User-Agent": "Mozilla/5.0", "Accept-Language": "ar,en;q=0.9" },
+        });
+        if (!resPage.ok) return null;
+        const html = await resPage.text();
+        return html;
+      })
+    );
+
+    // 🟢 الخطوة 4: استخراج روابط الهواتف من جميع الصفحات
+    const allPhoneLinks = [];
+    for (const result of pageHtmls) {
+      if (result.status === "fulfilled" && result.value) {
+        const $ = cheerio.load(result.value);
+        $(".media, .post, article").each((_, el) => {
           const link = $(el).find("a.image-link").attr("href");
           const title = $(el).find("a.image-link").attr("title");
           const img =
             $(el).find("span.img").attr("data-bgsrc") ||
             $(el).find("img").attr("src");
+          if (link && title) allPhoneLinks.push({ link, title, img });
+        });
+      }
+    }
 
-          if (!link || !title) return null;
+    console.log(`📱 تم العثور على ${allPhoneLinks.length} نتيجة أولية.`);
 
+    // 🟢 الخطوة 5: جلب صفحات كل هاتف بالتوازي (مع حدود لتجنب الضغط)
+    const concurrencyLimit = 10; // عدد الطلبات المتزامنة المسموح بها
+    const chunks = [];
+    for (let i = 0; i < allPhoneLinks.length; i += concurrencyLimit) {
+      chunks.push(allPhoneLinks.slice(i, i + concurrencyLimit));
+    }
+
+    for (const batch of chunks) {
+      const batchResults = await Promise.allSettled(
+        batch.map(async ({ link, title, img }) => {
           try {
             const phonePage = await fetch(link, {
               headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                "User-Agent": "Mozilla/5.0",
                 "Accept-Language": "ar,en;q=0.9",
               },
             });
-
             if (!phonePage.ok) return null;
-            const phoneHtml = await phonePage.text();
-            const $$ = cheerio.load(phoneHtml);
+            const html = await phonePage.text();
+            const $ = cheerio.load(html);
 
             let fullChipset =
-              $$("tr:contains('المعالج') td.aps-attr-value span").text().trim() ||
-              $$("tr:contains('المعالج') td.aps-attr-value").text().trim() ||
+              $("tr:contains('المعالج') td.aps-attr-value span").text().trim() ||
+              $("tr:contains('المعالج') td.aps-attr-value").text().trim() ||
               "";
 
             fullChipset = fullChipset.replace(/\s+/g, " ").trim();
-
             let shortChipset = fullChipset;
 
             if (fullChipset) {
@@ -82,11 +111,10 @@ export default async function handler(req, res) {
             }
 
             const modelRow =
-              $$("tr:contains('الموديل / الطراز') td.aps-attr-value span").text().trim() ||
-              $$("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
-              $$("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
+              $("tr:contains('الموديل / الطراز') td.aps-attr-value span").text().trim() ||
+              $("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
+              $("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
               "";
-
             const modelArray = modelRow ? modelRow.split(",").map((m) => m.trim()) : [];
 
             return {
@@ -98,30 +126,27 @@ export default async function handler(req, res) {
               modelArray,
               source: "telfonak.com",
             };
-          } catch (err) {
-            console.error("⚠️ خطأ أثناء جلب صفحة الهاتف:", err.message);
+          } catch {
             return null;
           }
         })
       );
 
-      // إزالة null وإضافة للنتائج
-      results.push(...pageResults.filter(Boolean));
-
-      hasNext = $(".pagination .next, .nav-links .next, a.next, .page-numbers .next").length > 0;
-      processedPages++;
-      page++;
+      allResults.push(...batchResults.filter(r => r.status === "fulfilled" && r.value).map(r => r.value));
     }
 
+    console.log(`✅ تم استخراج ${allResults.length} هاتف بنجاح.`);
+
+    // 🟢 الخطوة 6: فلترة وتنسيق النتائج
     const searchTerm = phone.toLowerCase();
 
-    let filteredResults = results.filter(
+    let filtered = allResults.filter(
       (item) =>
         item.title.toLowerCase().includes(searchTerm) ||
         item.modelArray.some((m) => m.toLowerCase() === searchTerm)
     );
 
-    filteredResults.sort((a, b) => {
+    filtered.sort((a, b) => {
       const titleA = a.title.toLowerCase();
       const titleB = b.title.toLowerCase();
       const startA =
@@ -137,27 +162,24 @@ export default async function handler(req, res) {
       return startA - startB;
     });
 
-    const uniqueResultsMap = new Map();
-    for (const item of filteredResults) {
+    const uniqueMap = new Map();
+    for (const item of filtered) {
       const key = `${item.title.toLowerCase().trim()}|${item.model.toLowerCase().trim()}`;
-      if (!uniqueResultsMap.has(key)) uniqueResultsMap.set(key, item);
+      if (!uniqueMap.has(key)) uniqueMap.set(key, item);
     }
-    const uniqueResults = Array.from(uniqueResultsMap.values());
+    const uniqueResults = Array.from(uniqueMap.values());
 
     if (uniqueResults.length > 0) {
       return res.status(200).json({
         mode: "list",
         results: uniqueResults,
         total: uniqueResults.length,
-        currentPage: 1,
-        totalPages: Math.ceil(uniqueResults.length / 20),
-        pages: processedPages,
+        totalPages: lastPage,
+        pagesFetched: pageUrls.length,
       });
     }
 
-    res.status(404).json({
-      error: "❌ لم يتم العثور على أي نتائج لهذا الاسم أو الموديل في الموقع.",
-    });
+    res.status(404).json({ error: "❌ لم يتم العثور على أي نتائج." });
   } catch (err) {
     console.error("⚠️ خطأ أثناء الجلب:", err);
     res.status(500).json({ error: "حدث خطأ أثناء جلب البيانات." });
