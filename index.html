@@ -316,50 +316,43 @@ body {
     <div class="card-body">
       <h5 class="text-center mb-3 fw-bold text-primary">🔍 بحث عن الهواتف</h5>
 
+
+
       <form id="searchForm" class="text-center">
-        <p class="message mb-3">
-          اكتب كلمة البحث ثم اضغط زر البحث أو <em>Enter</em>
-        </p>
-
-        <!-- 🔍 حقل البحث الرئيسي -->
-        <input type="search"
-          class="search-field form-control mb-3 text-center"
-          id="phoneInput" name="s"
-          placeholder="ابحث عن اسم الهاتف..." required />
-
+<p class="message mb-3"> اختر الموديل سيتم جلب الموديل تلقائى  </p>
         <!-- ✅ القائمة ومربع البحث بجانب بعض -->
         <div id="brand-search-box" class="text-center mt-4">
           <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mb-3">
             <select class="dropdown select form-select"
-                    style="flex:1; max-width:230px; height:44px; border-radius:8px; font-size:15px;">
+             style="flex:1; max-width:230px; height:44px; border-radius:8px; font-size:15px;">
               <option value="" selected disabled>اختر علامة تجارية</option>
               <option value="4">Huawei</option>
               <option value="5">Samsung</option>
               <option value="6">Apple</option>
               <!-- باقي الماركات -->
             </select>
+<input type="search"  class="form-control text-center" id="phoneInput" name="s"
+  placeholder="" required style="flex:1; max-width:230px; height:44px; border-radius:8px; font-size:15px;"/>
+            
+<input type="text" id="brand-search" placeholder="🔍 ابحث عن ماركة..."
+  class="form-control text-center"
+  style="flex:1; max-width:230px; height:44px; border-radius:8px; font-size:15px; display:none;">
 
-            <input type="text" id="brand-search"
-              placeholder="🔍 ابحث عن ماركة..."
-              class="form-control text-center"
-              style="flex:1; max-width:230px; height:44px; border-radius:8px; font-size:15px;">
-                          <button id="brand-clear-btn" type="button"
-              class="btn btn-secondary px-3 py-2 d-flex align-items-center justify-content-center"
-              style="min-width:120px; border-radius:8px; font-size:14px;">
-              🧹 <span class="ms-1">إزالة الفلترة</span>
-            </button>
-          </div>
+<button id="brand-clear-btn" type="button"
+  class="btn btn-secondary px-3 py-2 d-flex align-items-center justify-content-center"
+  style="min-width:120px; border-radius:8px; font-size:14px; display:none;">
+  🧹 <span class="ms-1">إزالة الفلترة</span>
+</button>
 
-          <!-- ✅ الأزرار أسفل الحقول -->
-          <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
-            <button id="brand-search-btn" type="button"
-              class="btn btn-success fw-bold px-4 py-2 d-flex align-items-center justify-content-center"
-              style="min-width:170px; border-radius:8px;">
-              🧭 <span class="ms-1">فلترة الموديل</span>
-            </button>
+<!-- ✅ الأزرار أسفل الحقول -->
+<div class="d-flex justify-content-center align-items-center gap-3 mt-4">
+  <button id="brand-search-btn" type="button"
+    class="btn btn-success fw-bold px-4 py-2 d-flex align-items-center justify-content-center"
+    style="min-width:170px; border-radius:8px; display:none;">
+    🧭 <span class="ms-1">فلترة الموديل</span>
+  </button>
+</div>
 
-
-          </div>
         </div>
       </form>
     </div>
@@ -1009,8 +1002,21 @@ function renderFilteredResults(results, totalMatched = results.length, highlight
       });
     });
 
-    resultInfo.textContent = `عدد النتائج: ${totalAll} | الصفحة ${page} من ${totalPages} | عرض متطابق: ${totalMatched}`;
-  }
+    // بعد حساب عدد النتائج
+resultInfo.textContent = `عدد النتائج: ${totalAll} | الصفحة ${page} من ${totalPages} | عرض متطابق: ${totalMatched}`;
+
+// إظهار العناصر فقط عند وجود عرض متطابق
+if (totalMatched > 0) {
+  document.getElementById("brand-search").style.display = "block";
+  document.getElementById("brand-clear-btn").style.display = "inline-flex";
+  document.getElementById("brand-search-btn").style.display = "inline-flex";
+} else {
+  // إخفاؤها إذا لم يوجد تطابق
+  document.getElementById("brand-search").style.display = "none";
+  document.getElementById("brand-clear-btn").style.display = "none";
+  document.getElementById("brand-search-btn").style.display = "none";
+}
+
 
   function renderPagination() {
     if (totalPages <= 1) return;
