@@ -9,7 +9,12 @@
 
     <style>
 /* ========== تنسيقات الصفحة (منقحة ومنظمة) ========== */
-
+  #brand-conversions small span {
+    font-family: monospace;
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
 /* اختيارات عامة */
 select.dropdown.select {
   appearance: none;
@@ -289,6 +294,12 @@ body {
             <input type="text" id="brand-search" placeholder="🔍 ابحث عن ماركة..."
               class="form-control text-center"
               style="flex:1; max-width:540px; height:44px; border-radius:8px; font-size:15px;">
+<div id="brand-conversions" class="text-start mt-2" style="max-width:540px; margin:auto; font-size:13px;">
+  <small>Original: <span id="conv-orig">-</span></small><br>
+  <small>Keyboard Map 1: <span id="conv-map1">-</span></small><br>
+  <small>Keyboard Map 2: <span id="conv-map2">-</span></small><br>
+  <small>Phonetic Map: <span id="conv-map3">-</span></small>
+</div>
 
             <!-- إزالة الفلترة -->
              <button id="brand-clear-btn" type="button"
@@ -849,34 +860,94 @@ function filterResults(query) {
   renderFilteredResults(filtered, filtered.length, q);
 }
 
-/* فلترة فورية عند الكتابة (debounced) */
+
+
+const origEl = document.getElementById("conv-orig");
+const map1El = document.getElementById("conv-map1");
+const map2El = document.getElementById("conv-map2");
+const map3El = document.getElementById("conv-map3");
+
+const keyboardMap1 = {
+  'ض':'q','ص':'w','ث':'e','ق':'r','ف':'t','غ':'y','ع':'u','ه':'i','خ':'o','ح':'p',
+  'ج':'[','د':']','ش':'a','س':'s','ي':'d','ب':'f','ل':'g','ا':'h','ت':'j','ن':'k',
+  'م':'l','ك':';','ط':'z','ئ':'x','ء':'c','ؤ':'v','ر':'b','لا':'n','ى':'m','ة':',','و':'.','ز':'/','ظ':'`'
+};
+
+const keyboardMap2 = {
+  'ض':'q','ص':'w','ث':'e','ق':'r','ف':'t','غ':'y','ع':'u','ه':'i','خ':'o','ح':'p',
+  'ج':'[','د':'a','ش':'s','س':'d','ي':'f','ب':'g','ل':'h','ا':'j','ت':'k','ن':'l',
+  'م':';','ك':'\'','ط':'z','ئ':'x','ء':'c','ؤ':'v','ر':'b','لا':'n','ى':'m','ة':',','و':'.','ز':'/','ظ':'`'
+};
+
+const phoneticMap = {
+  'ا':'a','ب':'b','ت':'t','ث':'th','ج':'j','ح':'h','خ':'kh','د':'d','ذ':'dh','ر':'r',
+  'ز':'z','س':'s','ش':'sh','ص':'s','ض':'d','ط':'t','ظ':'z','ع':'a','غ':'gh','ف':'f',
+  'ق':'q','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y','ء':"'",'ة':'h','ى':'a'
+};
+
+function convertUsingMap(text, map) {
+  return text.split('').map(ch => map[ch] || ch).join('');
+}
+
+/* فلترة فورية مع جميع التحويلات */
 let debounceTimer;
 if (brandSearchInput) {
   brandSearchInput.addEventListener("input", (e) => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      const query = e.target.value.trim();
-      filterResults(query);
-    }, 50);
+      const txt = e.target.value.trim().toLowerCase();
+
+      const conv1 = convertUsingMap(txt, keyboardMap1).toLowerCase();
+      const conv2 = convertUsingMap(txt, keyboardMap2).toLowerCase();
+      const conv3 = convertUsingMap(txt, phoneticMap).toLowerCase();
+
+      // 🧭 عرض التحويلات أسفل الحقل
+      origEl.textContent = txt || '-';
+      map1El.textContent = conv1 || '-';
+      map2El.textContent = conv2 || '-';
+      map3El.textContent = conv3 || '-';
+
+      const candidates = [txt, conv1, conv2, conv3].filter(Boolean);
+
+      // 🧭 دمج جميع التحويلات في عملية الفلترة
+      if (typeof filterResults === "function" && Array.isArray(allResults)) {
+        const merged = candidates.flatMap(q =>
+          allResults.filter(item => {
+            const title = (item.title || "").toLowerCase();
+            const chipset = (item.chipset || "").toLowerCase();
+            const models = Array.isArray(item.model)
+              ? item.model.join(", ").toLowerCase()
+              : (item.model || "").toLowerCase();
+            return title.includes(q) || chipset.includes(q) || models.includes(q);
+          })
+        );
+
+        // إزالة التكرارات حسب العنوان
+        const unique = Array.from(new Set(merged.map(r => r.title)))
+          .map(title => merged.find(r => r.title === title));
+
+        renderFilteredResults(unique, unique.length, txt);
+      }
+    }, 100);
   });
 }
 
-/* زر فلترة */
+/* زر فلترة مباشر */
 if (brandSearchBtn) {
   brandSearchBtn.addEventListener("click", function() {
-    const query = brandSearchInput ? brandSearchInput.value : "";
-    filterResults(query);
+    const query = brandSearchInput ? brandSearchInput.value.trim() : "";
+    if (query) brandSearchInput.dispatchEvent(new Event("input"));
   });
 }
 
-/* زر إزالة الفلترة */
+/* زر مسح الفلترة */
 if (brandClearBtn) {
   brandClearBtn.addEventListener("click", function() {
     if (brandSearchInput) brandSearchInput.value = "";
-    filterResults("");
+    if (typeof filterResults === "function") filterResults("");
+    origEl.textContent = map1El.textContent = map2El.textContent = map3El.textContent = "-";
   });
 }
-
 /* مساعدة لتهيئة قيم داخل onclick مع اقتباسات آمنة */
 function escapeJsArg(s) {
   return String(s || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
