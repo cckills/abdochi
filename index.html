@@ -13,11 +13,16 @@ select.dropdown.select {
   appearance: none; /* إزالة أي تصميم افتراضي */
   -webkit-appearance: none;
   -moz-appearance: none;
-  border: 1px solid #ddd;
-  padding: 6px 12px;
+  border: 1px solid #92efff;
+ /*  padding: 6px 12px; */
   cursor: pointer;
+  background-color: #f13ebc;
+  color: rgb(123, 238, 128);
+  width: 250px;
+  border: none;
+  font-size: 20px;
+  outline: none;
 }
-
 
 /* 🎨 إعدادات الكارت الافتراضي (Bootstrap) */
 /* تم تعطيله لتجنّب التعارض مع تصميم vivo Y91C */
@@ -283,53 +288,56 @@ body {
 
   </head>
   <body>
-    <div class="container my-4">
-      <!-- ✅ مربع البحث داخل بطاقة -->
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-          <h5 class="text-center mb-3 fw-bold text-primary">🔍 بحث عن الهواتف</h5>
-          <form id="searchForm" class="text-center">
-            <p class="message mb-3">اكتب كلمة البحث ثم اضغط زر البحث أو <em>Enter</em></p>
-            <input
-              type="search"
-              class="search-field form-control mb-3 text-center"
-              id="phoneInput"
-              name="s"
-              placeholder="ابحث عن اسم الهاتف..."  required />
-   <!--  <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">بحث</button>-->
-            <!-- القائمة الظاهرة دائمًا -->
-  <select class="dropdown select form-select" style="flex:1; border-radius:8px;">
-  <option value="" selected disabled>اختر علامة تجارية</option>
-  <option value="4">Huawei</option>
-  <option value="143">Samsung</option>
-  <option value="1">Alcatel</option>
-  <option value="13">Blu</option>
-  <option value="7">Lenovo</option>
-  <option value="3">Motorola</option>
-  <option value="141">Vivo</option>
-  <option value="98">Xiaomi</option>
-  <option value="107">OPPO</option>
-  <!-- باقي الماركات -->
-</select>
-         </form>
+<div class="container my-4">
+  <!-- ✅ مربع البحث داخل بطاقة -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <h5 class="text-center mb-3 fw-bold text-primary">🔍 بحث عن الهواتف</h5>
+      <form id="searchForm" class="text-center">
+        <p class="message mb-3">اكتب كلمة البحث ثم اضغط زر البحث أو <em>Enter</em></p>
+        <input type="search"
+          class="search-field form-control mb-3 text-center"
+          id="phoneInput" name="s"
+          placeholder="ابحث عن اسم الهاتف..." required />
+
+        <!-- 🔘 زر البحث الرئيسي -->
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold mb-4">
+          بحث
+        </button>
+
+        <!-- ✅ قسم الفلترة الإضافي -->
+        <div class="text-center">
+          <!-- الصف الأول: القائمة + مربع البحث -->
+          <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mb-3">
+            <select class="dropdown select form-select" style="flex:1; max-width:220px; border-radius:8px;">
+              <option value="" selected disabled>اختر علامة تجارية</option>
+              <option value="4">Huawei</option>
+              <option value="5">Samsung</option>
+              <option value="6">Apple</option>
+              <!-- باقي الماركات -->
+            </select>
+
+            <input type="text" id="brand-search" 
+                  placeholder="🔍 ابحث عن ماركة..." 
+                  class="form-control text-center"
+                  style="flex:1; max-width:220px; border-radius:8px;">
+          </div>
+
+          <!-- الصف الثاني: الأزرار -->
+          <div>
+            <button id="brand-search-btn" class="btn btn-primary btn-sm mx-1">
+              فلترة عن الموديل
+            </button>
+            <button id="brand-clear-btn" class="btn btn-secondary btn-sm mx-1">
+              إزالة الفلترة
+            </button>
+          </div>
         </div>
-      </div>
-<!-- ✅ مربّع البحث عن الماركة -->
-<div id="brand-search-box" class="my-3 text-center">
-  <div style="padding:8px; display:inline-block; width:260px;">
-    <input
-      type="text"
-      id="brand-search"
-      placeholder="🔍 ابحث عن ماركة..."
-      class="form-control text-center"
-      style="width:100%; border-radius:8px;"
-    >
-  </div>
-  <div class="mt-2">
-    <button id="brand-search-btn" class="btn btn-primary btn-sm mx-1">بحث</button>
-    <button id="brand-clear-btn" class="btn btn-secondary btn-sm mx-1">إزالة الفلترة</button>
+      </form>
+    </div>
   </div>
 </div>
+
 
 <!-- 📦 نتائج البحث داخل بطاقة -->
 <div class="container my-4">
@@ -341,11 +349,10 @@ body {
 
 <div id="result" class="row g-3 justify-content-start"></div>
 <div id="pagination" class="text-center my-3"></div>
-
-      
     </div>
   </div>
 </div>
+
    <!-- 🟢 مودال عرض المواصفات -->
     <div class="modal fade" id="specsModal" tabindex="-1" aria-labelledby="specsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
