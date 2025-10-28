@@ -907,10 +907,10 @@ if (page >= 1 && page <= totalPages) {
         document.addEventListener("click", closeTooltip);
       });
 
+
 // 🧩 متغير لتخزين جميع النتائج الأصلية
 let allResults = [];
-
-// ✅ البحث الرئيسي
+// عند البحث الرئيسي
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const phone = input.value.trim();
@@ -935,7 +935,7 @@ form.addEventListener("submit", async (e) => {
 });
 
 
-// ✅ دالة إعادة الرسم + التظليل (محسّنة للأداء)
+// ✅ دالة إعادة الرسم + التظليل
 function renderFilteredResults(results, totalMatched = results.length, highlightQuery = "") {
   const resultInfo = document.getElementById("result-info");
   const result = document.getElementById("result");
@@ -955,10 +955,11 @@ function renderFilteredResults(results, totalMatched = results.length, highlight
   let currentPage = 1;
   const totalPages = Math.ceil(results.length / itemsPerPage);
 
-  // ⚡️ دالة تظليل خفيفة وسريعة
+  // ✅ دالة لتظليل النصوص المتطابقة
   function highlight(text, query) {
     if (!query) return text;
-    return text.replace(new RegExp(`(${query})`, "gi"), `<mark style="background-color:#cce5ff;">$1</mark>`);
+    const regex = new RegExp(`(${query})`, "gi");
+    return text.replace(regex, `<mark style="background-color:#cce5ff;">$1</mark>`);
   }
 
   function renderPage(page) {
@@ -966,8 +967,8 @@ function renderFilteredResults(results, totalMatched = results.length, highlight
     const end = start + itemsPerPage;
     const pageItems = results.slice(start, end);
 
-    // 🧱 نبني كل البطاقات دفعة واحدة لتقليل عمليات DOM
-    const cardsHtml = pageItems.map(item => {
+    let html = "<div class='row justify-content-start g-3'>";
+    for (const item of pageItems) {
       const title = highlight(item.title || "", highlightQuery);
       const chipset = highlight(item.chipset || "غير محدد", highlightQuery);
       const model = highlight(
@@ -975,10 +976,10 @@ function renderFilteredResults(results, totalMatched = results.length, highlight
         highlightQuery
       );
 
-      return `
+      html += `
         <div class="col-lg-custom d-flex justify-content-center">
           <div class="card result-item" data-url="${item.link}" data-img="${item.img || ''}"
-               style="position:relative;width:250px;height:320px;box-shadow:0 35px 80px rgba(0,0,0,0.15);background:#fff;border-radius:15px;overflow:visible;cursor:pointer;transition:transform .2s ease;">
+               style="position:relative;width:250px;height:320px;box-shadow:0 35px 80px rgba(0,0,0,0.15);background:#fff;border-radius:15px;overflow:visible;cursor:pointer;">
             
             <div class="imgBox" style="position:absolute;left:50%;top:-41px;transform:translateX(-50%);width:150px;height:174px;background:#fff;border-radius:20px;box-shadow:0 15px 50px rgba(0,0,0,0.35);overflow:hidden;">
               <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;">
@@ -991,16 +992,18 @@ function renderFilteredResults(results, totalMatched = results.length, highlight
             </div>
           </div>
         </div>`;
-    }).join("");
+    }
+    html += "</div>";
+    result.innerHTML = html;
 
-    result.innerHTML = `<div class='row justify-content-start g-3'>${cardsHtml}</div>`;
-
-    // 🎯 تفعيل الضغط على البطاقات مرة واحدة بعد توليدها
+    // عند الضغط على الكارت
     document.querySelectorAll(".result-item").forEach(card => {
-      card.addEventListener("click", () => getDetails(card.dataset.url, card.dataset.img));
+      card.addEventListener("click", () => {
+        getDetails(card.dataset.url, card.dataset.img);
+      });
     });
 
-    resultInfo.textContent = `عدد النتائج: ${totalAll} | الصفحة ${page} من ${totalPages}`;
+    resultInfo.textContent = `عدد النتائج: ${totalAll} | الصفحة ${page} من ${totalPages} | عرض متطابق: ${totalMatched}`;
   }
 
   function renderPagination() {
@@ -1039,43 +1042,90 @@ function renderFilteredResults(results, totalMatched = results.length, highlight
   renderPagination();
 }
 
+// ربط قائمة الماركات (<select>) بمربع البحث
+const brandDropdown = document.querySelector(".dropdown.select");
+brandDropdown.addEventListener("change", () => {
+  const selectedBrand = brandDropdown.options[brandDropdown.selectedIndex].text;
+phoneInput.value = selectedBrand; // الآن سيظهر الاسم بدل الرقم
 
-// ✅ فلترة فورية أثناء الكتابة (debounce سريع جداً)
+  phoneInput.value = selectedBrand; // وضع الاسم في مربع البحث
+  phoneInput.focus();
+        // (اختياري) إذا كنت تريد تنفيذ البحث فور الاختيار:
+    document.getElementById("searchForm").requestSubmit();
+});
+
+// منع زر Enter في حقلي البحث الرئيسى والبحث عن الماركة
+document.addEventListener("keydown", function (e) {
+  if (
+    (e.target.id === "phoneInput" || e.target.id === "brand-search") &&
+    e.key === "Enter"
+  ) {
+    e.preventDefault(); // يمنع الإرسال أو إعادة التحميل
+    return false;
+  }
+});
+  // 🚫 منع زر Enter من إعادة تحميل الصفحة
+  ["brand-search"].forEach(id => {
+    document.getElementById(id).addEventListener("keydown", function(e) {
+      if (e.key === "Enter") e.preventDefault();
+    });
+  });
+
+ 
+  // هذه الدالة تُستخدم عادة بعد جلب البيانات من السيرفر
+  function setResults(results) {
+    allResults = results;
+  }
+
+  // 🟦 الدالة التي تنفّذ الفلترة فعلياً
+  function filterResults(query) {
+    if (!Array.isArray(allResults) || allResults.length === 0) return;
+
+    const q = query.trim().toLowerCase();
+
+    const filtered = allResults.filter(item => {
+      const title = (item.title || "").toLowerCase();
+      const chipset = (item.chipset || "").toLowerCase();
+      const models = Array.isArray(item.model)
+        ? item.model.join(", ").toLowerCase()
+        : (item.model || "").toLowerCase();
+      return (
+        q === "" ||
+        title.includes(q) ||
+        chipset.includes(q) ||
+        models.includes(q)
+      );
+    });
+
+    renderFilteredResults(filtered, filtered.length, q);
+  }
+// 🟢 فلترة فورية عند الكتابة (بدون تأخير ملحوظ)
 let debounceTimer;
 document.getElementById("brand-search").addEventListener("input", (e) => {
   clearTimeout(debounceTimer);
-  const query = e.target.value.trim();
   debounceTimer = setTimeout(() => {
+    const query = e.target.value.trim();
     filterResults(query);
-  }, 100); // ⚡️ تأخير صغير جداً يجعلها فورية وسلسة
+  }, 50); // يمكنك جعلها 100 لتصبح فورية تقريبًا
 });
 
+  // 🟢 فلترة فورية عند الكتابة (بدون تأخير)
+ // document.getElementById("brand-search").addEventListener("input", function() {
+ //   filterResults(this.value);
+ // });
 
-// 🧠 دالة الفلترة الفعلية
-function filterResults(query) {
-  if (!Array.isArray(allResults) || allResults.length === 0) return;
-
-  const q = query.trim().toLowerCase();
-
-  const filtered = allResults.filter(item => {
-    const title = (item.title || "").toLowerCase();
-    const chipset = (item.chipset || "").toLowerCase();
-    const models = Array.isArray(item.model)
-      ? item.model.join(", ").toLowerCase()
-      : (item.model || "").toLowerCase();
-
-    return q === "" || title.includes(q) || chipset.includes(q) || models.includes(q);
+  // 🟢 عند الضغط على زر "بحث"
+  document.getElementById("brand-search-btn").addEventListener("click", function() {
+    const query = document.getElementById("brand-search").value;
+    filterResults(query);
   });
 
-  renderFilteredResults(filtered, filtered.length, q);
-}
+  // 🟠 زر "إزالة الفلترة"
+  document.getElementById("brand-clear-btn").addEventListener("click", function() {
+    document.getElementById("brand-search").value = "";
+    filterResults("");
+  });
 
-
-// 🟠 زر "إزالة الفلترة"
-document.getElementById("brand-clear-btn").addEventListener("click", function () {
-  document.getElementById("brand-search").value = "";
-  filterResults("");
-});
 
   
     </script>
