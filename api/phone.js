@@ -1,8 +1,8 @@
 import * as cheerio from "cheerio";
 
-// 🧠 كاش في الذاكرة (يختفي عند إعادة تشغيل السيرفر)
+// 🧠 كاش في الذاكرة (اختياري لتسريع الطلبات المتكررة)
 const cache = new Map();
-const CACHE_TTL = 1000 * 60 * 60; // 1 ساعة
+const CACHE_TTL = 1000 * 60 * 60; // ساعة واحدة
 
 export default async function handler(req, res) {
   const { phone } = req.query;
@@ -10,8 +10,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "يرجى إدخال اسم الهاتف أو الموديل." });
 
   const searchKey = phone.toLowerCase().trim();
+  const baseUrl = "https://telfonak.com";
 
-  // ✅ تحقق من الكاش أولاً
+  // ✅ تحقق من الكاش أولًا
   const cached = cache.get(searchKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     console.log(`⚡ تم جلب النتيجة من الكاش: ${searchKey}`);
@@ -23,173 +24,176 @@ export default async function handler(req, res) {
     });
   }
 
-  try {
-    const baseUrl = "https://telfonak.com";
-    const allResults = [];
+  const allPhones = [];
+  let page = 1;
 
-    console.log("🚀 بدء البحث الشامل عن:", phone);
+  console.log("🚀 بدء البحث عن:", searchKey);
 
-    // 🟢 جلب الصفحة الأولى لتحديد عدد الصفحات
-    const firstUrl = `${baseUrl}/?s=${encodeURIComponent(phone)}`;
-    const firstResponse = await fetch(firstUrl, {
-      headers: { "User-Agent": "Mozilla/5.0", "Accept-Language": "ar,en;q=0.9" },
+  // ✅ تحميل جميع الصفحات حتى آخر صفحة بها نتائج
+  while (true) {
+    const url =
+      page === 1
+        ? `${baseUrl}/?s=${encodeURIComponent(searchKey)}`
+        : `${baseUrl}/page/${page}/?s=${encodeURIComponent(searchKey)}`;
+
+    console.log(`🔎 تحميل الصفحة ${page}: ${url}`);
+
+    const resp = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+        "Accept-Language": "ar,en;q=0.9",
+      },
     });
-    if (!firstResponse.ok)
-      throw new Error("تعذر تحميل الصفحة الأولى من الموقع.");
 
-    const firstHtml = await firstResponse.text();
-    const $first = cheerio.load(firstHtml);
+    if (!resp.ok) {
+      console.log(`⚠️ فشل تحميل الصفحة ${page}`);
+      break;
+    }
 
-    // 🔹 تحديد عدد الصفحات من الترقيم (أو 1 إن لم يوجد)
-    const lastPage =
-      parseInt(
-        $first(".pagination a.page-numbers, .nav-links a.page-numbers")
-          .last()
-          .text()
-          .trim()
-      ) || 1;
+    const html = await resp.text();
+    const $ = cheerio.load(html);
+    const posts = $(".media, .post, article");
 
-    console.log(`📄 عدد الصفحات المكتشفة: ${lastPage}`);
+    if (posts.length === 0) {
+      console.log(`❌ لا توجد نتائج في الصفحة ${page} — التوقف`);
+      break;
+    }
 
-    // 🟢 توليد كل روابط الصفحات
-    const pageUrls = Array.from({ length: lastPage }, (_, i) =>
-      i === 0
-        ? firstUrl
-        : `${baseUrl}/page/${i + 1}/?s=${encodeURIComponent(phone)}`
-    );
+    posts.each((_, el) => {
+      const link = $(el).find("a.image-link").attr("href");
+      const title = $(el).find("a.image-link").attr("title");
+      const img =
+        $(el).find("span.img").attr("data-bgsrc") ||
+        $(el).find("img").attr("src");
+      if (link && title) allPhones.push({ link, title, img });
+    });
 
-    // 🟢 جلب جميع الصفحات بالتوازي
-    const pageHtmls = await Promise.allSettled(
-      pageUrls.map(async (url) => {
-        const resPage = await fetch(url, {
-          headers: {
-            "User-Agent": "Mozilla/5.0",
-            "Accept-Language": "ar,en;q=0.9",
-          },
-        });
-        if (!resPage.ok) return null;
-        return await resPage.text();
+    console.log(`✅ تم استخراج ${posts.length} من الصفحة ${page}`);
+    page++;
+  }
+
+  console.log(`📄 المجموع الكلي من الصفحات: ${page - 1}`);
+  console.log(`📱 عدد الهواتف المجمعة: ${allPhones.length}`);
+
+  if (allPhones.length === 0)
+    return res.status(404).json({
+      error: "❌ لم يتم العثور على أي نتائج لهذا الاسم.",
+      total: 0,
+      results: [],
+    });
+
+  // 🧩 إزالة التكرارات
+  const uniquePhones = Array.from(
+    new Map(allPhones.map((p) => [p.link, p])).values()
+  );
+
+  console.log(`🧹 بعد إزالة التكرارات: ${uniquePhones.length}`);
+
+  // ✅ تحميل تفاصيل الهواتف بالتوازي مع تحديد السرعة
+  const concurrencyLimit = 10;
+  const chunks = [];
+  for (let i = 0; i < uniquePhones.length; i += concurrencyLimit) {
+    chunks.push(uniquePhones.slice(i, i + concurrencyLimit));
+  }
+
+  const fullResults = [];
+  let processed = 0;
+
+  for (const batch of chunks) {
+    const batchResults = await Promise.allSettled(
+      batch.map(async ({ link, title, img }) => {
+        try {
+          const phonePage = await fetch(link, {
+            headers: {
+              "User-Agent": "Mozilla/5.0",
+              "Accept-Language": "ar,en;q=0.9",
+            },
+          });
+
+          if (!phonePage.ok) return null;
+          const phoneHtml = await phonePage.text();
+          const $ = cheerio.load(phoneHtml);
+
+          // 🔹 استخراج المعالج
+          let fullChipset =
+            $("tr:contains('المعالج') td.aps-attr-value span").text().trim() ||
+            $("tr:contains('المعالج') td.aps-attr-value").text().trim() ||
+            "";
+          fullChipset = fullChipset.replace(/\s+/g, " ").trim();
+
+          let shortChipset = fullChipset;
+          if (fullChipset) {
+            fullChipset = fullChipset
+              .replace(/ثماني النواة|سداسي النواة|رباعي النواة|ثنائي النواة/gi, "")
+              .replace(/[\(\)\-\–\,]/g, " ")
+              .replace(/\b\d+(\.\d+)?\s*GHz\b/gi, "")
+              .replace(/\b\d+\s*nm\b/gi, "")
+              .replace(/\s+/g, " ")
+              .trim();
+
+            const match = fullChipset.match(/[A-Za-z\u0600-\u06FF]+\s*[A-Za-z0-9\-]+/);
+            shortChipset = match ? match[0].trim() : fullChipset;
+          }
+
+          // 🔹 استخراج الموديل / الإصدار
+          const modelRow =
+            $("tr:contains('الموديل / الطراز') td.aps-attr-value span").text().trim() ||
+            $("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
+            $("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
+            "";
+          const modelArray = modelRow ? modelRow.split(",").map((m) => m.trim()) : [];
+
+          processed++;
+          console.log(`📦 تمت معالجة (${processed}/${uniquePhones.length}): ${title}`);
+
+          return {
+            title,
+            link,
+            img,
+            chipset: shortChipset || "غير محدد",
+            model: modelArray.join(", "),
+            modelArray,
+            source: "telfonak.com",
+          };
+        } catch {
+          return null;
+        }
       })
     );
 
-    // 🟢 استخراج روابط الهواتف من جميع الصفحات
-    const allPhoneLinks = [];
-    for (const result of pageHtmls) {
-      if (result.status === "fulfilled" && result.value) {
-        const $ = cheerio.load(result.value);
-        $(".media, .post, article").each((_, el) => {
-          const link = $(el).find("a.image-link").attr("href");
-          const title = $(el).find("a.image-link").attr("title");
-          const img =
-            $(el).find("span.img").attr("data-bgsrc") ||
-            $(el).find("img").attr("src");
-          if (link && title) allPhoneLinks.push({ link, title, img });
-        });
-      }
-    }
-
-    console.log(`📱 تم العثور على ${allPhoneLinks.length} نتيجة أولية.`);
-
-    // 🟢 تحميل صفحات الهواتف بالتوازي (مع حد لتجنب الضغط)
-    const concurrencyLimit = 10;
-    const chunks = [];
-    for (let i = 0; i < allPhoneLinks.length; i += concurrencyLimit) {
-      chunks.push(allPhoneLinks.slice(i, i + concurrencyLimit));
-    }
-
-    for (const batch of chunks) {
-      const batchResults = await Promise.allSettled(
-        batch.map(async ({ link, title, img }) => {
-          try {
-            const phonePage = await fetch(link, {
-              headers: {
-                "User-Agent": "Mozilla/5.0",
-                "Accept-Language": "ar,en;q=0.9",
-              },
-            });
-            if (!phonePage.ok) return null;
-            const html = await phonePage.text();
-            const $ = cheerio.load(html);
-
-            let fullChipset =
-              $("tr:contains('المعالج') td.aps-attr-value span").text().trim() ||
-              $("tr:contains('المعالج') td.aps-attr-value").text().trim() ||
-              "";
-            fullChipset = fullChipset.replace(/\s+/g, " ").trim();
-
-            let shortChipset = fullChipset;
-            if (fullChipset) {
-              fullChipset = fullChipset
-                .replace(/ثماني النواة|سداسي النواة|رباعي النواة|ثنائي النواة/gi, "")
-                .replace(/[\(\)\-\–\,]/g, " ")
-                .replace(/\b\d+(\.\d+)?\s*GHz\b/gi, "")
-                .replace(/\b\d+\s*nm\b/gi, "")
-                .replace(/\s+/g, " ")
-                .trim();
-
-              const match = fullChipset.match(/[A-Za-z\u0600-\u06FF]+\s*[A-Za-z0-9\-]+/);
-              shortChipset = match ? match[0].trim() : fullChipset;
-            }
-
-            const modelRow =
-              $("tr:contains('الموديل / الطراز') td.aps-attr-value span").text().trim() ||
-              $("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
-              $("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
-              "";
-            const modelArray = modelRow ? modelRow.split(",").map((m) => m.trim()) : [];
-
-            return {
-              title,
-              link,
-              img,
-              chipset: shortChipset || "غير محدد",
-              model: modelArray.join(", "),
-              modelArray,
-              source: "telfonak.com",
-            };
-          } catch {
-            return null;
-          }
-        })
-      );
-
-      allResults.push(
-        ...batchResults
-          .filter((r) => r.status === "fulfilled" && r.value)
-          .map((r) => r.value)
-      );
-    }
-
-    console.log(`✅ تم استخراج ${allResults.length} هاتف من جميع الصفحات.`);
-
-    // 🟢 فلترة النتائج وتنظيفها
-    const searchTerm = phone.toLowerCase();
-    const filtered = allResults.filter(
-      (item) =>
-        item.title.toLowerCase().includes(searchTerm) ||
-        item.modelArray.some((m) => m.toLowerCase().includes(searchTerm))
+    fullResults.push(
+      ...batchResults
+        .filter((r) => r.status === "fulfilled" && r.value)
+        .map((r) => r.value)
     );
-
-    const uniqueMap = new Map();
-    for (const item of filtered) {
-      const key = `${item.title.toLowerCase()}|${item.model.toLowerCase()}`;
-      if (!uniqueMap.has(key)) uniqueMap.set(key, item);
-    }
-
-    const uniqueResults = Array.from(uniqueMap.values());
-
-    // 🧠 تخزين النتيجة في الكاش
-    cache.set(searchKey, { data: uniqueResults, timestamp: Date.now() });
-
-    return res.status(200).json({
-      mode: "list",
-      results: uniqueResults,
-      total: uniqueResults.length,
-      totalPages: lastPage,
-      cached: false,
-    });
-  } catch (err) {
-    console.error("⚠️ خطأ أثناء الجلب:", err);
-    return res.status(500).json({ error: "حدث خطأ أثناء جلب البيانات." });
   }
+
+  console.log(`✅ تم استخراج تفاصيل ${fullResults.length} هاتف.`);
+
+  // 🔍 فلترة وتنظيف النتائج
+  const searchTermLower = searchKey.toLowerCase();
+  const filtered = fullResults.filter(
+    (item) =>
+      item.title.toLowerCase().includes(searchTermLower) ||
+      item.modelArray.some((m) => m.toLowerCase().includes(searchTermLower))
+  );
+
+  const uniqueMap = new Map();
+  for (const item of filtered) {
+    const key = `${item.title.toLowerCase()}|${item.model.toLowerCase()}`;
+    if (!uniqueMap.has(key)) uniqueMap.set(key, item);
+  }
+
+  const uniqueResults = Array.from(uniqueMap.values());
+
+  // 🧠 تخزين في الكاش
+  cache.set(searchKey, { data: uniqueResults, timestamp: Date.now() });
+
+  return res.status(200).json({
+    mode: "list",
+    results: uniqueResults,
+    total: uniqueResults.length,
+    totalPages: page - 1,
+    cached: false,
+  });
 }
