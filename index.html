@@ -1005,20 +1005,45 @@ function renderFilteredResults(results, totalMatched = results.length, highlight
       });
     });
 
-   // بعد تحديث النص في resultInfo:
+// بعد تحديث النص في resultInfo:
 resultInfo.textContent = `عدد النتائج: ${totalAll} | الصفحة ${page} من ${totalPages} | عرض متطابق: ${totalMatched}`;
+
+// العناصر (فحص وجودها أولاً)
+const brandSearch = document.getElementById("brand-search");
+const brandClear = document.getElementById("brand-clear-btn");
+const brandFilter = document.getElementById("brand-search-btn");
 
 // إظهار العناصر فقط عند وجود عرض متطابق
 if (totalMatched > 0) {
-  document.getElementById("brand-search").style.opacity = "1";
-  document.getElementById("brand-search").style.visibility = "visible";
+  if (brandSearch) {
+    brandSearch.style.opacity = "1";
+    brandSearch.style.visibility = "visible";
+  }
+  if (brandClear) {
+    brandClear.style.opacity = "1";
+    brandClear.style.visibility = "visible";
+  }
+  if (brandFilter) {
+    brandFilter.style.opacity = "1";
+    brandFilter.style.visibility = "visible";
+  }
+} else {
+  // إخفاؤها بدون إلغاء المساحة
+  if (brandSearch) {
+    brandSearch.style.opacity = "0";
+    brandSearch.style.visibility = "hidden";
+  }
+  if (brandClear) {
+    brandClear.style.opacity = "0";
+    brandClear.style.visibility = "hidden";
+  }
+  if (brandFilter) {
+    brandFilter.style.opacity = "0";
+    brandFilter.style.visibility = "hidden";
+  }
+}
+}
 
-  document.getElementById("brand-clear-btn").style.opacity = "1";
-  document.getElementById("brand-clear-btn").style.visibility = "visible";
-
-  document.getElementById("brand-search-btn").style.opacity = "1";
-  document.getElementById("brand-search-btn").style.visibility = "visible";
-  }  }
 
   function renderPagination() {
     if (totalPages <= 1) return;
