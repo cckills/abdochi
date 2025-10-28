@@ -2,7 +2,7 @@ import * as cheerio from "cheerio";
 
 // 🧠 كاش في الذاكرة (يختفي عند إعادة تشغيل السيرفر)
 const cache = new Map();
-const CACHE_TTL = 1000 * 60 * 60; // مدة التخزين: ساعة واحدة
+const CACHE_TTL = 1000 * 60 * 60; // 1 ساعة
 
 export default async function handler(req, res) {
   const { phone } = req.query;
@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
   const searchKey = phone.toLowerCase().trim();
 
-  // 🔹 التحقق من وجود نتائج محفوظة في الكاش
+  // ✅ تحقق من الكاش أولاً
   const cached = cache.get(searchKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     console.log(`⚡ تم جلب النتيجة من الكاش: ${searchKey}`);
@@ -27,18 +27,20 @@ export default async function handler(req, res) {
     const baseUrl = "https://telfonak.com";
     const allResults = [];
 
-    console.log("🚀 بدء البحث السريع عن:", phone);
+    console.log("🚀 بدء البحث الشامل عن:", phone);
 
-    // 🟢 الخطوة 1: جلب الصفحة الأولى لمعرفة عدد الصفحات
+    // 🟢 جلب الصفحة الأولى لتحديد عدد الصفحات
     const firstUrl = `${baseUrl}/?s=${encodeURIComponent(phone)}`;
     const firstResponse = await fetch(firstUrl, {
       headers: { "User-Agent": "Mozilla/5.0", "Accept-Language": "ar,en;q=0.9" },
     });
-    if (!firstResponse.ok) throw new Error("تعذر تحميل الصفحة الأولى");
+    if (!firstResponse.ok)
+      throw new Error("تعذر تحميل الصفحة الأولى من الموقع.");
+
     const firstHtml = await firstResponse.text();
     const $first = cheerio.load(firstHtml);
 
-    // 🔹 استخراج عدد الصفحات من الترقيم إن وُجد
+    // 🔹 تحديد عدد الصفحات من الترقيم (أو 1 إن لم يوجد)
     const lastPage =
       parseInt(
         $first(".pagination a.page-numbers, .nav-links a.page-numbers")
@@ -49,26 +51,28 @@ export default async function handler(req, res) {
 
     console.log(`📄 عدد الصفحات المكتشفة: ${lastPage}`);
 
-    // 🟢 الخطوة 2: توليد جميع روابط الصفحات
+    // 🟢 توليد كل روابط الصفحات
     const pageUrls = Array.from({ length: lastPage }, (_, i) =>
       i === 0
         ? firstUrl
         : `${baseUrl}/page/${i + 1}/?s=${encodeURIComponent(phone)}`
     );
 
-    // 🟢 الخطوة 3: جلب جميع الصفحات بالتوازي
+    // 🟢 جلب جميع الصفحات بالتوازي
     const pageHtmls = await Promise.allSettled(
       pageUrls.map(async (url) => {
         const resPage = await fetch(url, {
-          headers: { "User-Agent": "Mozilla/5.0", "Accept-Language": "ar,en;q=0.9" },
+          headers: {
+            "User-Agent": "Mozilla/5.0",
+            "Accept-Language": "ar,en;q=0.9",
+          },
         });
         if (!resPage.ok) return null;
-        const html = await resPage.text();
-        return html;
+        return await resPage.text();
       })
     );
 
-    // 🟢 الخطوة 4: استخراج روابط الهواتف من جميع الصفحات
+    // 🟢 استخراج روابط الهواتف من جميع الصفحات
     const allPhoneLinks = [];
     for (const result of pageHtmls) {
       if (result.status === "fulfilled" && result.value) {
@@ -86,7 +90,7 @@ export default async function handler(req, res) {
 
     console.log(`📱 تم العثور على ${allPhoneLinks.length} نتيجة أولية.`);
 
-    // 🟢 الخطوة 5: جلب صفحات كل هاتف بالتوازي (مع حدود لتجنب الضغط)
+    // 🟢 تحميل صفحات الهواتف بالتوازي (مع حد لتجنب الضغط)
     const concurrencyLimit = 10;
     const chunks = [];
     for (let i = 0; i < allPhoneLinks.length; i += concurrencyLimit) {
@@ -111,10 +115,9 @@ export default async function handler(req, res) {
               $("tr:contains('المعالج') td.aps-attr-value span").text().trim() ||
               $("tr:contains('المعالج') td.aps-attr-value").text().trim() ||
               "";
-
             fullChipset = fullChipset.replace(/\s+/g, " ").trim();
-            let shortChipset = fullChipset;
 
+            let shortChipset = fullChipset;
             if (fullChipset) {
               fullChipset = fullChipset
                 .replace(/ثماني النواة|سداسي النواة|رباعي النواة|ثنائي النواة/gi, "")
@@ -150,58 +153,43 @@ export default async function handler(req, res) {
         })
       );
 
-      allResults.push(...batchResults.filter(r => r.status === "fulfilled" && r.value).map(r => r.value));
+      allResults.push(
+        ...batchResults
+          .filter((r) => r.status === "fulfilled" && r.value)
+          .map((r) => r.value)
+      );
     }
 
-    console.log(`✅ تم استخراج ${allResults.length} هاتف بنجاح.`);
+    console.log(`✅ تم استخراج ${allResults.length} هاتف من جميع الصفحات.`);
 
-    // 🟢 الخطوة 6: فلترة وتنسيق النتائج
+    // 🟢 فلترة النتائج وتنظيفها
     const searchTerm = phone.toLowerCase();
-
-    let filtered = allResults.filter(
+    const filtered = allResults.filter(
       (item) =>
         item.title.toLowerCase().includes(searchTerm) ||
-        item.modelArray.some((m) => m.toLowerCase() === searchTerm)
+        item.modelArray.some((m) => m.toLowerCase().includes(searchTerm))
     );
-
-    filtered.sort((a, b) => {
-      const titleA = a.title.toLowerCase();
-      const titleB = b.title.toLowerCase();
-      const startA =
-        titleA.startsWith(searchTerm) ||
-        a.modelArray.some((m) => m.toLowerCase().startsWith(searchTerm))
-          ? 0
-          : 1;
-      const startB =
-        titleB.startsWith(searchTerm) ||
-        b.modelArray.some((m) => m.toLowerCase().startsWith(searchTerm))
-          ? 0
-          : 1;
-      return startA - startB;
-    });
 
     const uniqueMap = new Map();
     for (const item of filtered) {
-      const key = `${item.title.toLowerCase().trim()}|${item.model.toLowerCase().trim()}`;
+      const key = `${item.title.toLowerCase()}|${item.model.toLowerCase()}`;
       if (!uniqueMap.has(key)) uniqueMap.set(key, item);
     }
+
     const uniqueResults = Array.from(uniqueMap.values());
 
     // 🧠 تخزين النتيجة في الكاش
     cache.set(searchKey, { data: uniqueResults, timestamp: Date.now() });
 
-    if (uniqueResults.length > 0) {
-      return res.status(200).json({
-        mode: "list",
-        results: uniqueResults,
-        total: uniqueResults.length,
-        cached: false,
-      });
-    }
-
-    res.status(404).json({ error: "❌ لم يتم العثور على أي نتائج." });
+    return res.status(200).json({
+      mode: "list",
+      results: uniqueResults,
+      total: uniqueResults.length,
+      totalPages: lastPage,
+      cached: false,
+    });
   } catch (err) {
     console.error("⚠️ خطأ أثناء الجلب:", err);
-    res.status(500).json({ error: "حدث خطأ أثناء جلب البيانات." });
+    return res.status(500).json({ error: "حدث خطأ أثناء جلب البيانات." });
   }
 }
