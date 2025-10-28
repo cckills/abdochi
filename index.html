@@ -901,15 +901,6 @@ const phoneticMap = {
   'ق':'q','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y','ء':"'",'ة':'h','ى':'a'
 };
 
-/* تنظيف الإدخال */
-function normalizeArabicInput(text) {
-  return text
-    .replace(/[\s\-\_\.\(\)\[\]0-9]+/g, "")
-    .replace(/[أإآا]/g, "ا")
-    .replace(/ة/g, "ه")
-    .replace(/ى/g, "ي");
-}
-
 function convertUsingMap(text, map) {
   return text.split('').map(ch => map[ch] || ch).join('');
 }
