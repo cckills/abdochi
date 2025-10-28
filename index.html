@@ -270,10 +270,14 @@ body {
       <form id="searchForm" class="text-center" onsubmit="return false;">
         <p class="message mb-3"> اختر الموديل سيتم جلب الموديل تلقائى  </p>
 
+<input type="search" class="form-control text-center" id="phoneInput" name="s"
+  placeholder="" required
+  style="flex:1; max-width:230px; height:44px; border-radius:8px; font-size:15px; display:none;">
+
         <div id="brand-search-box" class="text-center mt-4">
           <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mb-3">
             <select class="dropdown select form-select"
-             style="flex:1; max-width:230px; height:44px; border-radius:8px; font-size:15px;" id="brandDropdown">
+             style="flex:1; max-width:308px; height:44px; border-radius:8px; font-size:15px;" id="brandDropdown">
               <option value="" selected disabled>اختر علامة تجارية</option>
               <option value="4">Huawei</option>
               <option value="5">Samsung</option>
@@ -281,18 +285,15 @@ body {
               <!-- باقي الماركات -->
             </select>
 
-            <input type="search"  class="form-control text-center" id="phoneInput" name="s"
-              placeholder="" required style="flex:1; max-width:230px; height:44px; border-radius:8px; font-size:15px;"/>
-
             <!-- بحث عن ماركه -->
             <input type="text" id="brand-search" placeholder="🔍 ابحث عن ماركة..."
               class="form-control text-center"
-              style="flex:1; max-width:230px; height:44px; border-radius:8px; font-size:15px;">
+              style="flex:1; max-width:540px; height:44px; border-radius:8px; font-size:15px;">
 
             <!-- إزالة الفلترة -->
              <button id="brand-clear-btn" type="button"
               class="btn btn-secondary px-3 py-2 d-flex align-items-center justify-content-center"
-              style="min-width:120px; border-radius:8px; font-size:14px;">
+              style="min-width:361px; border-radius:8px; font-size:14px;">
               🧹 <span class="ms-1">إزالة الفلترة</span>
             </button>
           </div>
