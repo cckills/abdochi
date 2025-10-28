@@ -295,7 +295,9 @@ body {
       <h5 class="text-center mb-3 fw-bold text-primary">🔍 بحث عن الهواتف</h5>
 
       <form id="searchForm" class="text-center">
-        <p class="message mb-3">اكتب كلمة البحث ثم اضغط زر البحث أو <em>Enter</em></p>
+        <p class="message mb-3">
+          اكتب كلمة البحث ثم اضغط زر البحث أو <em>Enter</em>
+        </p>
 
         <!-- 🔍 حقل البحث الرئيسي -->
         <input type="search"
@@ -323,14 +325,22 @@ body {
 
           <!-- ✅ الأزرار أسفل الحقول -->
           <div class="d-flex justify-content-center flex-wrap gap-2 mt-3">
-            <button type="submit" class="btn btn-primary fw-bold px-4 py-2" style="min-width:140px;">
-              بحث
+            <button type="submit"
+              class="btn btn-primary fw-bold px-4 py-2 d-flex align-items-center justify-content-center"
+              style="min-width:150px;">
+              🔍 <span class="ms-1">بحث</span>
             </button>
-            <button id="brand-search-btn" type="button" class="btn btn-success fw-bold px-4 py-2" style="min-width:140px;">
-              فلترة الموديل
+
+            <button id="brand-search-btn" type="button"
+              class="btn btn-success fw-bold px-4 py-2 d-flex align-items-center justify-content-center"
+              style="min-width:150px;">
+              🧭 <span class="ms-1">فلترة الموديل</span>
             </button>
-            <button id="brand-clear-btn" type="button" class="btn btn-secondary px-4 py-2" style="min-width:140px;">
-              إزالة الفلترة
+
+            <button id="brand-clear-btn" type="button"
+              class="btn btn-secondary px-4 py-2 d-flex align-items-center justify-content-center"
+              style="min-width:150px;">
+              🧹 <span class="ms-1">إزالة الفلترة</span>
             </button>
           </div>
         </div>
