@@ -1,9 +1,27 @@
 import * as cheerio from "cheerio";
 
+// 🧠 كاش في الذاكرة (يختفي عند إعادة تشغيل السيرفر)
+const cache = new Map();
+const CACHE_TTL = 1000 * 60 * 60; // مدة التخزين: ساعة واحدة
+
 export default async function handler(req, res) {
   const { phone } = req.query;
   if (!phone)
     return res.status(400).json({ error: "يرجى إدخال اسم الهاتف أو الموديل." });
+
+  const searchKey = phone.toLowerCase().trim();
+
+  // 🔹 التحقق من وجود نتائج محفوظة في الكاش
+  const cached = cache.get(searchKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    console.log(`⚡ تم جلب النتيجة من الكاش: ${searchKey}`);
+    return res.status(200).json({
+      mode: "cached",
+      results: cached.data,
+      total: cached.data.length,
+      cached: true,
+    });
+  }
 
   try {
     const baseUrl = "https://telfonak.com";
@@ -69,7 +87,7 @@ export default async function handler(req, res) {
     console.log(`📱 تم العثور على ${allPhoneLinks.length} نتيجة أولية.`);
 
     // 🟢 الخطوة 5: جلب صفحات كل هاتف بالتوازي (مع حدود لتجنب الضغط)
-    const concurrencyLimit = 10; // عدد الطلبات المتزامنة المسموح بها
+    const concurrencyLimit = 10;
     const chunks = [];
     for (let i = 0; i < allPhoneLinks.length; i += concurrencyLimit) {
       chunks.push(allPhoneLinks.slice(i, i + concurrencyLimit));
@@ -169,13 +187,15 @@ export default async function handler(req, res) {
     }
     const uniqueResults = Array.from(uniqueMap.values());
 
+    // 🧠 تخزين النتيجة في الكاش
+    cache.set(searchKey, { data: uniqueResults, timestamp: Date.now() });
+
     if (uniqueResults.length > 0) {
       return res.status(200).json({
         mode: "list",
         results: uniqueResults,
         total: uniqueResults.length,
-        totalPages: lastPage,
-        pagesFetched: pageUrls.length,
+        cached: false,
       });
     }
 
