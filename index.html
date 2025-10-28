@@ -1003,15 +1003,8 @@ function renderFilteredResults(results, totalMatched = results.length, highlight
       });
     });
 
-// بعد جلب البيانات وتحديث النتائج
-if (totalMatched > 0) {
-  // ✅ عند وجود تطابقات
-  resultInfo.textContent = `عدد النتائج: ${totalAll} | الصفحة ${page} من ${totalPages} | عرض متطابق: ${totalMatched}`;
-} else {
-  // ❌ عند عدم وجود تطابقات (إخفاء كلمة "عرض متطابق")
-  resultInfo.textContent = `عدد النتائج: ${totalAll} | الصفحة ${page} من ${totalPages}`;
-}
-}
+resultInfo.textContent = `عدد النتائج: ${totalAll} | الصفحة ${page} من ${totalPages}`;
+  }
 
   function renderPagination() {
     if (totalPages <= 1) return;
