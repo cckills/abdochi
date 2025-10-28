@@ -9,13 +9,17 @@
 
     <style>
 /* ========== تنسيقات الصفحة (منقحة ومنظمة) ========== */
-
-
-  #brand-conversions {
-  display: none;
+ #brand-conversions {
+    display: none;
+    opacity: 0;
     font-size: 13px;
     text-align: center;
     margin-top: 6px;
+    transition: opacity 0.4s ease;
+  }
+  #brand-conversions.show {
+    display: block;
+    opacity: 1;
   }
   #brand-conversions small {
     margin: 0 4px;
@@ -23,11 +27,10 @@
     padding: 2px 6px;
     border-radius: 6px;
   }
-  #brand-conversions .orig  { background: #e9ecef; color: #000; }
-  #brand-conversions .map1  { background: #d1ecf1; color: #0c5460; }
-  #brand-conversions .map2  { background: #f8d7da; color: #721c24; }
-  #brand-conversions .map3  { background: #d4edda; color: #155724; }
-
+  #brand-conversions .orig { background: #e9ecef; color: #000; }
+  #brand-conversions .map1 { background: #d1ecf1; color: #0c5460; }
+  #brand-conversions .map2 { background: #f8d7da; color: #721c24; }
+  #brand-conversions .map3 { background: #d4edda; color: #155724; }
   
 /* اختيارات عامة */
 select.dropdown.select {
@@ -902,7 +905,20 @@ function convertUsingMap(text, map) {
   return text.split('').map(ch => map[ch] || ch).join('');
 }
 
-/* فلترة فورية مع جميع التحويلات */
+function showConversions(txt, c1, c2, c3) {
+  origEl.textContent = txt;
+  map1El.textContent = c1;
+  map2El.textContent = c2;
+  map3El.textContent = c3;
+  convBox.classList.add("show");
+}
+
+function hideConversions() {
+  convBox.classList.remove("show");
+  setTimeout(() => { convBox.style.display = "none"; }, 400);
+}
+
+/* فلترة فورية مع التحويلات */
 let debounceTimer;
 if (brandSearchInput) {
   brandSearchInput.addEventListener("input", (e) => {
@@ -911,7 +927,7 @@ if (brandSearchInput) {
       const txt = e.target.value.trim().toLowerCase();
 
       if (!txt) {
-        convBox.style.display = "none";
+        hideConversions();
         if (typeof filterResults === "function") filterResults("");
         return;
       }
@@ -920,12 +936,9 @@ if (brandSearchInput) {
       const conv2 = convertUsingMap(txt, keyboardMap2).toLowerCase();
       const conv3 = convertUsingMap(txt, phoneticMap).toLowerCase();
 
-      // 🧭 عرض التحويلات بشكل ملون
+      // 🌈 عرض التحويلات بسلاسة
       convBox.style.display = "block";
-      origEl.textContent = txt;
-      map1El.textContent = conv1;
-      map2El.textContent = conv2;
-      map3El.textContent = conv3;
+      requestAnimationFrame(() => showConversions(txt, conv1, conv2, conv3));
 
       const candidates = [txt, conv1, conv2, conv3].filter(Boolean);
 
@@ -948,7 +961,7 @@ if (brandSearchInput) {
   });
 }
 
-/* زر فلترة مباشر */
+/* زر الفلترة */
 if (brandSearchBtn) {
   brandSearchBtn.addEventListener("click", function() {
     const query = brandSearchInput ? brandSearchInput.value.trim() : "";
@@ -956,11 +969,11 @@ if (brandSearchBtn) {
   });
 }
 
-/* زر مسح الفلترة */
+/* زر المسح */
 if (brandClearBtn) {
   brandClearBtn.addEventListener("click", function() {
     if (brandSearchInput) brandSearchInput.value = "";
-    convBox.style.display = "none";
+    hideConversions();
     if (typeof filterResults === "function") filterResults("");
   });
 }
@@ -975,4 +988,3 @@ function escapeJsArg(s) {
 
   </body>
 </html>
-
