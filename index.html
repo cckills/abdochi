@@ -878,7 +878,6 @@ function filterResults(query) {
 }
 
 
-
 const convBox = document.getElementById("brand-conversions");
 const origEl = document.getElementById("conv-orig");
 const map1El = document.getElementById("conv-map1");
@@ -901,6 +900,15 @@ const phoneticMap = {
   'ق':'q','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y','ء':"'",'ة':'h','ى':'a'
 };
 
+/* تنظيف الإدخال */
+function normalizeArabicInput(text) {
+  return text
+    .replace(/[\s\-\_\.\(\)\[\]0-9]+/g, "")
+    .replace(/[أإآا]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي");
+}
+
 function convertUsingMap(text, map) {
   return text.split('').map(ch => map[ch] || ch).join('');
 }
@@ -918,13 +926,13 @@ function hideConversions() {
   setTimeout(() => { convBox.style.display = "none"; }, 400);
 }
 
-/* فلترة فورية مع التحويلات */
+/* الفلترة */
 let debounceTimer;
 if (brandSearchInput) {
   brandSearchInput.addEventListener("input", (e) => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      const txt = e.target.value.trim().toLowerCase();
+      let txt = e.target.value.trim().toLowerCase();
 
       if (!txt) {
         hideConversions();
@@ -932,15 +940,19 @@ if (brandSearchInput) {
         return;
       }
 
-      const conv1 = convertUsingMap(txt, keyboardMap1).toLowerCase();
-      const conv2 = convertUsingMap(txt, keyboardMap2).toLowerCase();
-      const conv3 = convertUsingMap(txt, phoneticMap).toLowerCase();
+      const cleaned = normalizeArabicInput(txt);
+      const conv1 = convertUsingMap(cleaned, keyboardMap1).toLowerCase();
+      const conv2 = convertUsingMap(cleaned, keyboardMap2).toLowerCase();
+      const conv3 = convertUsingMap(cleaned, phoneticMap).toLowerCase();
 
-      // 🌈 عرض التحويلات بسلاسة
       convBox.style.display = "block";
-      requestAnimationFrame(() => showConversions(txt, conv1, conv2, conv3));
+      requestAnimationFrame(() => showConversions(cleaned, conv1, conv2, conv3));
 
-      const candidates = [txt, conv1, conv2, conv3].filter(Boolean);
+      // 🔍 إذا النص عربي → استخدم conv1 في البحث
+      const arabicPattern = /[\u0600-\u06FF]/;
+      const queryToUse = arabicPattern.test(txt) ? conv1 : txt;
+
+      const candidates = [queryToUse, conv2, conv3].filter(Boolean);
 
       if (typeof filterResults === "function" && Array.isArray(allResults)) {
         const merged = candidates.flatMap(q =>
@@ -955,13 +967,13 @@ if (brandSearchInput) {
         );
         const unique = Array.from(new Set(merged.map(r => r.title)))
           .map(title => merged.find(r => r.title === title));
-        renderFilteredResults(unique, unique.length, txt);
+        renderFilteredResults(unique, unique.length, queryToUse);
       }
     }, 100);
   });
 }
 
-/* زر الفلترة */
+/* الأزرار */
 if (brandSearchBtn) {
   brandSearchBtn.addEventListener("click", function() {
     const query = brandSearchInput ? brandSearchInput.value.trim() : "";
@@ -969,7 +981,6 @@ if (brandSearchBtn) {
   });
 }
 
-/* زر المسح */
 if (brandClearBtn) {
   brandClearBtn.addEventListener("click", function() {
     if (brandSearchInput) brandSearchInput.value = "";
@@ -988,3 +999,4 @@ function escapeJsArg(s) {
 
   </body>
 </html>
+
