@@ -713,6 +713,35 @@ function renderFilteredResults(results, totalMatched = results.length, highlight
 }
 
 
+/* دالة لتوليد عناصر الكروت (مستخدمة من renderFilteredResults) */
+function renderCardsForItems(items, highlightQuery = "") {
+  const makeTitle = (text) => text ?? "";
+  const mark = (text) => text;
+
+  let html = "<div class='row justify-content-start g-3'>";
+  for (const item of items) {
+    const title = makeTitle(item.title);
+    const chipset = item.chipset || 'غير محدد';
+    const model = Array.isArray(item.model) ? item.model.join(', ') : (item.model || '');
+
+    html += `
+      <div class="col-lg-custom d-flex justify-content-center">
+        <div class="card result-item" data-url="${item.link}" data-img="${item.img || ''}">
+          <div class="imgBox">
+            <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${escapeHtml(item.title || '')}">
+          </div>
+          <div class="content text-center">
+            <div class="fw-bold" style="margin-top:110px;font-size:1.2rem;color:#222;">${escapeHtml(title)}</div>
+            <div class="subtitle" style="font-size:1rem;color:#555;margin-top:5px;">${escapeHtml(chipset)}</div>
+            <div class="modelsTitle" style="font-size:0.85rem;color:#666;margin-top:10px;">${escapeHtml(model)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  html += "</div>";
+  return html;
+}
 
 
 /* ========== حدث الإرسال الرئيسي: جلب البيانات ثم العرض ========== */
