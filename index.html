@@ -594,38 +594,47 @@ if (tab === "السعر") {
       </div>`;
   }
 
-  // 🔹 خريطة الدول والأعلام
-  const countryFlags = {
-    "مصر": "🇪🇬",
-    "السعودية": "🇸🇦",
-    "الإمارات": "🇦🇪",
-    "الكويت": "🇰🇼",
-    "قطر": "🇶🇦",
-    "الأردن": "🇯🇴",
-    "العراق": "🇮🇶",
-    "المغرب": "🇲🇦",
-    "تونس": "🇹🇳",
-    "الجزائر": "🇩🇿",
-    "عُمان": "🇴🇲",
-    "البحرين": "🇧🇭",
-    "اليمن": "🇾🇪"
+  // 🔹 خريطة الدول والأعلام والعملة
+  const countryInfo = {
+    "مصر":     { flag: "🇪🇬", currency: "جنيه" },
+    "السعودية": { flag: "🇸🇦", currency: "ريال" },
+    "الإمارات": { flag: "🇦🇪", currency: "درهم" },
+    "الكويت":   { flag: "🇰🇼", currency: "دينار" },
+    "قطر":      { flag: "🇶🇦", currency: "ريال" },
+    "الأردن":   { flag: "🇯🇴", currency: "دينار" },
+    "العراق":   { flag: "🇮🇶", currency: "دينار" },
+    "المغرب":   { flag: "🇲🇦", currency: "درهم" },
+    "تونس":     { flag: "🇹🇳", currency: "دينار" },
+    "الجزائر":  { flag: "🇩🇿", currency: "دينار" },
+    "عُمان":    { flag: "🇴🇲", currency: "ريال" },
+    "البحرين":  { flag: "🇧🇭", currency: "دينار" },
+    "اليمن":    { flag: "🇾🇪", currency: "ريال" }
   };
 
   // 🔹 إنشاء كروت الأسعار
   const cardsHtml = priceItems.map(([key, val]) => {
     // تحديد الدولة بناءً على النص
-    const country = Object.keys(countryFlags).find(c => key.includes(c)) || "دولة غير محددة";
-    const flag = countryFlags[country] || "🌍";
+    const foundCountry = Object.keys(countryInfo).find(c => key.includes(c)) || null;
+    const flag = foundCountry ? countryInfo[foundCountry].flag : "🌍";
+    const countryName = foundCountry || "سعر عام";
 
-    // تنسيق السعر
-    let formattedPrice = val;
-    if (!/[€$£ر.]/.test(formattedPrice)) formattedPrice += " جنيه";
+    // 🔸 تحديد العملة بناءً على الدولة
+    const currency = foundCountry ? countryInfo[foundCountry].currency : "عملة غير محددة";
+
+    // 🔸 تنسيق السعر: إذا لم يحتوي النص على عملة، نضيفها تلقائيًا
+    let formattedPrice = val.trim();
+    if (!/[€$£ر.]|جنيه|ريال|درهم|دينار|Dollar|USD|SAR|AED/i.test(formattedPrice)) {
+      formattedPrice += ` ${currency}`;
+    }
+
+    // 🔸 إزالة النقاط الزائدة أو المسافات
+    formattedPrice = formattedPrice.replace(/\s*\.+$/, "").trim();
 
     return `
       <div class="col-12 col-md-6 col-lg-4 mb-3">
         <div class="card border-success shadow-sm h-100">
           <div class="card-body text-center">
-            <h5 class="card-title fw-bold text-success">${flag} ${escapeHtml(country)}</h5>
+            <h5 class="card-title fw-bold text-success">${flag} ${escapeHtml(countryName)}</h5>
             <p class="card-text fs-5 mt-2 text-dark">${escapeHtml(formattedPrice)}</p>
             <small class="text-muted d-block mt-2">${escapeHtml(key)}</small>
           </div>
