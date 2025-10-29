@@ -582,24 +582,15 @@ async function getDetails(url, phoneImg) {
         `;
       }
 
-     if (tab === "السعر") {
-  // 🔍 البحث عن السعر من بيانات المواصفات
-  const priceKey = Object.keys(data.specs).find(k =>
-    /السعر|price|الأسعار/i.test(k)
-  );
-  const priceVal = priceKey ? data.specs[priceKey] : "غير متوفر";
-
-  // 💰 عرض السعر داخل تبويب السعر فقط
-  return `
-    <div class="tab-pane fade show active" id="content-${i}" role="tabpanel" aria-labelledby="tab-${i}">
-      <div class="card border-success text-center shadow-sm p-4 bg-light">
-        <h4 class="text-success fw-bold mb-3">💰 السعر</h4>
-        <p class="fs-4 text-dark">${priceVal}</p>
-      </div>
-    </div>
-  `;
-}
-
+      if (tab === "السعر") {
+        const priceVal = grouped["السعر"]?.[0]?.val || "غير متوفر";
+        return `<div class="tab-pane fade" id="content-${i}" role="tabpanel">
+          <div class="card border-success text-center shadow-sm p-4 bg-light">
+            <h4 class="text-success fw-bold mb-3">💰 السعر</h4>
+            <p class="fs-4 text-success">${priceVal}</p>
+          </div>
+        </div>`;
+      }
 
       const sectionItems = grouped[tab]?.length
         ? grouped[tab].map(item => `<li class="list-group-item d-flex justify-content-between align-items-center"><strong>${item.key}</strong><span>${item.val}</span></li>`).join("")
