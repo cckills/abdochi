@@ -131,6 +131,20 @@ export default async function handler(req, res) {
 
           const html = await phoneRes.text();
           const $ = cheerio.load(html);
+// 🟢 جلب الأسعار من الصفحة
+let prices = [];
+$(".bs-shortcode-list li, .telfon-price tr").each((_, el) => {
+  const country =
+    $(el).find("strong").text().trim() ||
+    $(el).find("td:first-child").text().trim();
+  const price =
+    $(el).find("span").text().trim() ||
+    $(el).find("td:last-child").text().trim();
+
+  if (country && price) {
+    prices.push({ country, price });
+  }
+});
 
           // 🔹 استخراج المعالج
           let fullChipset =
@@ -170,6 +184,7 @@ export default async function handler(req, res) {
             chipset: shortChipset || "غير محدد",
             model: modelArray.join(", "),
             modelArray,
+       prices, // ← تمت الإضافة هنا
             source: "telfonak.com",
           };
         } catch {
