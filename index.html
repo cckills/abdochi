@@ -583,33 +583,63 @@ async function getDetails(url, phoneImg) {
       }
 
 if (tab === "السعر") {
-  // جلب جميع المفاتيح المتعلقة بالسعر (قد تكون أكثر من واحد)
+  // 🔹 البحث عن جميع المفاتيح التي تحتوي على السعر
   const priceItems = Object.entries(data.specs)
     .filter(([k, v]) => /(السعر|Price|الأسعار)/i.test(k) && v.trim() !== "");
 
-  let priceHtml = "";
-
   if (priceItems.length === 0) {
-    priceHtml = `<p class="text-muted fs-5">❌ لا توجد معلومات عن السعر.</p>`;
-  } else {
-    priceHtml = priceItems
-      .map(([key, val]) => {
-        // تنسيق السعر (إضافة العملة إذا لم تكن موجودة)
-        let formatted = val;
-        if (!/[€$£ر\.]/.test(formatted)) formatted += " جنيه";
-        return `<li class="list-group-item d-flex justify-content-between align-items-center">
-          <strong>${escapeHtml(key)}</strong>
-          <span class="fw-bold text-success">${escapeHtml(formatted)}</span>
-        </li>`;
-      })
-      .join("");
+    return `
+      <div class="tab-pane fade" id="content-${i}" role="tabpanel">
+        <div class="alert alert-warning text-center fs-5">❌ لا توجد معلومات عن الأسعار.</div>
+      </div>`;
   }
+
+  // 🔹 خريطة الدول والأعلام
+  const countryFlags = {
+    "مصر": "🇪🇬",
+    "السعودية": "🇸🇦",
+    "الإمارات": "🇦🇪",
+    "الكويت": "🇰🇼",
+    "قطر": "🇶🇦",
+    "الأردن": "🇯🇴",
+    "العراق": "🇮🇶",
+    "المغرب": "🇲🇦",
+    "تونس": "🇹🇳",
+    "الجزائر": "🇩🇿",
+    "عُمان": "🇴🇲",
+    "البحرين": "🇧🇭",
+    "اليمن": "🇾🇪"
+  };
+
+  // 🔹 إنشاء كروت الأسعار
+  const cardsHtml = priceItems.map(([key, val]) => {
+    // تحديد الدولة بناءً على النص
+    const country = Object.keys(countryFlags).find(c => key.includes(c)) || "دولة غير محددة";
+    const flag = countryFlags[country] || "🌍";
+
+    // تنسيق السعر
+    let formattedPrice = val;
+    if (!/[€$£ر.]/.test(formattedPrice)) formattedPrice += " جنيه";
+
+    return `
+      <div class="col-12 col-md-6 col-lg-4 mb-3">
+        <div class="card border-success shadow-sm h-100">
+          <div class="card-body text-center">
+            <h5 class="card-title fw-bold text-success">${flag} ${escapeHtml(country)}</h5>
+            <p class="card-text fs-5 mt-2 text-dark">${escapeHtml(formattedPrice)}</p>
+            <small class="text-muted d-block mt-2">${escapeHtml(key)}</small>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
 
   return `
     <div class="tab-pane fade" id="content-${i}" role="tabpanel">
-      <div class="card border-success shadow-sm">
-        <div class="card-header bg-success text-white text-center fw-bold fs-5">💰 الأسعار المتوفرة</div>
-        <ul class="list-group list-group-flush">${priceHtml}</ul>
+      <div class="container mt-3">
+        <div class="row justify-content-center">
+          ${cardsHtml}
+        </div>
       </div>
     </div>
   `;
