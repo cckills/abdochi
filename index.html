@@ -8,6 +8,72 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
     <style>
+      /* 🟩 قسم كروت الأسعار */
+.price-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 0 10px;
+}
+
+/* 🟢 الكارت الرئيسي */
+.price-card {
+  background: linear-gradient(145deg, #ffffff, #f7f7f7);
+  border: 2px solid #198754;
+  border-radius: 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  padding: 20px 15px;
+  transition: all 0.25s ease-in-out;
+}
+
+/* ✨ تأثير عند المرور */
+.price-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(25, 135, 84, 0.25);
+  border-color: #0d6efd;
+}
+
+/* 🏳️ الدولة */
+.price-card h5 {
+  font-size: 1.1rem;
+  color: #198754;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* 💰 السعر */
+.price-card p {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 🌈 تخصيص للأرخص سعراً (اختياري لاحقاً) */
+.price-card.lowest {
+  border-color: #ffc107;
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+}
+
+/* 📱 تحسين العرض في الوضع الليلي */
+@media (prefers-color-scheme: dark) {
+  .price-card {
+    background: #1e1e1e;
+    border-color: #2ecc71;
+    color: #f1f1f1;
+  }
+  .price-card h5 {
+    color: #2ecc71;
+  }
+  .price-card p {
+    color: #fff;
+  }
+}
+
 /* ========== تنسيقات الصفحة (منقحة ومنظمة) ========== */
  #brand-conversions {
     display: none;
@@ -608,30 +674,24 @@ if (tab === "السعر") {
     "دولار": { flag: "💵", currency: "دولار" },
   };
 
-  const cardsHtml = prices.map(({ country, price }) => {
-    const info = countryInfo[country] || { flag: "🌍", currency: "" };
-    return `
-      <div class="col-12 col-md-6 col-lg-4 mb-3">
-        <div class="card border-success shadow-sm h-100">
-          <div class="card-body text-center">
-            <h5 class="card-title fw-bold text-success">${info.flag} ${escapeHtml(country)}</h5>
-            <p class="card-text fs-5 mt-2 text-dark">${escapeHtml(price)}</p>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
-
+const cardsHtml = prices.map(({ country, price }) => {
+  const info = countryInfo[country] || { flag: "🌍", currency: "" };
   return `
-    <div class="tab-pane fade" id="content-${i}" role="tabpanel">
-      <div class="container mt-3">
-        <div class="row justify-content-center">
-          ${cardsHtml}
-        </div>
-      </div>
+    <div class="price-card">
+      <h5 class="price-country">${info.flag} ${escapeHtml(country)}</h5>
+      <p class="price-value">${escapeHtml(price)}</p>
     </div>
   `;
-}
+}).join("");
+
+return `
+  <div class="tab-pane fade" id="content-${i}" role="tabpanel">
+    <div class="price-cards-container">
+      ${cardsHtml}
+    </div>
+  </div>
+`;
+      }
 
 
       const sectionItems = grouped[tab]?.length
