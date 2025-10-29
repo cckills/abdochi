@@ -17,6 +17,17 @@ export default async function handler(req, res) {
 
     const html = await response.text();
     const $ = cheerio.load(html);
+// بعد const html = await response.text(); و const $ = cheerio.load(html);
+let prices = [];
+$(".bs-shortcode-list li, .telfon-price tr").each((_, el) => {
+  const country =
+    $(el).find("strong").text().trim() ||
+    $(el).find("td:first-child").text().trim();
+  const price =
+    $(el).find("span").text().trim() ||
+    $(el).find("td:last-child").text().trim();
+  if (country && price) prices.push({ country, price });
+});
 
     const title = $("h1.entry-title").text().trim() || "غير محدد";
     const img =
@@ -64,6 +75,7 @@ export default async function handler(req, res) {
       title,
       img,
       specs,
+        prices, // ← أضفها هنا أيضًا
       source: url,
     });
   } catch (err) {
