@@ -581,92 +581,41 @@ async function getDetails(url, phoneImg) {
           </div>
         `;
       }
-
 if (tab === "السعر") {
-  let rawHtml = data.specs["السعر"] || data.specs["Price"] || "";
+  const prices = data.prices || [];
 
-  if (!rawHtml || rawHtml.trim() === "") {
+  if (!prices.length) {
     return `
       <div class="tab-pane fade" id="content-${i}" role="tabpanel">
         <div class="alert alert-warning text-center fs-5">❌ لا توجد معلومات عن الأسعار.</div>
       </div>`;
   }
 
-  // تنظيف النص من المسافات الزائدة
-  rawHtml = rawHtml.trim();
-
-  // خريطة الدول والأعلام والعملة
   const countryInfo = {
-    "مصر":     { flag: "🇪🇬", currency: "جنيه" },
+    "مصر": { flag: "🇪🇬", currency: "جنيه" },
     "السعودية": { flag: "🇸🇦", currency: "ريال" },
     "الإمارات": { flag: "🇦🇪", currency: "درهم" },
-    "الكويت":   { flag: "🇰🇼", currency: "دينار" },
-    "قطر":      { flag: "🇶🇦", currency: "ريال" },
-    "الأردن":   { flag: "🇯🇴", currency: "دينار" },
-    "العراق":   { flag: "🇮🇶", currency: "دينار" },
-    "المغرب":   { flag: "🇲🇦", currency: "درهم" },
-    "تونس":     { flag: "🇹🇳", currency: "دينار" },
-    "الجزائر":  { flag: "🇩🇿", currency: "دينار" },
-    "عُمان":    { flag: "🇴🇲", currency: "ريال" },
-    "البحرين":  { flag: "🇧🇭", currency: "دينار" },
-    "اليمن":    { flag: "🇾🇪", currency: "ريال" },
-    "الدولار":  { flag: "💵", currency: "دولار" }
+    "الكويت": { flag: "🇰🇼", currency: "دينار" },
+    "قطر": { flag: "🇶🇦", currency: "ريال" },
+    "الأردن": { flag: "🇯🇴", currency: "دينار" },
+    "العراق": { flag: "🇮🇶", currency: "دينار" },
+    "المغرب": { flag: "🇲🇦", currency: "درهم" },
+    "تونس": { flag: "🇹🇳", currency: "دينار" },
+    "الجزائر": { flag: "🇩🇿", currency: "دينار" },
+    "عُمان": { flag: "🇴🇲", currency: "ريال" },
+    "البحرين": { flag: "🇧🇭", currency: "دينار" },
+    "اليمن": { flag: "🇾🇪", currency: "ريال" },
+    "دولار": { flag: "💵", currency: "دولار" },
   };
 
-  // دالة لاستخراج الأسعار من <ul> أو <table>
-  function extractPrices(html) {
-    const prices = [];
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = html;
-
-    // 📌 إذا كان قائمة
-    if (tempDiv.querySelector("ul")) {
-      tempDiv.querySelectorAll("ul li").forEach(li => {
-        const text = li.textContent.trim();
-        const foundCountry = Object.keys(countryInfo).find(c => text.includes(c)) || "عام";
-        prices.push({ country: foundCountry, price: text });
-      });
-    }
-
-    // 📌 إذا كان جدول
-    if (tempDiv.querySelector("table")) {
-      tempDiv.querySelectorAll("table tr").forEach(tr => {
-        const tds = tr.querySelectorAll("td");
-        if (tds.length >= 2) {
-          const key = tds[0].textContent.trim();
-          const val = tds[1].textContent.trim();
-          const foundCountry = Object.keys(countryInfo).find(c => key.includes(c)) || "عام";
-          prices.push({ country: foundCountry, price: val });
-        }
-      });
-    }
-
-    return prices;
-  }
-
-  // استخراج الأسعار
-  const priceList = extractPrices(rawHtml);
-
-  if (priceList.length === 0) {
-    return `
-      <div class="tab-pane fade" id="content-${i}" role="tabpanel">
-        <div class="alert alert-info text-center fs-5">💡 لم يتم التعرف على تنسيق الأسعار.</div>
-      </div>`;
-  }
-
-  // إنشاء بطاقات الأسعار
-  const cardsHtml = priceList.map(({ country, price }) => {
+  const cardsHtml = prices.map(({ country, price }) => {
     const info = countryInfo[country] || { flag: "🌍", currency: "" };
-    let formattedPrice = price;
-    if (!/[€$£ر.]|جنيه|ريال|درهم|دينار|دولار/i.test(formattedPrice))
-      formattedPrice += ` ${info.currency}`;
-
     return `
       <div class="col-12 col-md-6 col-lg-4 mb-3">
         <div class="card border-success shadow-sm h-100">
           <div class="card-body text-center">
             <h5 class="card-title fw-bold text-success">${info.flag} ${escapeHtml(country)}</h5>
-            <p class="card-text fs-5 mt-2 text-dark">${escapeHtml(formattedPrice)}</p>
+            <p class="card-text fs-5 mt-2 text-dark">${escapeHtml(price)}</p>
           </div>
         </div>
       </div>
@@ -683,6 +632,7 @@ if (tab === "السعر") {
     </div>
   `;
 }
+
 
       const sectionItems = grouped[tab]?.length
         ? grouped[tab].map(item => `<li class="list-group-item d-flex justify-content-between align-items-center"><strong>${item.key}</strong><span>${item.val}</span></li>`).join("")
