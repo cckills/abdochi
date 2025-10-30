@@ -358,37 +358,35 @@ body {
   placeholder="" required
   style="flex:1; max-width:230px; height:44px; border-radius:8px; font-size:15px; display:none;">
 
-        <div id="brand-search-box" class="text-center mt-4">
+        <div id="brand-search-box" >
           <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mb-3">
             <select class="dropdown select form-select"
-             style="flex:1; max-width:308px; height:44px; border-radius:8px; font-size:15px;" id="brandDropdown">
+            style="flex: 1; max-width: 540px; height: 44px; border-radius: 8px; font-size: 15px;" id="brandDropdown">
               <option value="" selected disabled>اختر علامة تجارية</option>
               <option value="4">Huawei</option>
               <option value="5">Samsung</option>
               <option value="6">Apple</option>
               <!-- باقي الماركات -->
             </select>
-
             <!-- بحث عن ماركه -->
             <input type="text" id="brand-search" placeholder="🔍 ابحث عن ماركة..."
               class="form-control text-center"
               style="flex:1; max-width:540px; height:44px; border-radius:8px; font-size:15px;">
-
             <!-- إزالة الفلترة -->
              <button id="brand-clear-btn" type="button"
               class="btn btn-secondary px-3 py-2 d-flex align-items-center justify-content-center"
-              style="min-width:219px; border-radius:8px; font-size:14px;">
-              🧹 <span class="ms-1">إزالة الفلترة</span>
+               style="flex: 1; max-width: 540px; height: 44px; border-radius: 8px; font-size: 15px;">
+               <span class="ms-1">إزالة الفلترة  🧹</span>
             </button>
           </div>
 
 
-          <!-- فلترة الموديل -->
+          <!-- فلترة الموديل 
           <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
             <button id="brand-search-btn" type="button"
             class="btn btn-success fw-bold px-4 py-2 d-flex align-items-center justify-content-center"
             style="min-width:170px; border-radius:8px;"> 🧭 <span class="ms-1">فلترة الموديل</span>
-            </button>
+            </button>-->
           </div>
         </div>
       </form>
