@@ -157,72 +157,71 @@ body {
   width: 100%;
   box-sizing: border-box;
 }
+/* 📱 توزيع نتائج البحث */
+#result {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 25px;
+  justify-items: center;
+  align-items: start;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
 
-/* 🪧 كارت تصميم */
+/* 🪧 كارت الهاتف */
 .result-item {
   position: relative;
   width: 100%;
   max-width: 260px;
-  aspect-ratio: 3/4;
-  box-shadow: 0 35px 80px rgba(0, 0, 0, 0.15);
+  aspect-ratio: 3 / 4;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
   background: #fff;
   border-radius: 15px;
   overflow: visible;
   cursor: pointer;
-  transition: transform 0.25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-.result-item:hover { transform: translateY(-5px); }
+.result-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+}
 
 /* 📱 صورة الهاتف */
 .result-item .imgBox {
   position: absolute;
   left: 50%;
-  top: -41px;
+  top: -35px;
   transform: translateX(-50%);
-  width: 60%;
-  height: auto;
+  width: 65%;
   border-radius: 20px;
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.35);
-  overflow: hidden;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
   background: #fff;
+  overflow: hidden;
 }
 .result-item .imgBox img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
 }
 
-/* 📋 محتوى الكارت */
-.result-item .content {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-
-/* 📝 نصوص الكارت */
+/* 📝 النصوص */
 .result-item .fw-bold {
-  margin-top: 110px;
-  font-size: clamp(1rem, 2vw, 1.2rem);
+  margin-top: 100px;
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
   font-weight: 700;
   color: #f30707;
 }
 .result-item .subtitle {
-  font-size: clamp(0.9rem, 1.8vw, 1rem);
-  font-weight: 500;
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
   color: #555;
   margin-top: 5px;
 }
 .result-item .modelsTitle {
   font-size: clamp(0.75rem, 1.6vw, 0.9rem);
   color: #666;
-  line-height: 1.4rem;
+  line-height: 1.3rem;
   margin-top: 10px;
-  padding: 0 10px;
 }
 
 /* 🔘 أزرار داخل البطاقة */
@@ -247,7 +246,51 @@ body {
 @media (max-width: 767px) { .col-lg-custom { flex: 0 0 48%; max-width: 48%; } }
 @media (max-width: 479px) { .col-lg-custom { flex: 0 0 100%; max-width: 100%; } }
 
-/* 💎 بطاقات المواصفات (مودال) */
+
+/* ✅ تجاوب متكامل */
+@media (max-width: 992px) {
+  #result {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 15px;
+  }
+}
+
+@media (max-width: 576px) {
+  .result-item {
+    max-width: 200px;
+    aspect-ratio: 3 / 4;
+  }
+  .result-item .fw-bold { margin-top: 85px; }
+  .result-item .imgBox { width: 75%; top: -25px; }
+}
+
+@media (max-width: 400px) {
+  #result {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+  .result-item {
+    max-width: 100%;
+    aspect-ratio: 3/4;
+  }
+  .result-item .fw-bold {
+    font-size: 1rem;
+    margin-top: 90px;
+  }
+}
+
+/* المودال متجاوب */
+.modal-dialog {
+  margin: 1rem;
+  max-width: 95%;
+}
+@media (min-width: 768px) {
+  .modal-dialog {
+    max-width: 900px;
+  }
+}
+
+/* 💎 بطاقات المواصفات داخل المودال */
 .aps-feature-card {
   background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
   padding: 16px;
@@ -256,6 +299,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
+  width: 100%;
+}
+.aps-feature-info span {
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
+  color: #444;
 }
 
 /* 🧠 أيقونات المودال */
@@ -335,6 +384,23 @@ body {
 
 .page-fade.fade-out { opacity: 0.35; }
 .mb-1 { margin-bottom: .25rem !important; }
+
+.modal-backdrop {
+  opacity: 0 !important;
+  transition: opacity 0.3s ease;
+}
+.modal.show ~ .modal-backdrop {
+  opacity: 0.5 !important;
+}
+.page-fade.fade-out {
+  opacity: 1 !important;
+  pointer-events: auto;
+  transition: opacity 0.3s ease;
+}
+body:not(.modal-open) .page-fade.fade-out {
+  opacity: 0 !important;
+  pointer-events: none;
+}
 
  </style>
 
@@ -1081,6 +1147,13 @@ if (brandClearBtn) {
 function escapeJsArg(s) {
   return String(s || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
+
+document.addEventListener('hidden.bs.modal', function () {
+  document.body.classList.remove('modal-open');
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+  document.querySelectorAll('.page-fade').forEach(el => el.classList.remove('fade-out'));
+});
+
 </script>
 
 <!-- Bootstrap JS (مضمن مرة واحدة في أسفل الصفحة) -->
