@@ -1038,24 +1038,18 @@ document.addEventListener("click", (e) => {
 });
 
 
-
-// ✅ دالة عرض الشعارات داخل القائمة
+// 🧩 تنسيق الشعارات داخل القائمة
 function formatBrand(brand) {
   if (!brand.id) return brand.text;
   const logo = $(brand.element).data('logo');
   if (!logo) return brand.text;
-
-  // fallback في حالة فشل تحميل الشعار
-  return $(`
-    <span style="display:flex;align-items:center;gap:8px;">
-      <img src="${logo}" class="brand-logo" alt="${brand.text}"
-           onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg'">
-      <span>${brand.text}</span>
-    </span>
-  `);
+  return $(`<span style="display:flex;align-items:center;gap:8px;">
+              <img src="${logo}" class="brand-logo" alt="${brand.text}">
+              <span>${brand.text}</span>
+            </span>`);
 }
 
-// ✅ تفعيل Select2 مع الشعارات
+// 🔹 تفعيل Select2 مع الشعارات
 $('#brandDropdown').select2({
   placeholder: "اختر علامة تجارية",
   dir: "rtl",
@@ -1066,15 +1060,17 @@ $('#brandDropdown').select2({
 });
 
 
-if (brandDropdown && input && form) {
-  brandDropdown.addEventListener("change", () => {
-    const selectedBrand = brandDropdown.options[brandDropdown.selectedIndex].text || "";
-    input.value = selectedBrand;
-    input.focus();
-    form.requestSubmit(); // تنفيذ البحث أو الإجراء
-  });
-}
+// ✅ الحدث الصحيح في Select2 عند اختيار ماركة
+$('#brandDropdown').on('select2:select', function (e) {
+  const selectedBrand = e.params.data.text || "";
+  input.value = selectedBrand;
+  input.focus();
 
+  // تنفيذ البحث تلقائيًا
+  if (form && typeof form.requestSubmit === "function") {
+    form.requestSubmit();
+  }
+});
 
 
 /* منع Enter في حقلي البحث الرئيسى والبحث عن الماركة من إعادة تحميل الصفحة */
@@ -1239,6 +1235,7 @@ document.addEventListener('hidden.bs.modal', function () {
 
   </body>
 </html>
+
 
 
 
