@@ -1065,10 +1065,6 @@ $('#brandDropdown').select2({
   escapeMarkup: m => m
 });
 
-// ✅ ربط القائمة مع مربع البحث
-const brandDropdown = document.getElementById("brandDropdown");
-const input = document.getElementById("phoneInput");
-const form = document.getElementById("searchForm");
 
 if (brandDropdown && input && form) {
   brandDropdown.addEventListener("change", () => {
@@ -1243,5 +1239,6 @@ document.addEventListener('hidden.bs.modal', function () {
 
   </body>
 </html>
+
 
 
