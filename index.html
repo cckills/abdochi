@@ -1093,19 +1093,17 @@ function escapeJsArg(s) {
   return String(s || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
 
-
-  // عند تحميل الصفحة: جلب كل البيانات وعرضها
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    // جلب جميع البيانات من API عام (ضع رابط الـ API الصحيح هنا)
-    const res = await fetch('/api/all'); // مثال: API يعيد كل الهواتف
+    const res = await fetch('/api/all'); // رابط الـ API الذي يعيد كل الهواتف
     const data = await res.json();
 
-    if (Array.isArray(data.results)) {
-      allResults = data.results;       // حفظ كل النتائج في المتغير العام
+    if (Array.isArray(data.results) && data.results.length > 0) {
+      allResults = data.results;
       renderFilteredResults(allResults, allResults.length); // عرض الكل مباشرة
     } else {
       resultDiv.innerHTML = `<div class="text-center p-4 text-muted">❌ لا توجد بيانات للعرض.</div>`;
+      resultInfoEl.textContent = "عدد النتائج: 0";
     }
   } catch (err) {
     console.error(err);
@@ -1120,5 +1118,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   </body>
 </html>
+
 
 
