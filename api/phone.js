@@ -7,38 +7,35 @@ const baseUrl = "https://telfonak.com";
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default async function handler(req, res) {
-  const { phone, refresh } = req.query;
+  const { phone } = req.query;
   const searchKey = (phone || "").toLowerCase().trim();
-  const startTime = Date.now();
   const cacheKey = searchKey || "__ALL__";
+  const startTime = Date.now();
 
-  // 🧠 الكاش
-  if (!refresh) {
-    const cached = cache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      console.log(`⚡ من الكاش: ${cacheKey}`);
-      return res.status(200).json({
-        cached: true,
-        total: cached.data.length,
-        results: cached.data,
-        all: !searchKey,
-      });
-    }
+  // ✅ الكاش
+  const cached = cache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    console.log(`⚡ من الكاش: ${cacheKey}`);
+    return res.status(200).json({
+      cached: true,
+      total: cached.data.length,
+      results: cached.data,
+    });
   }
 
-  // 🌍 تحديد الرابط الأساسي
+  // 🧠 تحديد الرابط الأساسي
   const firstUrl = searchKey
     ? `${baseUrl}/?s=${encodeURIComponent(searchKey)}`
     : baseUrl;
 
   console.log(
     `🚀 بدء جلب ${
-      searchKey ? `نتائج "${searchKey}"` : "كل الهواتف"
-    } من جميع صفحات الموقع...`
+      searchKey ? `نتائج "${searchKey}"` : "كل الهواتف من الموقع بالكامل"
+    } ...`
   );
 
   try {
-    // 🟢 جلب الصفحة الأولى لمعرفة عدد الصفحات
+    // 🟢 جلب الصفحة الأولى لتحديد عدد الصفحات الكلي
     const firstRes = await fetch(firstUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
@@ -52,11 +49,11 @@ export default async function handler(req, res) {
       .map((_, el) => parseInt($(el).text().trim()))
       .get()
       .filter((n) => !isNaN(n));
+
     const totalPages = pagination.length ? Math.max(...pagination) : 1;
+    console.log(`📄 عدد الصفحات الكلي: ${totalPages}`);
 
-    console.log(`📄 عدد الصفحات: ${totalPages}`);
-
-    // 🟣 إنشاء روابط جميع الصفحات
+    // 🌀 إنشاء جميع الروابط
     const allPageUrls = Array.from({ length: totalPages }, (_, i) =>
       i === 0
         ? firstUrl
@@ -95,22 +92,21 @@ export default async function handler(req, res) {
       );
 
       for (const result of results) {
-        if (result.status === "fulfilled" && Array.isArray(result.value)) {
+        if (result.status === "fulfilled" && Array.isArray(result.value))
           allPhones.push(...result.value);
-        }
       }
 
-      await delay(400);
+      await delay(300);
     }
 
-    // 🧩 إزالة التكرار
+    // 🧩 إزالة التكرارات
     const uniquePhones = Array.from(
       new Map(allPhones.map((p) => [p.link, p])).values()
     );
 
-    console.log(`📱 بعد إزالة التكرار: ${uniquePhones.length} هاتف`);
+    console.log(`📱 عدد الهواتف الفريدة: ${uniquePhones.length}`);
 
-    // 🔍 جلب تفاصيل كل هاتف
+    // 🧠 جلب التفاصيل
     const details = [];
     const detailChunks = [];
     for (let i = 0; i < uniquePhones.length; i += CONCURRENCY_LIMIT) {
@@ -131,7 +127,7 @@ export default async function handler(req, res) {
             const html = await phoneRes.text();
             const $ = cheerio.load(html);
 
-            // السعر
+            // 🔹 السعر
             let prices = [];
             $(".bs-shortcode-list li, .telfon-price tr").each((_, el) => {
               const country =
@@ -143,7 +139,7 @@ export default async function handler(req, res) {
               if (country && price) prices.push({ country, price });
             });
 
-            // المعالج
+            // 🔹 المعالج
             let fullChipset =
               $("tr:contains('المعالج') td.aps-attr-value span").text().trim() ||
               $("tr:contains('المعالج') td.aps-attr-value").text().trim() ||
@@ -163,7 +159,7 @@ export default async function handler(req, res) {
               shortChipset = match ? match[0].trim() : fullChipset;
             }
 
-            // الموديل
+            // 🔹 الموديل
             const modelRow =
               $("tr:contains('الموديل / الطراز') td.aps-attr-value span").text().trim() ||
               $("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
@@ -195,14 +191,14 @@ export default async function handler(req, res) {
           details.push(result.value);
       }
 
-      await delay(400);
+      await delay(300);
     }
 
-    // 💾 تخزين النتيجة في الكاش
+    // 🧠 تخزين في الكاش
     cache.set(cacheKey, { data: details, timestamp: Date.now() });
 
     const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`✅ تم جلب ${details.length} هاتفًا في ${timeTaken} ثانية`);
+    console.log(`✅ تم جلب ${details.length} هاتف في ${timeTaken} ثانية`);
 
     return res.status(200).json({
       total: details.length,
@@ -210,10 +206,9 @@ export default async function handler(req, res) {
       timeTaken,
       results: details,
       cached: false,
-      all: !searchKey,
     });
   } catch (err) {
     console.error("❌ خطأ أثناء الجلب:", err);
-    return res.status(500).json({ error: "حدث خطأ أثناء جلب الهواتف." });
+    return res.status(500).json({ error: "حدث خطأ أثناء الجلب الكامل." });
   }
 }
