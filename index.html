@@ -393,7 +393,7 @@ body {
 
 
 
-       <div id="brand-search-box">
+        <div id="brand-search-box">
   <div class="d-flex flex-wrap gap-2 justify-content-center align-items-center">
     <select id="brandDropdown" class="form-select" style="flex:1; max-width:300px;">
       <option value="" selected disabled>اختر علامة تجارية</option>
@@ -416,7 +416,6 @@ body {
       <option data-logo="https://logo.clearbit.com/google.com">Google Pixel</option>
       <option data-logo="https://logo.clearbit.com/blackview.com">Blackview</option>
     </select>
-
             <!-- بحث عن ماركه -->
             <input type="text" id="brand-search" placeholder="🔍 ابحث عن ماركة..."
               class="form-control text-center"
@@ -972,18 +971,40 @@ document.addEventListener("click", (e) => {
   document.addEventListener("click", closeTooltip);
 });
 
-
-
-/* ربط قائمة الماركات (<select>) بمربع البحث */
-if (brandDropdown) {
-  brandDropdown.addEventListener("change", () => {
-    const selectedBrand = brandDropdown.options[brandDropdown.selectedIndex].text || "";
-    input.value = selectedBrand;
-    input.focus();
-    // تنفيذ البحث فور الاختيار
-    form.requestSubmit();
-  });
+// دالة عرض الشعار مع الاسم
+function formatBrand(brand) {
+  if (!brand.id) return brand.text;
+  const logo = $(brand.element).data('logo');
+  if (!logo) return brand.text;
+  return $(`<span style="display:flex;align-items:center;gap:8px;">
+              <img src="${logo}" class="brand-logo" alt="${brand.text}">
+              <span>${brand.text}</span>
+            </span>`);
 }
+
+// تفعيل Select2 مع الشعارات
+$('#brandDropdown').select2({
+  placeholder: "اختر علامة تجارية",
+  dir: "rtl",
+  width: '100%',
+  templateResult: formatBrand,
+  templateSelection: formatBrand,
+  escapeMarkup: m => m
+});
+
+// ✅ عند اختيار الماركة انسخها مباشرة إلى input#phoneInput ونفذ البحث
+$('#brandDropdown').on('select2:select', function (e) {
+  const selectedText = e.params.data.text;
+  const input = document.getElementById("phoneInput");
+  const form = input.closest("form"); // إذا كان الفورم موجود
+
+  input.value = selectedText;
+  input.focus();
+
+  if (form) {
+    form.requestSubmit(); // تنفيذ البحث فور الاختيار
+  }
+});
 
 /* منع Enter في حقلي البحث الرئيسى والبحث عن الماركة من إعادة تحميل الصفحة */
 document.addEventListener("keydown", function (e) {
@@ -1134,33 +1155,7 @@ function escapeJsArg(s) {
   return String(s || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
 
-// دالة عرض الشعار مع الاسم
-function formatBrand(brand) {
-  if (!brand.id) return brand.text;
-  const logo = $(brand.element).data('logo');
-  if (!logo) return brand.text;
-  return $(`<span style="display:flex;align-items:center;gap:8px;">
-              <img src="${logo}" class="brand-logo" alt="${brand.text}">
-              <span>${brand.text}</span>
-            </span>`);
-}
 
-// تفعيل Select2 مع الشعارات
-$('#brandDropdown').select2({
-  placeholder: "اختر علامة تجارية",
-  dir: "rtl",
-  width: '100%',
-  templateResult: formatBrand,
-  templateSelection: formatBrand,
-  escapeMarkup: m => m
-});
-
-// ✅ عند اختيار الماركة انسخها مباشرة إلى input#phoneInput
-$('#brandDropdown').on('select2:select', function (e) {
-  const selectedText = e.params.data.text;
-  document.getElementById("phoneInput").value = selectedText;
-  document.getElementById("phoneInput").focus();
-});
 </script>
 
 <!-- Bootstrap JS (مضمن مرة واحدة في أسفل الصفحة) -->
