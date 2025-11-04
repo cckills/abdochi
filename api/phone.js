@@ -79,8 +79,12 @@ export default async function handler(req, res) {
     const allPhones = [];
 
     // 🧩 الخطوة 2: جلب جميع صفحات نتائج كل ماركة
+    let brandCounter = 0;
     for (const searchUrl of allSearchUrls) {
-      console.log(`🔍 البحث عن: ${searchUrl}`);
+      brandCounter++;
+      const brandName = decodeURIComponent(searchUrl.split("=")[1]);
+      console.log(`\n📡 (${brandCounter}/${brands.length}) جمع هواتف: ${brandName}`);
+
       const resSearch = await fetch(searchUrl, {
         headers: { "User-Agent": "Mozilla/5.0" },
       });
@@ -95,16 +99,12 @@ export default async function handler(req, res) {
         .filter((n) => !isNaN(n));
       const totalPages = pagination.length ? Math.max(...pagination) : 1;
 
-      // إنشاء روابط كل الصفحات
       const pageUrls = Array.from({ length: totalPages }, (_, i) =>
         i === 0
           ? searchUrl
-          : `${baseUrl}/page/${i + 1}/?s=${encodeURIComponent(
-              searchUrl.split("=")[1]
-            )}`
+          : `${baseUrl}/page/${i + 1}/?s=${encodeURIComponent(brandName)}`
       );
 
-      // تحميل كل الصفحات
       for (let i = 0; i < pageUrls.length; i += CONCURRENCY_LIMIT) {
         const chunk = pageUrls.slice(i, i + CONCURRENCY_LIMIT);
         const results = await Promise.allSettled(
@@ -126,7 +126,6 @@ export default async function handler(req, res) {
               if (link && title) phones.push({ title, link, img });
             });
 
-            console.log(`📄 ${url} ➜ ${phones.length} هواتف`);
             return phones;
           })
         );
@@ -136,7 +135,9 @@ export default async function handler(req, res) {
             allPhones.push(...result.value);
         }
 
-        await delay(300);
+        const progress = Math.round((brandCounter / brands.length) * 100);
+        console.log(`📊 تقدم عام في جمع الهواتف: ${progress}%`);
+        await delay(200);
       }
     }
 
@@ -154,7 +155,6 @@ export default async function handler(req, res) {
     }
 
     let processed = 0;
-
     for (const batch of detailChunks) {
       const batchResults = await Promise.allSettled(
         batch.map(async ({ link, title, img }) => {
@@ -208,7 +208,10 @@ export default async function handler(req, res) {
             const modelArray = modelRow ? modelRow.split(",").map((m) => m.trim()) : [];
 
             processed++;
-            console.log(`📦 (${processed}/${uniquePhones.length}) ${title}`);
+            const percent = Math.round((processed / uniquePhones.length) * 100);
+            if (processed % 5 === 0 || processed === uniquePhones.length) {
+              console.log(`⚙️ تقدم جلب التفاصيل: ${percent}% (${processed}/${uniquePhones.length})`);
+            }
 
             return {
               title,
@@ -231,7 +234,7 @@ export default async function handler(req, res) {
           details.push(result.value);
       }
 
-      await delay(300);
+      await delay(200);
     }
 
     // 🧠 حفظ الكاش
