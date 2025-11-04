@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 
 const cache = new Map();
-const CACHE_TTL = 1000 * 60 * 60; // ساعة
+const CACHE_TTL = 1000 * 60 * 60; // ساعة واحدة
 const CONCURRENCY_LIMIT = 15; // عدد الطلبات المتوازية
 const baseUrl = "https://telfonak.com";
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -11,12 +11,25 @@ export default async function handler(req, res) {
   const searchKey = (phone || "").toLowerCase().trim();
   const startTime = Date.now();
 
-  // ✅ في حالة عدم وجود كلمة بحث — جلب كل الهواتف مع التفاصيل
+  // 🧠 تحقق من الكاش أولًا (سواء وضع الكل أو البحث)
+  const cacheKey = searchKey || "__ALL__";
+  const cached = cache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    console.log(`⚡ من الكاش: ${cacheKey}`);
+    return res.status(200).json({
+      cached: true,
+      total: cached.data.length,
+      results: cached.data,
+      all: !searchKey,
+    });
+  }
+
+  // 🌐 في حالة عدم وجود كلمة بحث — جلب جميع الهواتف من كل الصفحات
   if (!searchKey) {
-    console.log("🌐 لا يوجد استعلام — سيتم جلب جميع الهواتف مع التفاصيل...");
+    console.log("🌍 لا يوجد استعلام — سيتم جلب جميع الهواتف مع التفاصيل...");
 
     try {
-      // 1️⃣ جلب الصفحة الرئيسية لتحديد عدد الصفحات
+      // 1️⃣ جلب الصفحة الأولى لتحديد عدد الصفحات
       const homeRes = await fetch(baseUrl, {
         headers: { "User-Agent": "Mozilla/5.0" },
       });
@@ -40,7 +53,7 @@ export default async function handler(req, res) {
 
       const allPhones = [];
 
-      // 3️⃣ جلب كل الصفحات وجمع روابط الهواتف
+      // 3️⃣ جلب روابط الهواتف من كل الصفحات
       for (let i = 0; i < pageUrls.length; i += CONCURRENCY_LIMIT) {
         const chunk = pageUrls.slice(i, i + CONCURRENCY_LIMIT);
         const results = await Promise.allSettled(
@@ -73,19 +86,18 @@ export default async function handler(req, res) {
           }
         }
 
-        await delay(400); // تأخير بسيط بين الدُفعات
+        await delay(400); // تأخير بسيط بين الدُفعات لتجنب الحظر
       }
 
-      console.log(`📱 إجمالي الهواتف قبل التنقية: ${allPhones.length}`);
+      console.log(`📱 إجمالي الهواتف قبل إزالة التكرار: ${allPhones.length}`);
 
       // 4️⃣ إزالة التكرار
       const uniquePhones = Array.from(
         new Map(allPhones.map((p) => [p.link, p])).values()
       );
-
       console.log(`🧩 بعد إزالة التكرار: ${uniquePhones.length}`);
 
-      // 5️⃣ جلب تفاصيل الهواتف بالتوازي
+      // 5️⃣ جلب تفاصيل كل هاتف
       const details = [];
       const detailChunks = [];
       for (let i = 0; i < uniquePhones.length; i += CONCURRENCY_LIMIT) {
@@ -106,7 +118,7 @@ export default async function handler(req, res) {
               const html = await phoneRes.text();
               const $ = cheerio.load(html);
 
-              // 🟢 جلب الأسعار
+              // 🟢 الأسعار
               let prices = [];
               $(".bs-shortcode-list li, .telfon-price tr").each((_, el) => {
                 const country =
@@ -173,14 +185,18 @@ export default async function handler(req, res) {
         await delay(400);
       }
 
+      // 6️⃣ تخزين في الكاش
+      cache.set(cacheKey, { data: details, timestamp: Date.now() });
+
       const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
-      console.log(`✅ تم جلب ${details.length} هاتفًا مع التفاصيل في ${timeTaken} ثانية`);
+      console.log(`✅ تم جلب ${details.length} هاتفًا في ${timeTaken} ثانية`);
 
       return res.status(200).json({
         total: details.length,
         timeTaken,
         results: details,
         all: true,
+        cached: false,
       });
     } catch (err) {
       console.error("❌ خطأ أثناء جلب جميع الهواتف:", err);
@@ -188,17 +204,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 🔎 في حالة وجود كلمة بحث — استخدم الكود العادي
-  const cached = cache.get(searchKey);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    console.log(`⚡ من الكاش: ${searchKey}`);
-    return res.status(200).json({
-      cached: true,
-      total: cached.data.length,
-      results: cached.data,
-    });
-  }
-
+  // 🔎 في حالة وجود كلمة بحث — الكود الأصلي (البحث)
   console.log(`🚀 بدء البحث عن "${searchKey}" في telfonak.com`);
   const firstUrl = `${baseUrl}/?s=${encodeURIComponent(searchKey)}`;
   const firstRes = await fetch(firstUrl, {
@@ -216,8 +222,6 @@ export default async function handler(req, res) {
     .get()
     .filter((n) => !isNaN(n));
   const totalPages = pagination.length ? Math.max(...pagination) : 1;
-
-  console.log(`📄 عدد الصفحات الكلي: ${totalPages}`);
 
   const allPageUrls = Array.from({ length: totalPages }, (_, i) =>
     i === 0
@@ -246,7 +250,6 @@ export default async function handler(req, res) {
               $(el).find("img").attr("src");
             if (link && title) results.push({ link, title, img });
           });
-          console.log(`📃 صفحة: ${url} ➜ ${results.length} نتيجة`);
           return results;
         } catch {
           return [];
@@ -265,7 +268,7 @@ export default async function handler(req, res) {
     new Map(allPhones.map((p) => [p.link, p])).values()
   );
 
-  cache.set(searchKey, { data: uniquePhones, timestamp: Date.now() });
+  cache.set(cacheKey, { data: uniquePhones, timestamp: Date.now() });
   const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
   return res.status(200).json({
     total: uniquePhones.length,
