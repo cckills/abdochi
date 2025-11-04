@@ -1,341 +1,1102 @@
-import * as cheerio from "cheerio";
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>بحث عن الهواتف</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Font Awesome CDN (إن رغبت باستعمال أيقونات إضافية لاحقًا) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-const cache = new Map();
-const CACHE_TTL = 1000 * 60 * 60; // ساعة واحدة
-const CONCURRENCY_LIMIT = 15;
-const baseUrl = "https://telfonak.com";
-const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+    <style>
+      /* 🟩 قسم كروت الأسعار */
+.price-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 0 10px;
+}
 
-export default async function handler(req, res) {
-  const { phone } = req.query;
-  const searchKey = (phone || "").toLowerCase().trim();
-  const cacheKey = searchKey || "__ALL__";
-  const startTime = Date.now();
+/* 🟢 الكارت الرئيسي */
+.price-card {
+  background: linear-gradient(145deg, #ffffff, #f7f7f7);
+  border: 2px solid #198754;
+  border-radius: 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  padding: 20px 15px;
+  transition: all 0.25s ease-in-out;
+}
 
-  // ✅ تحقق من الكاش
-  const cached = cache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    console.log(`⚡ من الكاش: ${cacheKey}`);
-    return res.status(200).json({
-      cached: true,
-      total: cached.data.length,
-      results: cached.data,
-    });
+/* ✨ تأثير عند المرور */
+.price-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(25, 135, 84, 0.25);
+  border-color: #0d6efd;
+}
+
+/* 🏳️ الدولة */
+.price-card h5 {
+  font-size: 1.1rem;
+  color: #198754;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* 💰 السعر */
+.price-card p {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 🌈 تخصيص للأرخص سعراً (اختياري لاحقاً) */
+.price-card.lowest {
+  border-color: #ffc107;
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+}
+
+/* 📱 تحسين العرض في الوضع الليلي */
+@media (prefers-color-scheme: dark) {
+  .price-card {
+    background: #1e1e1e;
+    border-color: #2ecc71;
+    color: #f1f1f1;
+  }
+  .price-card h5 {
+    color: #2ecc71;
+  }
+  .price-card p {
+    color: #fff;
+  }
+}
+
+/* ========== تنسيقات الصفحة (منقحة ومنظمة) ========== */
+ #brand-conversions {
+    display: none;
+    opacity: 0;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 6px;
+    transition: opacity 0.4s ease;
+  }
+  #brand-conversions.show {
+    display: block;
+    opacity: 1;
+  }
+  #brand-conversions small {
+    margin: 0 4px;
+    font-family: monospace;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+  #brand-conversions .orig { background: #e9ecef; color: #000; }
+  #brand-conversions .map1 { background: #d1ecf1; color: #0c5460; }
+  #brand-conversions .map2 { background: #f8d7da; color: #721c24; }
+  #brand-conversions .map3 { background: #d4edda; color: #155724; }
+  
+/* اختيارات عامة */
+select.dropdown.select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  background-color: #f13ebc;
+  color: rgb(123, 238, 128);
+  width: 250px;
+  font-size: 20px;
+  outline: none;
+  /* ملاحظة: تم حذف border مزدوج بعد التنظيف */
+}
+
+/* الخط والخلفية */
+body {
+  background: #f7f8fb;
+  font-family: Tahoma, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #222;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* صندوق البحث */
+.search-modal-box {
+  max-width: 720px;
+  margin: 48px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 22px rgba(13, 110, 253, 0.06);
+  padding: 26px;
+}
+
+/* حقل البحث */
+.search-field {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #e6e9ee;
+  border-radius: 12px;
+  font-size: 16px;
+  transition: box-shadow .15s, border-color .15s;
+}
+.search-field:focus {
+  outline: none;
+  border-color: #bcd7ff;
+  box-shadow: 0 6px 18px rgba(13,110,253,0.06);
+}
+
+/* توزيع نتائج البحث في شبكة */
+#result {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 25px;
+  justify-items: center;
+  align-items: start;
+  padding: 30px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* كارت تصميم */
+.result-item {
+  position: relative;
+  width: 250px;
+  height: 320px;
+  box-shadow: 0 35px 80px rgba(0, 0, 0, 0.15);
+  background: #fff;
+  border-radius: 15px;
+  overflow: visible;
+  cursor: pointer;
+  transition: transform 0.25s ease;
+}
+.result-item:hover {
+  transform: translateY(-5px);
+}
+
+/* صورة الهاتف */
+.result-item .imgBox {
+  position: absolute;
+  left: 50%;
+  top: -41px;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 174px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+.result-item .imgBox img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* محتوى الكارت */
+.result-item .content {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* نصوص الكارت */
+.result-item .fw-bold {
+  margin-top: 110px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f30707;
+}
+.result-item .subtitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #555;
+  margin-top: 5px;
+}
+.result-item .modelsTitle {
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.4rem;
+  margin-top: 10px;
+  padding: 0 10px;
+}
+
+/* أزرار داخل البطاقة */
+.chipset-btn,
+.model-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  direction: ltr;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  border-radius: 8px;
+}
+.chipset-btn { border-color: rgba(13,110,253,0.15); color: #0d6efd; }
+.model-btn { border-color: rgba(25,135,84,0.12); color: #198754; }
+
+/* توزيع الأعمدة */
+.col-lg-custom { flex: 0 0 20%; max-width: 20%; }
+@media (max-width: 1199px) { .col-lg-custom { flex: 0 0 33.33%; max-width: 33.33%; } }
+@media (max-width: 767px) { .col-lg-custom { flex: 0 0 48%; max-width: 48%; } }
+@media (max-width: 479px) { .col-lg-custom { flex: 0 0 100%; max-width: 100%; } }
+
+/* بطاقات المواصفات (مودال) */
+.aps-feature-card {
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(12, 28, 55, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* أيقونات المودال */
+.aps-list-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 10px;
+  color: #fff;
+}
+.aps-icon-mobile { background:#0d6efd; }
+.aps-icon-mobile::before { content:"📱"; }
+.aps-icon-cpu { background:#198754; }
+.aps-icon-cpu::before { content:"🧠"; }
+.aps-icon-camera { background:#fd7e14; }
+.aps-icon-camera::before { content:"📸"; }
+.aps-icon-hdd { background:#6f42c1; }
+.aps-icon-hdd::before { content:"💾"; }
+.aps-icon-code { background:#20c997; }
+.aps-icon-code::before { content:"⚙️"; }
+.aps-icon-battery { background:#ffc107; color:#000; }
+.aps-icon-battery::before { content:"🔋"; }
+
+/* تبويبات المودال */
+.nav-tabs { overflow-x:auto; white-space:nowrap; flex-wrap:nowrap !important; }
+.nav-tabs .nav-link { font-weight:600; color:#0d6efd; border-radius:12px 12px 0 0; margin:2px; }
+.nav-tabs .nav-link.active { background:#0d6efd; color:#fff; }
+
+.tab-content ul li {
+  border-bottom: 1px solid #eee;
+  padding: 6px 0;
+}
+
+/* تحسين العرض على الشاشات الصغيرة */
+@media (max-width: 600px) {
+  .card {
+    width: 200px;
+    height: 280px;
   }
 
-  console.log(
-    `🚀 بدء جمع ${
-      searchKey ? `نتائج "${searchKey}"` : "كل الهواتف من الموقع بالكامل"
-    } ...`
-  );
+  .imgBox {
+    width: 120px;
+    height: 140px;
+    top: -30px;
+  }
+
+  .fw-bold {
+    font-size: 1rem;
+    margin-top: 90px;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .modelsTitle {
+    font-size: 0.75rem;
+    line-height: 1.2rem;
+  }
+}
+
+/* مسافة بسيطة */
+.mb-1 { margin-bottom: .25rem !important; }
+
+/* أزرار البحث ومسح */
+#brand-search-btn, #clearHistoryBtn {
+  width: 100%;
+  font-size: 1rem;
+  padding: 10px;
+}
+
+.page-fade.fade-out { opacity: 0.35; }
+
+/* لم يتم تعديل ديفولات bootstrap .d-flex، لكن إن أردت استبداله لاحقًا استخدم فئة خاصة */
+.d-flex { display: flex !important; flex-direction: row; align-items: flex-end; }
+
+/* حركات المودال */
+.modal.fade .modal-dialog {
+  transition: transform .25s ease-out;
+  transform: translateY(-12px);
+}
+.modal.show .modal-dialog {
+  transform: translateY(0);
+}
+    </style>
+  </head>
+  <body>
+<div class="container my-4">
+  <!-- بطاقة البحث -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <h5 class="text-center mb-3 fw-bold text-primary">🔍 بحث عن الهواتف</h5>
+
+      <form id="searchForm" class="text-center" onsubmit="return false;">
+        <p class="message mb-3"> اختر الموديل سيتم جلب الموديل تلقائى  </p>
+<div id="brand-conversions">
+  <small class="orig" id="conv-orig"></small>
+  <small class="map1" id="conv-map1"></small>
+  <small class="map2" id="conv-map2"></small>
+  <small class="map3" id="conv-map3"></small>
+</div>
+<input type="search" class="form-control text-center" id="phoneInput" name="s"
+  placeholder="" required
+  style="flex:1; max-width:230px; height:44px; border-radius:8px; font-size:15px; display:none;">
+
+        <div id="brand-search-box" class="text-center mt-4">
+          <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mb-3">
+            <select class="dropdown select form-select"
+             style="flex:1; max-width:308px; height:44px; border-radius:8px; font-size:15px;" id="brandDropdown">
+              <option value="" selected disabled>اختر علامة تجارية</option>
+              <option value="4">Huawei</option>
+              <option value="5">Samsung</option>
+              <option value="6">Apple</option>
+              <!-- باقي الماركات -->
+            </select>
+
+            <!-- بحث عن ماركه -->
+            <input type="text" id="brand-search" placeholder="🔍 ابحث عن ماركة..."
+              class="form-control text-center"
+              style="flex:1; max-width:540px; height:44px; border-radius:8px; font-size:15px;">
+
+            <!-- إزالة الفلترة -->
+             <button id="brand-clear-btn" type="button"
+              class="btn btn-secondary px-3 py-2 d-flex align-items-center justify-content-center"
+              style="min-width:361px; border-radius:8px; font-size:14px;">
+              🧹 <span class="ms-1">إزالة الفلترة</span>
+            </button>
+          </div>
+
+
+          <!-- فلترة الموديل -->
+          <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
+            <button id="brand-search-btn" type="button"
+            class="btn btn-success fw-bold px-4 py-2 d-flex align-items-center justify-content-center"
+            style="min-width:170px; border-radius:8px;"> 🧭 <span class="ms-1">فلترة الموديل</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- نتائج البحث -->
+<div class="container my-4">
+  <div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body">
+      <h5 class="text-center mb-4 text-primary fw-bold">📱 نتائج البحث</h5>
+      <p id="result-info" style="text-align:center;margin-top:10px;font-weight:bold;color:#222;"></p>
+      <div id="result" class="row g-3 justify-content-start"></div>
+      <div id="pagination" class="text-center my-3"></div>
+    </div>
+  </div>
+</div>
+
+<!-- مودال عرض المواصفات -->
+<div class="modal fade" id="specsModal" tabindex="-1" aria-labelledby="specsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content shadow-lg rounded-4">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalTitle">تفاصيل الهاتف</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+      </div>
+      <div class="modal-body" id="specsModalBody">
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-3 text-muted">جاري التحميل...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- كل السكربتات في ملف واحد داخل الصفحة -->
+<script>
+/* =================== JavaScript منقح ومنظم =================== */
+
+/* عناصر رئيسية */
+const form = document.getElementById("searchForm");
+const input = document.getElementById("phoneInput");
+const resultDiv = document.getElementById("result");
+const resultInfoEl = document.getElementById("result-info");
+const paginationEl = document.getElementById("pagination");
+const brandSearchInput = document.getElementById("brand-search");
+const brandClearBtn = document.getElementById("brand-clear-btn");
+const brandSearchBtn = document.getElementById("brand-search-btn");
+const brandDropdown = document.getElementById("brandDropdown");
+const specsModalEl = document.getElementById("specsModal");
+
+/* متغير لتخزين جميع النتائج */
+let allResults = [];
+
+/* دالة جلب التفاصيل وتهيئة مودال المواصفات (كما في كودك الأصلي) */
+async function getDetails(url, phoneImg) {
+  const modalBody = document.getElementById("specsModalBody");
+  modalBody.innerHTML = `<div class='alert alert-info text-center'>📱 جاري جلب المواصفات...</div>`;
 
   try {
-    // 🟢 الخطوة 1: استخراج الماركات من الصفحة الرئيسية
-    const mainRes = await fetch(baseUrl, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
-    const mainHtml = await mainRes.text();
-    
+    const res = await fetch(`/api/details?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
 
-    // نحاول استخراج روابط الماركات (إن وُجدت)
-    let brands = [];
-    $("a").each((_, el) => {
-      const href = $(el).attr("href") || "";
-      if (href.includes("/brand/") || href.includes("/category/")) {
-        const name = $(el).text().trim();
-        if (name && !brands.includes(name.toLowerCase())) brands.push(name.toLowerCase());
-      }
-    });
-
-    // قائمة احتياطية في حال لم يُعثر على ماركات بالموقع
-    if (brands.length === 0) {
-      brands = [
-        "samsung",
-        "apple",
-        "xiaomi",
-        "oppo",
-        "huawei",
-        "realme",
-        "infinix",
-        "vivo",
-        "honor",
-        "tecno",
-        "nokia",
-        "oneplus",
-        "google",
-        "lenovo",
-        "sony",
-      ];
-      console.log(`⚙️ لم يتم العثور على ماركات في الموقع — استخدام القائمة الاحتياطية (${brands.length})`);
-    } else {
-      console.log(`✅ تم العثور على ${brands.length} ماركات من الموقع`);
+    if (data.error) {
+      modalBody.innerHTML = `<div class='alert alert-danger text-center'>❌ ${data.error}</div>`;
+      return;
     }
 
-    // 🌀 الروابط التي سيتم جلبها
-    const allSearchUrls = brands.map(
-      (b) => `${baseUrl}/?s=${encodeURIComponent(b)}`
-    );
+    if (!data.specs || Object.keys(data.specs).length === 0) {
+      modalBody.innerHTML = `<div class='alert alert-warning text-center'>⚠️ لا توجد بيانات للمواصفات.</div>`;
+      return;
+    }
 
-    const allPhones = [];
+    const sections = {
+      "نظرة عامة": ["الإصدار", "الماركة", "الاسم", "النوع", "الخامة"],
+      السعر: ["السعر", "Price", "الأسعار"],
+      النظام: ["نظام التشغيل", "الواجهة", "الإصدار"],
+      الشاشة: ["الشاشة", "النوع", "الدقة", "السطوع", "معدل التحديث"],
+      الذاكرة: ["الذاكرة", "التخزين", "SD", "الرام"],
+      الأبعاد: ["الأبعاد", "الوزن", "الحجم"],
+      الكاميرا: ["الكاميرا", "الخلفية", "الأمامية", "الفيديو"],
+      الصوت: ["الصوت", "سماعات", "جاك"],
+      أخرى: [],
+    };
 
-    // 🧩 الخطوة 2: جلب جميع صفحات نتائج كل ماركة
-    for (const searchUrl of allSearchUrls) {
-      console.log(`🔍 البحث عن: ${searchUrl}`);
-      const resSearch = await fetch(searchUrl, {
-        headers: { "User-Agent": "Mozilla/5.0" },
+    const icons = {
+      "نظرة عامة": "📋",
+      السعر: "💰",
+      النظام: "⚙️",
+      الشاشة: "📱",
+      الذاكرة: "💾",
+      الأبعاد: "📏",
+      الكاميرا: "📸",
+      البطارية: "🔋",
+      الصوت: "🔈",
+      أخرى: "📎",
+    };
+
+    // تجميع حسب القسم
+    const grouped = {};
+    for (const [key, val] of Object.entries(data.specs)) {
+      let found = false;
+      for (const [section, keywords] of Object.entries(sections)) {
+        if (keywords.some((k) => key.includes(k))) {
+          (grouped[section] ??= []).push({ key, val });
+          found = true;
+          break;
+        }
+      }
+      if (!found) (grouped["أخرى"] ??= []).push({ key, val });
+    }
+
+    const tabs = Object.keys(sections);
+    const navTabs = tabs.map((tab, i) => `
+      <li class="nav-item" role="presentation">
+        <button class="nav-link ${i === 0 ? "active" : ""}" id="tab-${i}" data-bs-toggle="tab" data-bs-target="#content-${i}" type="button" role="tab">
+          ${icons[tab] || ""} ${tab}
+        </button>
+      </li>
+    `).join("");
+
+    const tabContents = tabs.map((tab, i) => {
+      if (tab === "نظرة عامة") {
+        const mainImage = phoneImg || data.img || "https://telfonak.com/wp-content/uploads/2023/12/huawei-y9-prime-2019.webp";
+
+        const featureCards = [
+          {
+            key: "الشاشة",
+            val: (() => {
+              const screenRaw = data.specs["الشاشة"] || "غير محددة";
+              if (screenRaw === "غير محددة") return screenRaw;
+
+              const typeMatch = screenRaw.match(/(IPS\s*LCD|AMOLED|OLED|Super\s*AMOLED|LTPO|PLS|TFT)/i);
+              const type = typeMatch ? typeMatch[0].replace(/\s+/g, " ").trim().toUpperCase() : "";
+
+              const sizeMatch = screenRaw.match(/(\d+(\.\d+)?)\s*(بوصة|بوصه|inch|")/i);
+              const size = sizeMatch ? `${sizeMatch[1]} بوصة` : "";
+
+              let res = "";
+              if (/FHD/i.test(screenRaw)) res = "بدقة FHD+";
+              else if (/HD\+/i.test(screenRaw)) res = "بدقة HD+";
+              else if (/QHD/i.test(screenRaw)) res = "بدقة QHD+";
+              else if (/UHD|4K/i.test(screenRaw)) res = "بدقة 4K";
+              else {
+                const resMatch = screenRaw.match(/(\d{3,4})\s*[x×]\s*(\d{3,4})/i);
+                if (resMatch) {
+                  const width = Math.max(resMatch[1], resMatch[2]);
+                  res = width >= 2000 ? "بدقة FHD+" : "بدقة HD+";
+                }
+              }
+              if (type || size || res) {
+                return `${type}${type && size ? " بحجم " : ""}${size}${(type || size) && res ? " " : ""}${res}`.trim();
+              } else {
+                return screenRaw;
+              }
+            })(),
+            icon: "aps-icon-mobile",
+          },
+          { key: "المعالج", val: data.specs["المعالج"] || "غير محدد", icon: "aps-icon-cpu" },
+          {
+            key: "الكاميرات",
+            val: (() => {
+              const backRaw = data.specs["كاميرا خلفية"] || data.specs["الكاميرا الخلفية"] || "";
+              const frontRaw = data.specs["كاميرا امامية"] || data.specs["الكاميرا الأمامية"] || "";
+              const extractMP = (text) => {
+                const matches = text.match(/(\d+)\s*(?:ميجا|م\.ب)/g);
+                if (!matches) return "غير محددة";
+                const clean = matches.map((m) => m.replace(/\D/g, ""));
+                return clean.join("+") + " م.ب";
+              };
+              const back = extractMP(backRaw);
+              const front = extractMP(frontRaw);
+              if (back !== "غير محددة" && front !== "غير محددة") {
+                return `خلفية ${back} / أمامية ${front}`;
+              } else if (back !== "غير محددة") {
+                return `خلفية ${back}`;
+              } else if (front !== "غير محددة") {
+                return `أمامية ${front}`;
+              } else {
+                return "غير محددة";
+              }
+            })(),
+            icon: "aps-icon-camera",
+          },
+          {
+            key: "الذاكرة + الرام",
+            val: (() => {
+              const storageKey = Object.keys(data.specs).find((k) => /ذاكرة|تخزين|داخلية/i.test(k)) || "";
+              const ramKey = Object.keys(data.specs).find((k) => /رام|الرامات|عشوائية/i.test(k)) || "";
+              const storage = storageKey ? data.specs[storageKey].replace(/\s*\.\s*$/, "") : "";
+              const ram = ramKey ? data.specs[ramKey].replace(/\s*\.\s*$/, "") : "";
+              if (storage && ram) return `${storage} + ${ram}`;
+              else if (storage) return storage;
+              else if (ram) return ram;
+              else return "غير محددة";
+            })(),
+            icon: "aps-icon-hdd",
+          },
+          { key: "نظام التشغيل", val: data.specs["نظام التشغيل"] || "غير محدد", icon: "aps-icon-code" },
+          {
+            key: "البطارية",
+            val: (() => {
+              const capacity = data.specs["سعة البطارية"] || data.specs["Battery Capacity"] || "";
+              const charging = data.specs["قدرة الشحن"] || data.specs["الشحن"] || "";
+              if (!capacity && !charging) return "غير محددة";
+              const capClean = capacity.replace(/ملي|مللي|mAh/gi, "").trim().replace(/\.+$/, "") + " م.أ";
+              const chargeClean = charging.replace(/واط|W/gi, "").trim().replace(/\.+$/, "") + " واط";
+              if (capacity && charging) return `${capClean} / ${chargeClean}`;
+              if (capacity) return capClean;
+              if (charging) return chargeClean;
+              return "غير محددة";
+            })(),
+            icon: "aps-icon-battery",
+          },
+        ];
+
+        const cardsHtml = featureCards.map(item => `
+          <div class="col-12 col-md-6">
+            <div class="aps-feature-card">
+              <div class="aps-list-icon ${item.icon}"></div>
+              <div class="aps-feature-info text-center mt-2">
+                <strong>${item.key}</strong><br>
+                <span>${item.val}</span>
+              </div>
+            </div>
+          </div>
+        `).join("");
+
+        return `
+          <div class="tab-pane fade show active" id="content-${i}" role="tabpanel">
+            <div class="d-flex flex-column flex-lg-row align-items-center gap-4">
+              <div class="text-center flex-shrink-0">
+                <div class="aps-main-image mb-3">
+                  <img fetchpriority="high" class="aps-image-zoom rounded shadow-sm" src="${mainImage}" style="width:100%; max-width:400px;" alt="${data.title}">
+                  <div class="aps-img-loader"><span class="aps-loader"></span></div>
+                </div>
+                <h4 class="fw-bold mt-2">${data.title}</h4>
+              </div>
+              <div class="flex-grow-1 w-100">
+                <div class="row g-3 justify-content-start">
+                  ${cardsHtml}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+if (tab === "السعر") {
+  const prices = data.prices || [];
+
+  if (!prices.length) {
+    return `
+      <div class="tab-pane fade" id="content-${i}" role="tabpanel">
+        <div class="alert alert-warning text-center fs-5">❌ لا توجد معلومات عن الأسعار.</div>
+      </div>`;
+  }
+
+  const countryInfo = {
+    "مصر": { flag: "🇪🇬", currency: "جنيه" },
+    "السعودية": { flag: "🇸🇦", currency: "ريال" },
+    "الإمارات": { flag: "🇦🇪", currency: "درهم" },
+    "الكويت": { flag: "🇰🇼", currency: "دينار" },
+    "قطر": { flag: "🇶🇦", currency: "ريال" },
+    "الأردن": { flag: "🇯🇴", currency: "دينار" },
+    "العراق": { flag: "🇮🇶", currency: "دينار" },
+    "المغرب": { flag: "🇲🇦", currency: "درهم" },
+    "تونس": { flag: "🇹🇳", currency: "دينار" },
+    "الجزائر": { flag: "🇩🇿", currency: "دينار" },
+    "عُمان": { flag: "🇴🇲", currency: "ريال" },
+    "البحرين": { flag: "🇧🇭", currency: "دينار" },
+    "اليمن": { flag: "🇾🇪", currency: "ريال" },
+    "دولار": { flag: "💵", currency: "دولار" },
+  };
+
+const cardsHtml = prices.map(({ country, price }) => {
+  const info = countryInfo[country] || { flag: "🌍", currency: "" };
+  return `
+    <div class="price-card">
+      <h5 class="price-country">${info.flag} ${escapeHtml(country)}</h5>
+      <p class="price-value">${escapeHtml(price)}</p>
+    </div>
+  `;
+}).join("");
+
+return `
+  <div class="tab-pane fade" id="content-${i}" role="tabpanel">
+    <div class="price-cards-container">
+      ${cardsHtml}
+    </div>
+  </div>
+`;
+      }
+
+
+      const sectionItems = grouped[tab]?.length
+        ? grouped[tab].map(item => `<li class="list-group-item d-flex justify-content-between align-items-center"><strong>${item.key}</strong><span>${item.val}</span></li>`).join("")
+        : "<li class='list-group-item text-center text-muted'>❌ لا توجد بيانات متاحة.</li>";
+
+      return `<div class="tab-pane fade" id="content-${i}" role="tabpanel"><ul class="list-group list-group-flush">${sectionItems}</ul></div>`;
+    }).join("");
+
+    modalBody.innerHTML = `
+      <ul class="nav nav-tabs justify-content-center flex-wrap" id="specTabs" role="tablist">${navTabs}</ul>
+      <div class="tab-content p-3 border border-top-0 rounded-bottom bg-light mt-1" id="specTabsContent">${tabContents}</div>
+    `;
+
+    // إظهار المودال
+    new bootstrap.Modal(document.getElementById("specsModal")).show();
+
+  } catch (err) {
+    console.error(err);
+    modalBody.innerHTML = `<div class='alert alert-danger text-center'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
+  }
+}
+
+/* دالة لتوليد عناصر الكروت (مستخدمة من renderFilteredResults) */
+function renderCardsForItems(items, highlightQuery = "") {
+  const makeTitle = (text) => text ?? "";
+  const mark = (text) => text;
+
+  let html = "<div class='row justify-content-start g-3'>";
+  for (const item of items) {
+    const title = makeTitle(item.title) ;
+    const chipset = item.chipset || 'غير محدد';
+    const model = Array.isArray(item.model) ? item.model.join(', ') : (item.model || '');
+
+    html += `
+      <div class="col-lg-custom d-flex justify-content-center">
+        <div class="card result-item" data-url="${item.link}" data-img="${item.img || ''}">
+          <div class="imgBox">
+            <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${escapeHtml(item.title || '')}">
+          </div>
+          <div class="content text-center">
+            <div class="fw-bold" style="margin-top:110px;font-size:1.2rem;color:#222;">${escapeHtml(title)}</div>
+            <div class="subtitle" style="font-size:1rem;color:#555;margin-top:5px;">${escapeHtml(chipset)}</div>
+            <div class="modelsTitle" style="font-size:0.85rem;color:#666;margin-top:10px;">${escapeHtml(model)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  html += "</div>";
+  return html;
+}
+
+/* حماية بسيطة من XSS للـ alt/text */
+function escapeHtml(unsafe) {
+  return (unsafe === null || unsafe === undefined) ? "" : String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/* دالة إعادة الرسم + التظليل + التصفح (تتعامل مع results كقائمة) */
+function renderFilteredResults(results, totalMatched = results.length, highlightQuery = "") {
+  resultDiv.innerHTML = "";
+  paginationEl.innerHTML = "";
+
+  if (!Array.isArray(results) || results.length === 0) {
+    resultDiv.innerHTML = `<div class="text-center text-muted p-4">❌ لا توجد نتائج مطابقة.</div>`;
+    resultInfoEl.textContent = "عدد النتائج: 0";
+    return;
+  }
+
+  const totalAll = allResults.length || results.length;
+  const itemsPerPage = 20;
+  let currentPage = 1;
+  const totalPages = Math.ceil(results.length / itemsPerPage);
+
+  function renderPage(page) {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageItems = results.slice(start, end);
+
+    resultDiv.innerHTML = renderCardsForItems(pageItems);
+
+    // عند الضغط على بطاقة
+    document.querySelectorAll(".result-item").forEach(card => {
+      card.addEventListener("click", () => {
+        const phoneUrl = card.getAttribute("data-url");
+        const phoneImg = card.getAttribute("data-img") || "";
+        new bootstrap.Modal(document.getElementById("specsModal")).show();
+        getDetails(phoneUrl, phoneImg);
       });
-      if (!resSearch.ok) continue;
-      const html = await resSearch.text();
-      const $ = cheerio.load(html);
+    });
 
-      // تحديد عدد الصفحات
-      const pagination = $(".page-numbers, .nav-links a.page-numbers")
-        .map((_, el) => parseInt($(el).text().trim()))
-        .get()
-        .filter((n) => !isNaN(n));
-      const totalPages = pagination.length ? Math.max(...pagination) : 1;
-
-      // إنشاء روابط كل الصفحات
-      const pageUrls = Array.from({ length: totalPages }, (_, i) =>
-        i === 0
-          ? searchUrl
-          : `${baseUrl}/page/${i + 1}/?s=${encodeURIComponent(
-              searchUrl.split("=")[1]
-            )}`
-      );
-
-      // تحميل كل الصفحات
-      for (let i = 0; i < pageUrls.length; i += CONCURRENCY_LIMIT) {
-        const chunk = pageUrls.slice(i, i + CONCURRENCY_LIMIT);
-        const results = await Promise.allSettled(
-          chunk.map(async (url) => {
-            const resPage = await fetch(url, {
-              headers: { "User-Agent": "Mozilla/5.0" },
-            });
-            if (!resPage.ok) return [];
-            const html = await resPage.text();
-            const $ = cheerio.load(html);
-            const phones = [];
-
-            $(".media, .post, article").each((_, el) => {
-              const link = $(el).find("a.image-link").attr("href");
-              const title = $(el).find("a.image-link").attr("title");
-              const img =
-                $(el).find("span.img").attr("data-bgsrc") ||
-                $(el).find("img").attr("src");
-              if (link && title) phones.push({ title, link, img });
-            });
-
-            console.log(`📄 ${url} ➜ ${phones.length} هواتف`);
-            return phones;
-          })
-        );
-
-        for (const result of results) {
-          if (result.status === "fulfilled" && Array.isArray(result.value))
-            allPhones.push(...result.value);
-        }
-
-        await delay(300);
-      }
-    }
-
-  console.log(`🚀 بدء البحث عن "${searchKey}" في telfonak.com`);
-
-  // 🧠 جلب أول صفحة لتحديد عدد الصفحات الكلي
-  const firstUrl = `${baseUrl}/?s=${encodeURIComponent(searchKey)}`;
-  const firstRes = await fetch(firstUrl, {
-    headers: { "User-Agent": "Mozilla/5.0" },
-  });
-
-  if (!firstRes.ok)
-    return res.status(500).json({ error: "فشل تحميل الصفحة الأولى." });
-
-  const firstHtml = await firstRes.text();
-  const $ = cheerio.load(firstHtml);
-
-  // 🔢 تحديد عدد الصفحات (إن وُجد ترقيم)
-  const pagination = $(".page-numbers, .nav-links a.page-numbers")
-    .map((_, el) => parseInt($(el).text().trim()))
-    .get()
-    .filter((n) => !isNaN(n));
-  const totalPages = pagination.length ? Math.max(...pagination) : 1;
-
-  console.log(`📄 عدد الصفحات الكلي: ${totalPages}`);
-
-  // 🌀 إنشاء روابط كل الصفحات
-  const allPageUrls = Array.from({ length: totalPages }, (_, i) =>
-    i === 0
-      ? firstUrl
-      : `${baseUrl}/page/${i + 1}/?s=${encodeURIComponent(searchKey)}`
-  );
-
- 
-
-  for (const chunk of pageChunks) {
-    const chunkResults = await Promise.allSettled(
-      chunk.map(async (url) => {
-        try {
-          const resPage = await fetch(url, {
-            headers: { "User-Agent": "Mozilla/5.0" },
-          });
-          if (!resPage.ok) return [];
-
-          const html = await resPage.text();
-          const $ = cheerio.load(html);
-
-          const results = [];
-          $(".media, .post, article").each((_, el) => {
-            const link = $(el).find("a.image-link").attr("href");
-            const title = $(el).find("a.image-link").attr("title");
-            const img =
-              $(el).find("span.img").attr("data-bgsrc") ||
-              $(el).find("img").attr("src");
-            if (link && title) results.push({ link, title, img });
-          });
-
-          console.log(`📃 صفحة: ${url} ➜ ${results.length} نتيجة`);
-          return results;
-        } catch {
-          return [];
-        }
-      })
-    );
-
-    for (const result of chunkResults) {
-      if (result.status === "fulfilled" && Array.isArray(result.value)) {
-        allPhones.push(...result.value);
-      }
-    }
-
-    await delay(200); // تأخير بسيط بين الدُفعات لتجنب الحظر
+    resultInfoEl.textContent = `عدد النتائج: ${totalAll} | الصفحة ${page} من ${totalPages} | عرض متطابق: ${totalMatched}`;
   }
 
-  console.log(`📱 إجمالي النتائج الأولية: ${allPhones.length}`);
+  function renderPagination() {
+    if (totalPages <= 1) { paginationEl.innerHTML = ""; return; }
 
-  // 🧹 إزالة التكرارات بسرعة
-  const uniquePhones = Array.from(
-    new Map(allPhones.map((p) => [p.link, p])).values()
-  );
+    let html = `<nav><ul class="pagination justify-content-center flex-wrap">`;
 
-  console.log(`🧩 بعد إزالة التكرار: ${uniquePhones.length}`);
+    html += `<li class="page-item ${currentPage === 1 ? "disabled" : ""}">
+               <a class="page-link" href="#" data-page="${currentPage - 1}">السابق</a></li>`;
 
-  // 🔍 جلب تفاصيل الهواتف بالتوازي
-  const details = [];
-  const detailChunks = [];
-  for (let i = 0; i < uniquePhones.length; i += CONCURRENCY_LIMIT) {
-    detailChunks.push(uniquePhones.slice(i, i + CONCURRENCY_LIMIT));
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<li class="page-item ${i === currentPage ? "active" : ""}">
+                 <a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+    }
+
+    html += `<li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
+               <a class="page-link" href="#" data-page="${currentPage + 1}">التالي</a></li>`;
+
+    html += "</ul></nav>";
+    paginationEl.innerHTML = html;
+
+    paginationEl.querySelectorAll("a.page-link").forEach(link => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const p = parseInt(link.getAttribute("data-page"));
+        if (p >= 1 && p <= totalPages) {
+          currentPage = p;
+          renderPage(currentPage);
+          renderPagination();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+    });
   }
 
-  let processed = 0;
+  renderPage(currentPage);
+  renderPagination();
+}
 
-  for (const batch of detailChunks) {
-    const batchResults = await Promise.allSettled(
-      batch.map(async ({ link, title, img }) => {
-        try {
-          const phoneRes = await fetch(link, {
-            headers: { "User-Agent": "Mozilla/5.0" },
-          });
-          if (!phoneRes.ok) return null;
+/* ========== حدث الإرسال الرئيسي: جلب البيانات ثم العرض ========== */
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const phone = input.value.trim();
+  if (!phone) return;
 
-          const html = await phoneRes.text();
-          const $ = cheerio.load(html);
-// 🟢 جلب الأسعار من الصفحة
-let prices = [];
-$(".bs-shortcode-list li, .telfon-price tr").each((_, el) => {
-  const country =
-    $(el).find("strong").text().trim() ||
-    $(el).find("td:first-child").text().trim();
-  const price =
-    $(el).find("span").text().trim() ||
-    $(el).find("td:last-child").text().trim();
+  // تنظيف العرض القديم
+  resultInfoEl.textContent = "";
+  paginationEl.innerHTML = "";
+  resultDiv.innerHTML = "";
 
-  if (country && price) {
-    prices.push({ country, price });
+  // رسالة تحميل
+  resultDiv.innerHTML = `
+    <div class="d-flex flex-column justify-content-center align-items-center py-5" style="min-height: 300px;">
+      <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">جاري البحث...</span>
+      </div>
+      <div class="text-center text-secondary fs-5">
+        🔍 جاري البحث عن <strong>${escapeHtml(phone)}</strong>...
+      </div>
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`/api/${encodeURIComponent(phone)}`);
+    const data = await res.json();
+
+    if (data.error) {
+      resultDiv.innerHTML = `<div class='alert alert-danger'>❌ ${escapeHtml(data.error)}</div>`;
+      return;
+    }
+
+    // تخزين النتائج
+    allResults = Array.isArray(data.results) ? data.results : [];
+
+    // إذا كانت الاستجابة تعيد وضع التفاصيل مباشرة
+    if (data.mode === "details") {
+      // عرض مواصفات مفردة
+      let specsHtml = "";
+      if (data.specs && typeof data.specs === "object") {
+        for (const [key, val] of Object.entries(data.specs)) {
+          specsHtml += `<li class="list-group-item"><strong>${escapeHtml(key)}:</strong> ${escapeHtml(val)}</li>`;
+        }
+      }
+      resultDiv.innerHTML = `
+        <div class="card p-3 shadow-sm">
+          <h5 class="text-center mb-3 fw-bold text-primary">${escapeHtml(data.title || "")}</h5>
+          <img src="${escapeHtml(data.img || '')}" class="rounded mx-auto d-block mb-3" style="max-width:260px;">
+          <ul class="list-group list-group-flush">${specsHtml}</ul>
+          <button class="btn btn-primary mt-3 w-100" onclick="getDetails('${escapeJsArg(data.link || "")}', '${escapeJsArg(data.img || "")}')">عرض التفاصيل الكاملة</button>
+        </div>
+      `;
+      return;
+    }
+
+    // الحالة الافتراضية: عرض قائمة (mode list أو undefined)
+    renderFilteredResults(allResults, allResults.length);
+
+  } catch (err) {
+    console.error(err);
+    resultDiv.innerHTML = `<div class='alert alert-danger'>⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
   }
 });
 
-          // 🔹 استخراج المعالج
-          let fullChipset =
-            $("tr:contains('المعالج') td.aps-attr-value span").text().trim() ||
-            $("tr:contains('المعالج') td.aps-attr-value").text().trim() ||
-            "";
-          fullChipset = fullChipset.replace(/\s+/g, " ").trim();
+/* تلميحات مخصصة (tooltip popup عند الضغط على badge) */
+document.addEventListener("click", (e) => {
+  const badge = e.target.closest(".chipset-badge, .model-badge");
+  if (!badge) return;
 
-          let shortChipset = fullChipset;
-          if (fullChipset) {
-            fullChipset = fullChipset
-              .replace(/ثماني النواة|سداسي النواة|رباعي النواة|ثنائي النواة/gi, "")
-              .replace(/[\(\)\-\–\,]/g, " ")
-              .replace(/\b\d+(\.\d+)?\s*GHz\b/gi, "")
-              .replace(/\b\d+\s*nm\b/gi, "")
-              .replace(/\s+/g, " ")
-              .trim();
-            const match = fullChipset.match(/[A-Za-z\u0600-\u06FF]+\s*[A-Za-z0-9\-]+/);
-            shortChipset = match ? match[0].trim() : fullChipset;
-          }
+  const tooltipText = badge.getAttribute("data-tooltip");
+  if (!tooltipText) return;
 
-          // 🔹 استخراج الموديل / الإصدار
-          const modelRow =
-            $("tr:contains('الموديل / الطراز') td.aps-attr-value span").text().trim() ||
-            $("tr:contains('الإصدار') td.aps-attr-value").text().trim() ||
-            $("tr:contains('الموديل') td.aps-attr-value").text().trim() ||
-            "";
-          const modelArray = modelRow ? modelRow.split(",").map((m) => m.trim()) : [];
+  // إزالة أي تلميحات مفتوحة مسبقًا
+  document.querySelectorAll(".tooltip-popup").forEach((el) => el.remove());
 
-          processed++;
-          console.log(`📦 (${processed}/${uniquePhones.length}) ${title}`);
+  // إنشاء التلميح
+  const tooltip = document.createElement("div");
+  tooltip.className = "tooltip-popup";
+  tooltip.textContent = tooltipText;
+  document.body.appendChild(tooltip);
 
-          return {
-            title,
-            link,
-            img,
-            chipset: shortChipset || "غير محدد",
-            model: modelArray.join(", "),
-            modelArray,
-       prices, // ← تمت الإضافة هنا
-            source: "telfonak.com",
-          };
-        } catch {
-          return null;
-        }
-      })
-    );
+  // تحديد موقع التلميح
+  const rect = badge.getBoundingClientRect();
+  tooltip.style.position = "absolute";
+  tooltip.style.top = `${rect.bottom + window.scrollY + 10}px`;
+  tooltip.style.left = `${rect.left + window.scrollX}px`;
+  tooltip.style.padding = "8px 12px";
+  tooltip.style.background = "#333";
+  tooltip.style.color = "#fff";
+  tooltip.style.borderRadius = "6px";
+  tooltip.style.fontSize = "13px";
+  tooltip.style.zIndex = "9999";
+  tooltip.style.transition = "opacity .25s";
+  tooltip.style.opacity = "1";
 
-    for (const result of batchResults) {
-      if (result.status === "fulfilled" && result.value)
-        details.push(result.value);
+  // إغلاق التلميح عند الضغط خارج العنصر
+  const closeTooltip = (ev) => {
+    if (!tooltip.contains(ev.target) && ev.target !== badge) {
+      tooltip.remove();
+      document.removeEventListener("click", closeTooltip);
     }
+  };
+  document.addEventListener("click", closeTooltip);
+});
 
-    await delay(200);
-  }
-
-  // 🔎 فلترة النتائج وتنظيفها
-  const term = searchKey.toLowerCase();
-  const filtered = details.filter(
-    (item) =>
-      item.title.toLowerCase().includes(term) ||
-      item.modelArray.some((m) => m.toLowerCase().includes(term))
-  );
-
-  // إزالة التكرارات النهائية
-  const uniqueResults = Array.from(
-    new Map(
-      filtered.map((r) => [`${r.title.toLowerCase()}|${r.model.toLowerCase()}`, r])
-    ).values()
-  );
-
-  // 🧠 تخزين في الكاش
-  cache.set(searchKey, { data: uniqueResults, timestamp: Date.now() });
-
-  const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
-  console.log(`✅ اكتمل البحث في ${timeTaken} ثانية — ${uniqueResults.length} نتيجة`);
-
-  return res.status(200).json({
-    total: uniqueResults.length,
-    totalPages,
-    timeTaken,
-    results: uniqueResults,
-    cached: false,
+/* ربط قائمة الماركات (<select>) بمربع البحث */
+if (brandDropdown) {
+  brandDropdown.addEventListener("change", () => {
+    const selectedBrand = brandDropdown.options[brandDropdown.selectedIndex].text || "";
+    input.value = selectedBrand;
+    input.focus();
+    // تنفيذ البحث فور الاختيار
+    form.requestSubmit();
   });
-}   
+}
+
+/* منع Enter في حقلي البحث الرئيسى والبحث عن الماركة من إعادة تحميل الصفحة */
+document.addEventListener("keydown", function (e) {
+  if ((e.target.id === "phoneInput" || e.target.id === "brand-search") && e.key === "Enter") {
+    e.preventDefault();
+    return false;
+  }
+});
+
+/* منع Enter في brand-search تحديدًا (حماية إضافية) */
+if (brandSearchInput) {
+  brandSearchInput.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") e.preventDefault();
+  });
+}
+
+/* دالة لإعداد النتائج من مصدر خارجي (إذا أردت استخدامها لاحقًا) */
+function setResults(results) {
+  allResults = results || [];
+}
+
+/* دالة فلترة عامة */
+function filterResults(query) {
+  if (!Array.isArray(allResults) || allResults.length === 0) return;
+  const q = (query || "").trim().toLowerCase();
+
+  const filtered = allResults.filter(item => {
+    const title = (item.title || "").toLowerCase();
+    const chipset = (item.chipset || "").toLowerCase();
+    const models = Array.isArray(item.model) ? item.model.join(", ").toLowerCase() : (item.model || "").toLowerCase();
+    return q === "" || title.includes(q) || chipset.includes(q) || models.includes(q);
+  });
+
+  renderFilteredResults(filtered, filtered.length, q);
+}
+
+
+const convBox = document.getElementById("brand-conversions");
+const origEl = document.getElementById("conv-orig");
+const map1El = document.getElementById("conv-map1");
+const map2El = document.getElementById("conv-map2");
+const map3El = document.getElementById("conv-map3");
+
+const keyboardMap1 = {
+  'ض':'q','ص':'w','ث':'e','ق':'r','ف':'t','غ':'y','ع':'u','ه':'i','خ':'o','ح':'p',
+  'ج':'[','د':']','ش':'a','س':'s','ي':'d','ب':'f','ل':'g','ا':'h','ت':'j','ن':'k',
+  'م':'l','ك':';','ط':'z','ئ':'x','ء':'c','ؤ':'v','ر':'b','لا':'n','ى':'m','ة':',','و':'.','ز':'/','ظ':'`'
+};
+const keyboardMap2 = {
+  'ض':'q','ص':'w','ث':'e','ق':'r','ف':'t','غ':'y','ع':'u','ه':'i','خ':'o','ح':'p',
+  'ج':'[','د':'a','ش':'s','س':'d','ي':'f','ب':'g','ل':'h','ا':'j','ت':'k','ن':'l',
+  'م':';','ك':'\'','ط':'z','ئ':'x','ء':'c','ؤ':'v','ر':'b','لا':'n','ى':'m','ة':',','و':'.','ز':'/','ظ':'`'
+};
+const phoneticMap = {
+  'ا':'a','ب':'b','ت':'t','ث':'th','ج':'j','ح':'h','خ':'kh','د':'d','ذ':'dh','ر':'r',
+  'ز':'z','س':'s','ش':'sh','ص':'s','ض':'d','ط':'t','ظ':'z','ع':'a','غ':'gh','ف':'f',
+  'ق':'q','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y','ء':"'",'ة':'h','ى':'a'
+};
+
+function convertUsingMap(text, map) {
+  return text.split('').map(ch => map[ch] || ch).join('');
+}
+
+function smartConvert(txt, map) {
+  // نحول كل الأحرف العربية فقط حسب الخريطة، ونترك الأرقام والرموز كما هي
+  return txt.split('').map(ch => {
+    const isArabic = /[\u0600-\u06FF]/.test(ch);
+    return isArabic ? (map[ch] || ch) : ch;
+  }).join('');
+}
+
+
+function showConversions(txt, c1, c2, c3) {
+  origEl.textContent = txt;
+  map1El.textContent = c1;
+  map2El.textContent = c2;
+  map3El.textContent = c3;
+  convBox.classList.add("show");
+}
+
+function hideConversions() {
+  convBox.classList.remove("show");
+  setTimeout(() => { convBox.style.display = "none"; }, 400);
+}
+
+/* فلترة فورية مع التحويلات */
+let debounceTimer;
+if (brandSearchInput) {
+  brandSearchInput.addEventListener("input", (e) => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const txt = e.target.value.trim().toLowerCase();
+
+      if (!txt) {
+        hideConversions();
+        if (typeof filterResults === "function") filterResults("");
+        return;
+      }
+
+      // 🔹 استخدام smartConvert بدلاً من convertUsingMap
+      const conv1 = smartConvert(txt, keyboardMap1).toLowerCase();
+      const conv2 = smartConvert(txt, keyboardMap2).toLowerCase();
+      const conv3 = smartConvert(txt, phoneticMap).toLowerCase();
+
+      convBox.style.display = "block";
+      requestAnimationFrame(() => showConversions(txt, conv1, conv2, conv3));
+
+      const candidates = [txt, conv1, conv2, conv3].filter(Boolean);
+
+      if (typeof filterResults === "function" && Array.isArray(allResults)) {
+        const merged = candidates.flatMap(q =>
+          allResults.filter(item => {
+            const title = (item.title || "").toLowerCase();
+            const chipset = (item.chipset || "").toLowerCase();
+            const models = Array.isArray(item.model)
+              ? item.model.join(", ").toLowerCase()
+              : (item.model || "").toLowerCase();
+            return title.includes(q) || chipset.includes(q) || models.includes(q);
+          })
+        );
+        const unique = Array.from(new Set(merged.map(r => r.title)))
+          .map(title => merged.find(r => r.title === title));
+        renderFilteredResults(unique, unique.length, txt);
+      }
+    }, 100);
+  });
+}
+
+/* زر الفلترة */
+if (brandSearchBtn) {
+  brandSearchBtn.addEventListener("click", function() {
+    const query = brandSearchInput ? brandSearchInput.value.trim() : "";
+    if (query) brandSearchInput.dispatchEvent(new Event("input"));
+  });
+}
+
+/* زر المسح */
+if (brandClearBtn) {
+  brandClearBtn.addEventListener("click", function() {
+    if (brandSearchInput) brandSearchInput.value = "";
+    hideConversions();
+    if (typeof filterResults === "function") filterResults("");
+  });
+}
+
+/* مساعدة لتهيئة قيم داخل onclick مع اقتباسات آمنة */
+function escapeJsArg(s) {
+  return String(s || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+</script>
+
+<!-- Bootstrap JS (مضمن مرة واحدة في أسفل الصفحة) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  </body>
+</html>
+
