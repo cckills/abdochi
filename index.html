@@ -1092,6 +1092,27 @@ if (brandClearBtn) {
 function escapeJsArg(s) {
   return String(s || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
+
+
+  // عند تحميل الصفحة: جلب كل البيانات وعرضها
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    // جلب جميع البيانات من API عام (ضع رابط الـ API الصحيح هنا)
+    const res = await fetch('/api/all'); // مثال: API يعيد كل الهواتف
+    const data = await res.json();
+
+    if (Array.isArray(data.results)) {
+      allResults = data.results;       // حفظ كل النتائج في المتغير العام
+      renderFilteredResults(allResults, allResults.length); // عرض الكل مباشرة
+    } else {
+      resultDiv.innerHTML = `<div class="text-center p-4 text-muted">❌ لا توجد بيانات للعرض.</div>`;
+    }
+  } catch (err) {
+    console.error(err);
+    resultDiv.innerHTML = `<div class="text-center p-4 text-danger">⚠️ حدث خطأ أثناء جلب البيانات.</div>`;
+  }
+});
+
 </script>
 
 <!-- Bootstrap JS (مضمن مرة واحدة في أسفل الصفحة) -->
@@ -1099,4 +1120,5 @@ function escapeJsArg(s) {
 
   </body>
 </html>
+
 
