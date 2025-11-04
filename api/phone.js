@@ -4,6 +4,7 @@ const cache = new Map();
 const CACHE_TTL = 1000 * 60 * 60; // ساعة
 const CONCURRENCY_LIMIT = 20; // عدد الطلبات المتوازية (يمكن تعديله)
 const baseUrl = "https://telfonak.com";
+const brandList = ["samsung", "apple", "xiaomi", "oppo", "huawei", "realme", "vivo", "honor", "infinix"];
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -230,3 +231,4 @@ $(".bs-shortcode-list li, .telfon-price tr").each((_, el) => {
     cached: false,
   });
 }
+
